@@ -1,0 +1,7 @@
+(sym_lib_table
+  (lib (name SharedLibrary)(type Legacy)(uri C:/Users/jonbro/Documents/Projects/teensy_op/SharedLibrary.lib)(options "")(descr ""))
+  (lib (name Adafruit_PAM8302-eagle-import)(type Legacy)(uri ${KIPRJMOD}/Adafruit_PAM8302-eagle-import.lib)(options "")(descr ""))
+  (lib (name tdm_mainboard-eagle-import)(type Legacy)(uri ${KIPRJMOD}/tdm_mainboard-eagle-import.lib)(options "")(descr ""))
+  (lib (name SJ2-35043C-SMT-TR)(type Legacy)(uri C:/Users/jonbro/Documents/Projects/teensy_op/SJ2-35043C-SMT-TR.lib)(options "")(descr ""))
+  (lib (name tdm_mainboard-rescue)(type Legacy)(uri ${KIPRJMOD}/tdm_mainboard-rescue.lib)(options "")(descr ""))
+)

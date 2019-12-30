@@ -1,0 +1,6 @@
+(fp_lib_table
+  (lib (name myLib)(type KiCad)(uri C:/Users/jonbro/Documents/Projects/teensy_op/tdm_mainboard/Mylib)(options "")(descr ""))
+  (lib (name SJ1-3534)(type Legacy)(uri C:/Users/jonbro/Documents/Projects/nornhat/footprints/SJ1-3534.mod)(options "")(descr ""))
+  (lib (name SJ2-35043C-SMT-TR)(type Legacy)(uri C:/Users/jonbro/Documents/Projects/teensy_op/SJ2-35043C-SMT-TR.mod)(options "")(descr ""))
+  (lib (name Connector_PinSocket_2.54mm)(type KiCad)(uri C:/Users/jonbro/Documents/kicadLibraries/Connector_PinSocket_2.54mm.pretty)(options "")(descr ""))
+)

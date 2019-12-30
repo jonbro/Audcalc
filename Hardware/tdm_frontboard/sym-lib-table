@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name teensy)(type Legacy)(uri C:/Users/jonbro/Documents/kicadLibrary/teensy_library-master/teensy.lib)(options "")(descr ""))
+)

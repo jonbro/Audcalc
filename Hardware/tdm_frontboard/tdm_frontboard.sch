@@ -1,0 +1,2089 @@
+EESchema Schematic File Version 4
+LIBS:teensyOp-cache
+EELAYER 29 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "2019-09-14"
+Rev "1"
+Comp "Jonathan Brodsky"
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Device:D D6
+U 1 1 5D7DD35C
+P 1800 2400
+F 0 "D6" H 1800 2616 50  0000 C CNN
+F 1 "D" H 1800 2525 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 1800 2400 50  0001 C CNN
+F 3 "~" H 1800 2400 50  0001 C CNN
+	1    1800 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2000 1800 2100 1800
+Wire Wire Line
+	2100 1800 2100 2400
+Wire Wire Line
+	2100 2400 1950 2400
+Wire Wire Line
+	1650 2400 1400 2400
+Wire Wire Line
+	1500 1800 1500 1550
+Wire Wire Line
+	1950 2100 2150 2100
+Wire Wire Line
+	2150 2100 2150 1450
+Wire Wire Line
+	1650 2100 1300 2100
+$Comp
+L Device:D D7
+U 1 1 5D7E35A7
+P 2800 2400
+F 0 "D7" H 2800 2616 50  0000 C CNN
+F 1 "D" H 2800 2525 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 2800 2400 50  0001 C CNN
+F 3 "~" H 2800 2400 50  0001 C CNN
+	1    2800 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 1800 3100 1800
+Wire Wire Line
+	3100 1800 3100 2400
+Wire Wire Line
+	3100 2400 2950 2400
+Wire Wire Line
+	2650 2400 2400 2400
+Wire Wire Line
+	2600 1800 2500 1800
+Wire Wire Line
+	2500 1800 2500 1550
+Wire Wire Line
+	2950 2100 3150 2100
+Wire Wire Line
+	2650 2100 2300 2100
+$Comp
+L Device:D D8
+U 1 1 5D7E59D1
+P 3800 2400
+F 0 "D8" H 3800 2616 50  0000 C CNN
+F 1 "D" H 3800 2525 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 3800 2400 50  0001 C CNN
+F 3 "~" H 3800 2400 50  0001 C CNN
+	1    3800 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 1800 4100 1800
+Wire Wire Line
+	4100 1800 4100 2400
+Wire Wire Line
+	4100 2400 3950 2400
+Wire Wire Line
+	3650 2400 3400 2400
+Wire Wire Line
+	3600 1800 3500 1800
+Wire Wire Line
+	3500 1800 3500 1550
+Wire Wire Line
+	3950 2100 4150 2100
+Wire Wire Line
+	4150 2100 4150 1450
+Wire Wire Line
+	3650 2100 3300 2100
+$Comp
+L Device:D D9
+U 1 1 5D7E59E6
+P 4800 2400
+F 0 "D9" H 4800 2616 50  0000 C CNN
+F 1 "D" H 4800 2525 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 4800 2400 50  0001 C CNN
+F 3 "~" H 4800 2400 50  0001 C CNN
+	1    4800 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 1800 5100 1800
+Wire Wire Line
+	5100 1800 5100 2400
+Wire Wire Line
+	5100 2400 4950 2400
+Wire Wire Line
+	4650 2400 4400 2400
+Wire Wire Line
+	4600 1800 4500 1800
+Wire Wire Line
+	4500 1800 4500 1550
+Wire Wire Line
+	4950 2100 5150 2100
+Wire Wire Line
+	5150 2100 5150 1450
+Wire Wire Line
+	4650 2100 4300 2100
+$Comp
+L Device:D D10
+U 1 1 5D7EACB6
+P 5800 2400
+F 0 "D10" H 5800 2616 50  0000 C CNN
+F 1 "D" H 5800 2525 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 5800 2400 50  0001 C CNN
+F 3 "~" H 5800 2400 50  0001 C CNN
+	1    5800 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 1800 6100 1800
+Wire Wire Line
+	6100 1800 6100 2400
+Wire Wire Line
+	6100 2400 5950 2400
+Wire Wire Line
+	5650 2400 5400 2400
+Wire Wire Line
+	5600 1800 5500 1800
+Wire Wire Line
+	5500 1800 5500 1550
+Wire Wire Line
+	5950 2100 6150 2100
+Wire Wire Line
+	6150 2100 6150 1450
+Wire Wire Line
+	5650 2100 5300 2100
+Wire Wire Line
+	1150 1550 1500 1550
+Connection ~ 1500 1550
+Wire Wire Line
+	1500 1550 2500 1550
+Connection ~ 2500 1550
+Wire Wire Line
+	2500 1550 3500 1550
+Connection ~ 3500 1550
+Wire Wire Line
+	3500 1550 4500 1550
+Connection ~ 4500 1550
+Wire Wire Line
+	4500 1550 5500 1550
+Wire Wire Line
+	2300 1250 2300 2100
+Wire Wire Line
+	3300 1250 3300 2100
+Wire Wire Line
+	4300 1250 4300 2100
+Wire Wire Line
+	5300 1250 5300 2100
+Text GLabel 1150 1450 0    50   Input ~ 0
+LED_row1
+Text GLabel 1150 2600 0    50   Input ~ 0
+LED_row2
+Text GLabel 1150 1550 0    50   Input ~ 0
+switch_row1
+Text GLabel 1150 2700 0    50   Input ~ 0
+switch_row2
+Text GLabel 1300 1250 1    50   Input ~ 0
+LED_col1
+Text GLabel 1400 1250 1    50   Input ~ 0
+switch_col1
+Text GLabel 2300 1250 1    50   Input ~ 0
+LED_col2
+Text GLabel 2400 1250 1    50   Input ~ 0
+switch_col2
+Text GLabel 3300 1250 1    50   Input ~ 0
+LED_col3
+Text GLabel 3400 1250 1    50   Input ~ 0
+switch_col3
+Text GLabel 4300 1250 1    50   Input ~ 0
+LED_col4
+Text GLabel 4400 1250 1    50   Input ~ 0
+switch_col4
+Text GLabel 5300 1250 1    50   Input ~ 0
+LED_col5
+Text GLabel 5400 1250 1    50   Input ~ 0
+switch_col5
+Text GLabel 1150 6150 0    50   Input ~ 0
+switch_row5
+Text GLabel 1150 3850 0    50   Input ~ 0
+switch_row3
+Text GLabel 1150 5000 0    50   Input ~ 0
+switch_row4
+Text GLabel 1150 3750 0    50   Input ~ 0
+LED_row3
+Text GLabel 1150 4900 0    50   Input ~ 0
+LED_row4
+Text GLabel 1150 6050 0    50   Input ~ 0
+LED_row5
+$Comp
+L Switch:SW_SPST SW1
+U 1 1 5E236C54
+P 1800 1800
+F 0 "SW1" H 1800 2035 50  0000 C CNN
+F 1 "SW_SPST" H 1800 1944 50  0000 C CNN
+F 2 "custom:TS-023E" H 1800 1800 50  0001 C CNN
+F 3 "~" H 1800 1800 50  0001 C CNN
+	1    1800 1800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 1800 1600 1800
+$Comp
+L Switch:SW_SPST SW2
+U 1 1 5E250B81
+P 2800 1800
+F 0 "SW2" H 2800 2035 50  0000 C CNN
+F 1 "SW_SPST" H 2800 1944 50  0000 C CNN
+F 2 "custom:TS-023E" H 2800 1800 50  0001 C CNN
+F 3 "~" H 2800 1800 50  0001 C CNN
+	1    2800 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW3
+U 1 1 5E250E34
+P 3800 1800
+F 0 "SW3" H 3800 2035 50  0000 C CNN
+F 1 "SW_SPST" H 3800 1944 50  0000 C CNN
+F 2 "custom:TS-023E" H 3800 1800 50  0001 C CNN
+F 3 "~" H 3800 1800 50  0001 C CNN
+	1    3800 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW4
+U 1 1 5E25123B
+P 4800 1800
+F 0 "SW4" H 4800 2035 50  0000 C CNN
+F 1 "SW_SPST" H 4800 1944 50  0000 C CNN
+F 2 "custom:TS-023E" H 4800 1800 50  0001 C CNN
+F 3 "~" H 4800 1800 50  0001 C CNN
+	1    4800 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW5
+U 1 1 5E2516B0
+P 5800 1800
+F 0 "SW5" H 5800 2035 50  0000 C CNN
+F 1 "SW_SPST" H 5800 1944 50  0000 C CNN
+F 2 "custom:TS-023E" H 5800 1800 50  0001 C CNN
+F 3 "~" H 5800 1800 50  0001 C CNN
+	1    5800 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D5
+U 1 1 5E2B2440
+P 5800 2100
+F 0 "D5" H 5793 2316 50  0000 C CNN
+F 1 "LED" H 5793 2225 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 5800 2100 50  0001 C CNN
+F 3 "~" H 5800 2100 50  0001 C CNN
+	1    5800 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D4
+U 1 1 5E2B277A
+P 4800 2100
+F 0 "D4" H 4793 2316 50  0000 C CNN
+F 1 "LED" H 4793 2225 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 4800 2100 50  0001 C CNN
+F 3 "~" H 4800 2100 50  0001 C CNN
+	1    4800 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D3
+U 1 1 5E2B29B3
+P 3800 2100
+F 0 "D3" H 3793 2316 50  0000 C CNN
+F 1 "LED" H 3793 2225 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 3800 2100 50  0001 C CNN
+F 3 "~" H 3800 2100 50  0001 C CNN
+	1    3800 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D2
+U 1 1 5E2B2F41
+P 2800 2100
+F 0 "D2" H 2793 2316 50  0000 C CNN
+F 1 "LED" H 2793 2225 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 2800 2100 50  0001 C CNN
+F 3 "~" H 2800 2100 50  0001 C CNN
+	1    2800 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D1
+U 1 1 5E2B33A7
+P 1800 2100
+F 0 "D1" H 1793 2316 50  0000 C CNN
+F 1 "LED" H 1793 2225 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 1800 2100 50  0001 C CNN
+F 3 "~" H 1800 2100 50  0001 C CNN
+	1    1800 2100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 1250 2400 2400
+Wire Wire Line
+	3400 1250 3400 2400
+Wire Wire Line
+	4400 1250 4400 2400
+Wire Wire Line
+	5400 1250 5400 2400
+Wire Wire Line
+	1400 1250 1400 2400
+Wire Wire Line
+	1300 1250 1300 2100
+Wire Wire Line
+	3150 2100 3150 1450
+Wire Wire Line
+	1150 1450 2150 1450
+Connection ~ 2150 1450
+Wire Wire Line
+	2150 1450 3150 1450
+Connection ~ 3150 1450
+Wire Wire Line
+	3150 1450 4150 1450
+Connection ~ 4150 1450
+Wire Wire Line
+	4150 1450 5150 1450
+Connection ~ 5150 1450
+Wire Wire Line
+	5150 1450 6150 1450
+$Comp
+L Device:D D16
+U 1 1 5EA99AAF
+P 1800 3550
+F 0 "D16" H 1800 3766 50  0000 C CNN
+F 1 "D" H 1800 3675 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 1800 3550 50  0001 C CNN
+F 3 "~" H 1800 3550 50  0001 C CNN
+	1    1800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2000 2950 2100 2950
+Wire Wire Line
+	2100 2950 2100 3550
+Wire Wire Line
+	2100 3550 1950 3550
+Wire Wire Line
+	1650 3550 1400 3550
+Wire Wire Line
+	1500 2950 1500 2700
+Wire Wire Line
+	1950 3250 2150 3250
+Wire Wire Line
+	2150 3250 2150 2600
+Wire Wire Line
+	1650 3250 1300 3250
+$Comp
+L Device:D D17
+U 1 1 5EA99ABD
+P 2800 3550
+F 0 "D17" H 2800 3766 50  0000 C CNN
+F 1 "D" H 2800 3675 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 2800 3550 50  0001 C CNN
+F 3 "~" H 2800 3550 50  0001 C CNN
+	1    2800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 2950 3100 2950
+Wire Wire Line
+	3100 2950 3100 3550
+Wire Wire Line
+	3100 3550 2950 3550
+Wire Wire Line
+	2650 3550 2400 3550
+Wire Wire Line
+	2600 2950 2500 2950
+Wire Wire Line
+	2500 2950 2500 2700
+Wire Wire Line
+	2950 3250 3150 3250
+Wire Wire Line
+	2650 3250 2300 3250
+$Comp
+L Device:D D18
+U 1 1 5EA99ACB
+P 3800 3550
+F 0 "D18" H 3800 3766 50  0000 C CNN
+F 1 "D" H 3800 3675 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 3800 3550 50  0001 C CNN
+F 3 "~" H 3800 3550 50  0001 C CNN
+	1    3800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 2950 4100 2950
+Wire Wire Line
+	4100 2950 4100 3550
+Wire Wire Line
+	4100 3550 3950 3550
+Wire Wire Line
+	3650 3550 3400 3550
+Wire Wire Line
+	3600 2950 3500 2950
+Wire Wire Line
+	3500 2950 3500 2700
+Wire Wire Line
+	3950 3250 4150 3250
+Wire Wire Line
+	4150 3250 4150 2600
+Wire Wire Line
+	3650 3250 3300 3250
+$Comp
+L Device:D D19
+U 1 1 5EA99ADA
+P 4800 3550
+F 0 "D19" H 4800 3766 50  0000 C CNN
+F 1 "D" H 4800 3675 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 4800 3550 50  0001 C CNN
+F 3 "~" H 4800 3550 50  0001 C CNN
+	1    4800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 2950 5100 2950
+Wire Wire Line
+	5100 2950 5100 3550
+Wire Wire Line
+	5100 3550 4950 3550
+Wire Wire Line
+	4650 3550 4400 3550
+Wire Wire Line
+	4600 2950 4500 2950
+Wire Wire Line
+	4500 2950 4500 2700
+Wire Wire Line
+	4950 3250 5150 3250
+Wire Wire Line
+	5150 3250 5150 2600
+Wire Wire Line
+	4650 3250 4300 3250
+$Comp
+L Device:D D20
+U 1 1 5EA99AE9
+P 5800 3550
+F 0 "D20" H 5800 3766 50  0000 C CNN
+F 1 "D" H 5800 3675 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 5800 3550 50  0001 C CNN
+F 3 "~" H 5800 3550 50  0001 C CNN
+	1    5800 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 2950 6100 2950
+Wire Wire Line
+	6100 2950 6100 3550
+Wire Wire Line
+	6100 3550 5950 3550
+Wire Wire Line
+	5650 3550 5400 3550
+Wire Wire Line
+	5600 2950 5500 2950
+Wire Wire Line
+	5500 2950 5500 2700
+Wire Wire Line
+	5950 3250 6150 3250
+Wire Wire Line
+	6150 3250 6150 2600
+Wire Wire Line
+	5650 3250 5300 3250
+Wire Wire Line
+	1150 2700 1500 2700
+Connection ~ 1500 2700
+Wire Wire Line
+	1500 2700 2500 2700
+Connection ~ 2500 2700
+Wire Wire Line
+	2500 2700 3500 2700
+Connection ~ 3500 2700
+Wire Wire Line
+	3500 2700 4500 2700
+Connection ~ 4500 2700
+Wire Wire Line
+	4500 2700 5500 2700
+Wire Wire Line
+	2300 2100 2300 3250
+Wire Wire Line
+	3300 2100 3300 3250
+Wire Wire Line
+	4300 2100 4300 3250
+Wire Wire Line
+	5300 2100 5300 3250
+$Comp
+L Switch:SW_SPST SW6
+U 1 1 5EA99B05
+P 1800 2950
+F 0 "SW6" H 1800 3185 50  0000 C CNN
+F 1 "SW_SPST" H 1800 3094 50  0000 C CNN
+F 2 "custom:TS-023E" H 1800 2950 50  0001 C CNN
+F 3 "~" H 1800 2950 50  0001 C CNN
+	1    1800 2950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 2950 1600 2950
+$Comp
+L Switch:SW_SPST SW7
+U 1 1 5EA99B0C
+P 2800 2950
+F 0 "SW7" H 2800 3185 50  0000 C CNN
+F 1 "SW_SPST" H 2800 3094 50  0000 C CNN
+F 2 "custom:TS-023E" H 2800 2950 50  0001 C CNN
+F 3 "~" H 2800 2950 50  0001 C CNN
+	1    2800 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW8
+U 1 1 5EA99B12
+P 3800 2950
+F 0 "SW8" H 3800 3185 50  0000 C CNN
+F 1 "SW_SPST" H 3800 3094 50  0000 C CNN
+F 2 "custom:TS-023E" H 3800 2950 50  0001 C CNN
+F 3 "~" H 3800 2950 50  0001 C CNN
+	1    3800 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW9
+U 1 1 5EA99B18
+P 4800 2950
+F 0 "SW9" H 4800 3185 50  0000 C CNN
+F 1 "SW_SPST" H 4800 3094 50  0000 C CNN
+F 2 "custom:TS-023E" H 4800 2950 50  0001 C CNN
+F 3 "~" H 4800 2950 50  0001 C CNN
+	1    4800 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW10
+U 1 1 5EA99B1E
+P 5800 2950
+F 0 "SW10" H 5800 3185 50  0000 C CNN
+F 1 "SW_SPST" H 5800 3094 50  0000 C CNN
+F 2 "custom:TS-023E" H 5800 2950 50  0001 C CNN
+F 3 "~" H 5800 2950 50  0001 C CNN
+	1    5800 2950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D15
+U 1 1 5EA99B24
+P 5800 3250
+F 0 "D15" H 5793 3466 50  0000 C CNN
+F 1 "LED" H 5793 3375 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 5800 3250 50  0001 C CNN
+F 3 "~" H 5800 3250 50  0001 C CNN
+	1    5800 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D14
+U 1 1 5EA99B2A
+P 4800 3250
+F 0 "D14" H 4793 3466 50  0000 C CNN
+F 1 "LED" H 4793 3375 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 4800 3250 50  0001 C CNN
+F 3 "~" H 4800 3250 50  0001 C CNN
+	1    4800 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D13
+U 1 1 5EA99B30
+P 3800 3250
+F 0 "D13" H 3793 3466 50  0000 C CNN
+F 1 "LED" H 3793 3375 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 3800 3250 50  0001 C CNN
+F 3 "~" H 3800 3250 50  0001 C CNN
+	1    3800 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D12
+U 1 1 5EA99B36
+P 2800 3250
+F 0 "D12" H 2793 3466 50  0000 C CNN
+F 1 "LED" H 2793 3375 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 2800 3250 50  0001 C CNN
+F 3 "~" H 2800 3250 50  0001 C CNN
+	1    2800 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D11
+U 1 1 5EA99B3C
+P 1800 3250
+F 0 "D11" H 1793 3466 50  0000 C CNN
+F 1 "LED" H 1793 3375 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 1800 3250 50  0001 C CNN
+F 3 "~" H 1800 3250 50  0001 C CNN
+	1    1800 3250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 2400 2400 3550
+Wire Wire Line
+	3400 2400 3400 3550
+Wire Wire Line
+	4400 2400 4400 3550
+Wire Wire Line
+	5400 2400 5400 3550
+Wire Wire Line
+	1400 2400 1400 3550
+Wire Wire Line
+	1300 2100 1300 3250
+Wire Wire Line
+	3150 3250 3150 2600
+Wire Wire Line
+	1150 2600 2150 2600
+Connection ~ 2150 2600
+Wire Wire Line
+	2150 2600 3150 2600
+Connection ~ 3150 2600
+Wire Wire Line
+	3150 2600 4150 2600
+Connection ~ 4150 2600
+Wire Wire Line
+	4150 2600 5150 2600
+Connection ~ 5150 2600
+Wire Wire Line
+	5150 2600 6150 2600
+$Comp
+L Device:D D26
+U 1 1 5EAA974F
+P 1800 4700
+F 0 "D26" H 1800 4916 50  0000 C CNN
+F 1 "D" H 1800 4825 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 1800 4700 50  0001 C CNN
+F 3 "~" H 1800 4700 50  0001 C CNN
+	1    1800 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2000 4100 2100 4100
+Wire Wire Line
+	2100 4100 2100 4700
+Wire Wire Line
+	2100 4700 1950 4700
+Wire Wire Line
+	1650 4700 1400 4700
+Wire Wire Line
+	1500 4100 1500 3850
+Wire Wire Line
+	1950 4400 2150 4400
+Wire Wire Line
+	2150 4400 2150 3750
+Wire Wire Line
+	1650 4400 1300 4400
+$Comp
+L Device:D D27
+U 1 1 5EAA975D
+P 2800 4700
+F 0 "D27" H 2800 4916 50  0000 C CNN
+F 1 "D" H 2800 4825 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 2800 4700 50  0001 C CNN
+F 3 "~" H 2800 4700 50  0001 C CNN
+	1    2800 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 4100 3100 4100
+Wire Wire Line
+	3100 4100 3100 4700
+Wire Wire Line
+	3100 4700 2950 4700
+Wire Wire Line
+	2650 4700 2400 4700
+Wire Wire Line
+	2600 4100 2500 4100
+Wire Wire Line
+	2500 4100 2500 3850
+Wire Wire Line
+	2950 4400 3150 4400
+Wire Wire Line
+	2650 4400 2300 4400
+$Comp
+L Device:D D28
+U 1 1 5EAA976B
+P 3800 4700
+F 0 "D28" H 3800 4916 50  0000 C CNN
+F 1 "D" H 3800 4825 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 3800 4700 50  0001 C CNN
+F 3 "~" H 3800 4700 50  0001 C CNN
+	1    3800 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 4100 4100 4100
+Wire Wire Line
+	4100 4100 4100 4700
+Wire Wire Line
+	4100 4700 3950 4700
+Wire Wire Line
+	3650 4700 3400 4700
+Wire Wire Line
+	3600 4100 3500 4100
+Wire Wire Line
+	3500 4100 3500 3850
+Wire Wire Line
+	3950 4400 4150 4400
+Wire Wire Line
+	4150 4400 4150 3750
+Wire Wire Line
+	3650 4400 3300 4400
+$Comp
+L Device:D D29
+U 1 1 5EAA977A
+P 4800 4700
+F 0 "D29" H 4800 4916 50  0000 C CNN
+F 1 "D" H 4800 4825 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 4800 4700 50  0001 C CNN
+F 3 "~" H 4800 4700 50  0001 C CNN
+	1    4800 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 4100 5100 4100
+Wire Wire Line
+	5100 4100 5100 4700
+Wire Wire Line
+	5100 4700 4950 4700
+Wire Wire Line
+	4650 4700 4400 4700
+Wire Wire Line
+	4600 4100 4500 4100
+Wire Wire Line
+	4500 4100 4500 3850
+Wire Wire Line
+	4950 4400 5150 4400
+Wire Wire Line
+	5150 4400 5150 3750
+Wire Wire Line
+	4650 4400 4300 4400
+$Comp
+L Device:D D30
+U 1 1 5EAA9789
+P 5800 4700
+F 0 "D30" H 5800 4916 50  0000 C CNN
+F 1 "D" H 5800 4825 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 5800 4700 50  0001 C CNN
+F 3 "~" H 5800 4700 50  0001 C CNN
+	1    5800 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 4100 6100 4100
+Wire Wire Line
+	6100 4100 6100 4700
+Wire Wire Line
+	6100 4700 5950 4700
+Wire Wire Line
+	5650 4700 5400 4700
+Wire Wire Line
+	5600 4100 5500 4100
+Wire Wire Line
+	5500 4100 5500 3850
+Wire Wire Line
+	5950 4400 6150 4400
+Wire Wire Line
+	6150 4400 6150 3750
+Wire Wire Line
+	5650 4400 5300 4400
+Wire Wire Line
+	1150 3850 1500 3850
+Connection ~ 1500 3850
+Wire Wire Line
+	1500 3850 2500 3850
+Connection ~ 2500 3850
+Wire Wire Line
+	2500 3850 3500 3850
+Connection ~ 3500 3850
+Wire Wire Line
+	3500 3850 4500 3850
+Connection ~ 4500 3850
+Wire Wire Line
+	4500 3850 5500 3850
+Wire Wire Line
+	2300 3250 2300 4400
+Wire Wire Line
+	3300 3250 3300 4400
+Wire Wire Line
+	4300 3250 4300 4400
+Wire Wire Line
+	5300 3250 5300 4400
+$Comp
+L Switch:SW_SPST SW11
+U 1 1 5EAA97A5
+P 1800 4100
+F 0 "SW11" H 1800 4335 50  0000 C CNN
+F 1 "SW_SPST" H 1800 4244 50  0000 C CNN
+F 2 "custom:TS-023E" H 1800 4100 50  0001 C CNN
+F 3 "~" H 1800 4100 50  0001 C CNN
+	1    1800 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 4100 1600 4100
+$Comp
+L Switch:SW_SPST SW12
+U 1 1 5EAA97AC
+P 2800 4100
+F 0 "SW12" H 2800 4335 50  0000 C CNN
+F 1 "SW_SPST" H 2800 4244 50  0000 C CNN
+F 2 "custom:TS-023E" H 2800 4100 50  0001 C CNN
+F 3 "~" H 2800 4100 50  0001 C CNN
+	1    2800 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW13
+U 1 1 5EAA97B2
+P 3800 4100
+F 0 "SW13" H 3800 4335 50  0000 C CNN
+F 1 "SW_SPST" H 3800 4244 50  0000 C CNN
+F 2 "custom:TS-023E" H 3800 4100 50  0001 C CNN
+F 3 "~" H 3800 4100 50  0001 C CNN
+	1    3800 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW14
+U 1 1 5EAA97B8
+P 4800 4100
+F 0 "SW14" H 4800 4335 50  0000 C CNN
+F 1 "SW_SPST" H 4800 4244 50  0000 C CNN
+F 2 "custom:TS-023E" H 4800 4100 50  0001 C CNN
+F 3 "~" H 4800 4100 50  0001 C CNN
+	1    4800 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW15
+U 1 1 5EAA97BE
+P 5800 4100
+F 0 "SW15" H 5800 4335 50  0000 C CNN
+F 1 "SW_SPST" H 5800 4244 50  0000 C CNN
+F 2 "custom:TS-023E" H 5800 4100 50  0001 C CNN
+F 3 "~" H 5800 4100 50  0001 C CNN
+	1    5800 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D25
+U 1 1 5EAA97C4
+P 5800 4400
+F 0 "D25" H 5793 4616 50  0000 C CNN
+F 1 "LED" H 5793 4525 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 5800 4400 50  0001 C CNN
+F 3 "~" H 5800 4400 50  0001 C CNN
+	1    5800 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D24
+U 1 1 5EAA97CA
+P 4800 4400
+F 0 "D24" H 4793 4616 50  0000 C CNN
+F 1 "LED" H 4793 4525 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 4800 4400 50  0001 C CNN
+F 3 "~" H 4800 4400 50  0001 C CNN
+	1    4800 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D23
+U 1 1 5EAA97D0
+P 3800 4400
+F 0 "D23" H 3793 4616 50  0000 C CNN
+F 1 "LED" H 3793 4525 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 3800 4400 50  0001 C CNN
+F 3 "~" H 3800 4400 50  0001 C CNN
+	1    3800 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D22
+U 1 1 5EAA97D6
+P 2800 4400
+F 0 "D22" H 2793 4616 50  0000 C CNN
+F 1 "LED" H 2793 4525 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 2800 4400 50  0001 C CNN
+F 3 "~" H 2800 4400 50  0001 C CNN
+	1    2800 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D21
+U 1 1 5EAA97DC
+P 1800 4400
+F 0 "D21" H 1793 4616 50  0000 C CNN
+F 1 "LED" H 1793 4525 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 1800 4400 50  0001 C CNN
+F 3 "~" H 1800 4400 50  0001 C CNN
+	1    1800 4400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 3550 2400 4700
+Wire Wire Line
+	3400 3550 3400 4700
+Wire Wire Line
+	4400 3550 4400 4700
+Wire Wire Line
+	5400 3550 5400 4700
+Wire Wire Line
+	1400 3550 1400 4700
+Wire Wire Line
+	1300 3250 1300 4400
+Wire Wire Line
+	3150 4400 3150 3750
+Wire Wire Line
+	1150 3750 2150 3750
+Connection ~ 2150 3750
+Wire Wire Line
+	2150 3750 3150 3750
+Connection ~ 3150 3750
+Wire Wire Line
+	3150 3750 4150 3750
+Connection ~ 4150 3750
+Wire Wire Line
+	4150 3750 5150 3750
+Connection ~ 5150 3750
+Wire Wire Line
+	5150 3750 6150 3750
+Connection ~ 1400 2400
+Connection ~ 1400 3550
+Connection ~ 2400 2400
+Connection ~ 2400 3550
+Connection ~ 3400 2400
+Connection ~ 3400 3550
+Connection ~ 4400 2400
+Connection ~ 4400 3550
+Connection ~ 5400 2400
+Connection ~ 5400 3550
+$Comp
+L Device:D D36
+U 1 1 5EADB65E
+P 1800 5850
+F 0 "D36" H 1800 6066 50  0000 C CNN
+F 1 "D" H 1800 5975 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 1800 5850 50  0001 C CNN
+F 3 "~" H 1800 5850 50  0001 C CNN
+	1    1800 5850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2000 5250 2100 5250
+Wire Wire Line
+	2100 5250 2100 5850
+Wire Wire Line
+	2100 5850 1950 5850
+Wire Wire Line
+	1650 5850 1400 5850
+Wire Wire Line
+	1500 5250 1500 5000
+Wire Wire Line
+	1950 5550 2150 5550
+Wire Wire Line
+	2150 5550 2150 4900
+Wire Wire Line
+	1650 5550 1300 5550
+$Comp
+L Device:D D37
+U 1 1 5EADB66C
+P 2800 5850
+F 0 "D37" H 2800 6066 50  0000 C CNN
+F 1 "D" H 2800 5975 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 2800 5850 50  0001 C CNN
+F 3 "~" H 2800 5850 50  0001 C CNN
+	1    2800 5850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 5250 3100 5250
+Wire Wire Line
+	3100 5250 3100 5850
+Wire Wire Line
+	3100 5850 2950 5850
+Wire Wire Line
+	2650 5850 2400 5850
+Wire Wire Line
+	2600 5250 2500 5250
+Wire Wire Line
+	2500 5250 2500 5000
+Wire Wire Line
+	2950 5550 3150 5550
+Wire Wire Line
+	2650 5550 2300 5550
+$Comp
+L Device:D D38
+U 1 1 5EADB67A
+P 3800 5850
+F 0 "D38" H 3800 6066 50  0000 C CNN
+F 1 "D" H 3800 5975 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 3800 5850 50  0001 C CNN
+F 3 "~" H 3800 5850 50  0001 C CNN
+	1    3800 5850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 5250 4100 5250
+Wire Wire Line
+	4100 5250 4100 5850
+Wire Wire Line
+	4100 5850 3950 5850
+Wire Wire Line
+	3650 5850 3400 5850
+Wire Wire Line
+	3600 5250 3500 5250
+Wire Wire Line
+	3500 5250 3500 5000
+Wire Wire Line
+	3950 5550 4150 5550
+Wire Wire Line
+	4150 5550 4150 4900
+Wire Wire Line
+	3650 5550 3300 5550
+$Comp
+L Device:D D39
+U 1 1 5EADB689
+P 4800 5850
+F 0 "D39" H 4800 6066 50  0000 C CNN
+F 1 "D" H 4800 5975 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 4800 5850 50  0001 C CNN
+F 3 "~" H 4800 5850 50  0001 C CNN
+	1    4800 5850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 5250 5100 5250
+Wire Wire Line
+	5100 5250 5100 5850
+Wire Wire Line
+	5100 5850 4950 5850
+Wire Wire Line
+	4650 5850 4400 5850
+Wire Wire Line
+	4600 5250 4500 5250
+Wire Wire Line
+	4500 5250 4500 5000
+Wire Wire Line
+	4950 5550 5150 5550
+Wire Wire Line
+	5150 5550 5150 4900
+Wire Wire Line
+	4650 5550 4300 5550
+$Comp
+L Device:D D40
+U 1 1 5EADB698
+P 5800 5850
+F 0 "D40" H 5800 6066 50  0000 C CNN
+F 1 "D" H 5800 5975 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 5800 5850 50  0001 C CNN
+F 3 "~" H 5800 5850 50  0001 C CNN
+	1    5800 5850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 5250 6100 5250
+Wire Wire Line
+	6100 5250 6100 5850
+Wire Wire Line
+	6100 5850 5950 5850
+Wire Wire Line
+	5650 5850 5400 5850
+Wire Wire Line
+	5600 5250 5500 5250
+Wire Wire Line
+	5500 5250 5500 5000
+Wire Wire Line
+	5950 5550 6150 5550
+Wire Wire Line
+	6150 5550 6150 4900
+Wire Wire Line
+	5650 5550 5300 5550
+Wire Wire Line
+	1150 5000 1500 5000
+Connection ~ 1500 5000
+Wire Wire Line
+	1500 5000 2500 5000
+Connection ~ 2500 5000
+Wire Wire Line
+	2500 5000 3500 5000
+Connection ~ 3500 5000
+Wire Wire Line
+	3500 5000 4500 5000
+Connection ~ 4500 5000
+Wire Wire Line
+	4500 5000 5500 5000
+Wire Wire Line
+	2300 4400 2300 5550
+Wire Wire Line
+	3300 4400 3300 5550
+Wire Wire Line
+	4300 4400 4300 5550
+Wire Wire Line
+	5300 4400 5300 5550
+$Comp
+L Switch:SW_SPST SW16
+U 1 1 5EADB6B4
+P 1800 5250
+F 0 "SW16" H 1800 5485 50  0000 C CNN
+F 1 "SW_SPST" H 1800 5394 50  0000 C CNN
+F 2 "custom:TS-023E" H 1800 5250 50  0001 C CNN
+F 3 "~" H 1800 5250 50  0001 C CNN
+	1    1800 5250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 5250 1600 5250
+$Comp
+L Switch:SW_SPST SW17
+U 1 1 5EADB6BB
+P 2800 5250
+F 0 "SW17" H 2800 5485 50  0000 C CNN
+F 1 "SW_SPST" H 2800 5394 50  0000 C CNN
+F 2 "custom:TS-023E" H 2800 5250 50  0001 C CNN
+F 3 "~" H 2800 5250 50  0001 C CNN
+	1    2800 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW18
+U 1 1 5EADB6C1
+P 3800 5250
+F 0 "SW18" H 3800 5485 50  0000 C CNN
+F 1 "SW_SPST" H 3800 5394 50  0000 C CNN
+F 2 "custom:TS-023E" H 3800 5250 50  0001 C CNN
+F 3 "~" H 3800 5250 50  0001 C CNN
+	1    3800 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW19
+U 1 1 5EADB6C7
+P 4800 5250
+F 0 "SW19" H 4800 5485 50  0000 C CNN
+F 1 "SW_SPST" H 4800 5394 50  0000 C CNN
+F 2 "custom:TS-023E" H 4800 5250 50  0001 C CNN
+F 3 "~" H 4800 5250 50  0001 C CNN
+	1    4800 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW20
+U 1 1 5EADB6CD
+P 5800 5250
+F 0 "SW20" H 5800 5485 50  0000 C CNN
+F 1 "SW_SPST" H 5800 5394 50  0000 C CNN
+F 2 "custom:TS-023E" H 5800 5250 50  0001 C CNN
+F 3 "~" H 5800 5250 50  0001 C CNN
+	1    5800 5250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D35
+U 1 1 5EADB6D3
+P 5800 5550
+F 0 "D35" H 5793 5766 50  0000 C CNN
+F 1 "LED" H 5793 5675 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 5800 5550 50  0001 C CNN
+F 3 "~" H 5800 5550 50  0001 C CNN
+	1    5800 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D34
+U 1 1 5EADB6D9
+P 4800 5550
+F 0 "D34" H 4793 5766 50  0000 C CNN
+F 1 "LED" H 4793 5675 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 4800 5550 50  0001 C CNN
+F 3 "~" H 4800 5550 50  0001 C CNN
+	1    4800 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D33
+U 1 1 5EADB6DF
+P 3800 5550
+F 0 "D33" H 3793 5766 50  0000 C CNN
+F 1 "LED" H 3793 5675 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 3800 5550 50  0001 C CNN
+F 3 "~" H 3800 5550 50  0001 C CNN
+	1    3800 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D32
+U 1 1 5EADB6E5
+P 2800 5550
+F 0 "D32" H 2793 5766 50  0000 C CNN
+F 1 "LED" H 2793 5675 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 2800 5550 50  0001 C CNN
+F 3 "~" H 2800 5550 50  0001 C CNN
+	1    2800 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D31
+U 1 1 5EADB6EB
+P 1800 5550
+F 0 "D31" H 1793 5766 50  0000 C CNN
+F 1 "LED" H 1793 5675 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 1800 5550 50  0001 C CNN
+F 3 "~" H 1800 5550 50  0001 C CNN
+	1    1800 5550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 4700 2400 5850
+Wire Wire Line
+	3400 4700 3400 5850
+Wire Wire Line
+	4400 4700 4400 5850
+Wire Wire Line
+	5400 4700 5400 5850
+Wire Wire Line
+	1400 4700 1400 5850
+Wire Wire Line
+	1300 4400 1300 5550
+Wire Wire Line
+	3150 5550 3150 4900
+Wire Wire Line
+	1150 4900 2150 4900
+Connection ~ 2150 4900
+Wire Wire Line
+	2150 4900 3150 4900
+Connection ~ 3150 4900
+Wire Wire Line
+	3150 4900 4150 4900
+Connection ~ 4150 4900
+Wire Wire Line
+	4150 4900 5150 4900
+Connection ~ 5150 4900
+Wire Wire Line
+	5150 4900 6150 4900
+$Comp
+L Device:D D46
+U 1 1 5EAF869F
+P 1800 7000
+F 0 "D46" H 1800 7216 50  0000 C CNN
+F 1 "D" H 1800 7125 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 1800 7000 50  0001 C CNN
+F 3 "~" H 1800 7000 50  0001 C CNN
+	1    1800 7000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2000 6400 2100 6400
+Wire Wire Line
+	2100 6400 2100 7000
+Wire Wire Line
+	2100 7000 1950 7000
+Wire Wire Line
+	1650 7000 1400 7000
+Wire Wire Line
+	1500 6400 1500 6150
+Wire Wire Line
+	1950 6700 2150 6700
+Wire Wire Line
+	2150 6700 2150 6050
+Wire Wire Line
+	1650 6700 1300 6700
+$Comp
+L Device:D D47
+U 1 1 5EAF86AD
+P 2800 7000
+F 0 "D47" H 2800 7216 50  0000 C CNN
+F 1 "D" H 2800 7125 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 2800 7000 50  0001 C CNN
+F 3 "~" H 2800 7000 50  0001 C CNN
+	1    2800 7000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 6400 3100 6400
+Wire Wire Line
+	3100 6400 3100 7000
+Wire Wire Line
+	3100 7000 2950 7000
+Wire Wire Line
+	2650 7000 2400 7000
+Wire Wire Line
+	2600 6400 2500 6400
+Wire Wire Line
+	2500 6400 2500 6150
+Wire Wire Line
+	2950 6700 3150 6700
+Wire Wire Line
+	2650 6700 2300 6700
+$Comp
+L Device:D D48
+U 1 1 5EAF86BB
+P 3800 7000
+F 0 "D48" H 3800 7216 50  0000 C CNN
+F 1 "D" H 3800 7125 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 3800 7000 50  0001 C CNN
+F 3 "~" H 3800 7000 50  0001 C CNN
+	1    3800 7000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 6400 4100 6400
+Wire Wire Line
+	4100 6400 4100 7000
+Wire Wire Line
+	4100 7000 3950 7000
+Wire Wire Line
+	3650 7000 3400 7000
+Wire Wire Line
+	3600 6400 3500 6400
+Wire Wire Line
+	3500 6400 3500 6150
+Wire Wire Line
+	3950 6700 4150 6700
+Wire Wire Line
+	4150 6700 4150 6050
+Wire Wire Line
+	3650 6700 3300 6700
+$Comp
+L Device:D D49
+U 1 1 5EAF86CA
+P 4800 7000
+F 0 "D49" H 4800 7216 50  0000 C CNN
+F 1 "D" H 4800 7125 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 4800 7000 50  0001 C CNN
+F 3 "~" H 4800 7000 50  0001 C CNN
+	1    4800 7000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 6400 5100 6400
+Wire Wire Line
+	5100 6400 5100 7000
+Wire Wire Line
+	5100 7000 4950 7000
+Wire Wire Line
+	4650 7000 4400 7000
+Wire Wire Line
+	4600 6400 4500 6400
+Wire Wire Line
+	4500 6400 4500 6150
+Wire Wire Line
+	4950 6700 5150 6700
+Wire Wire Line
+	5150 6700 5150 6050
+Wire Wire Line
+	4650 6700 4300 6700
+$Comp
+L Device:D D50
+U 1 1 5EAF86D9
+P 5800 7000
+F 0 "D50" H 5800 7216 50  0000 C CNN
+F 1 "D" H 5800 7125 50  0000 C CNN
+F 2 "custom:Diode_0603_HandSoldering" H 5800 7000 50  0001 C CNN
+F 3 "~" H 5800 7000 50  0001 C CNN
+	1    5800 7000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 6400 6100 6400
+Wire Wire Line
+	6100 6400 6100 7000
+Wire Wire Line
+	6100 7000 5950 7000
+Wire Wire Line
+	5650 7000 5400 7000
+Wire Wire Line
+	5600 6400 5500 6400
+Wire Wire Line
+	5500 6400 5500 6150
+Wire Wire Line
+	5950 6700 6150 6700
+Wire Wire Line
+	6150 6700 6150 6050
+Wire Wire Line
+	5650 6700 5300 6700
+Wire Wire Line
+	1150 6150 1500 6150
+Connection ~ 1500 6150
+Wire Wire Line
+	1500 6150 2500 6150
+Connection ~ 2500 6150
+Wire Wire Line
+	2500 6150 3500 6150
+Connection ~ 3500 6150
+Wire Wire Line
+	3500 6150 4500 6150
+Connection ~ 4500 6150
+Wire Wire Line
+	4500 6150 5500 6150
+Wire Wire Line
+	2300 5550 2300 6700
+Wire Wire Line
+	3300 5550 3300 6700
+Wire Wire Line
+	4300 5550 4300 6700
+Wire Wire Line
+	5300 5550 5300 6700
+$Comp
+L Switch:SW_SPST SW21
+U 1 1 5EAF86F5
+P 1800 6400
+F 0 "SW21" H 1800 6635 50  0000 C CNN
+F 1 "SW_SPST" H 1800 6544 50  0000 C CNN
+F 2 "custom:TS-023E" H 1800 6400 50  0001 C CNN
+F 3 "~" H 1800 6400 50  0001 C CNN
+	1    1800 6400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1500 6400 1600 6400
+$Comp
+L Switch:SW_SPST SW22
+U 1 1 5EAF86FC
+P 2800 6400
+F 0 "SW22" H 2800 6635 50  0000 C CNN
+F 1 "SW_SPST" H 2800 6544 50  0000 C CNN
+F 2 "custom:TS-023E" H 2800 6400 50  0001 C CNN
+F 3 "~" H 2800 6400 50  0001 C CNN
+	1    2800 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW23
+U 1 1 5EAF8702
+P 3800 6400
+F 0 "SW23" H 3800 6635 50  0000 C CNN
+F 1 "SW_SPST" H 3800 6544 50  0000 C CNN
+F 2 "custom:TS-023E" H 3800 6400 50  0001 C CNN
+F 3 "~" H 3800 6400 50  0001 C CNN
+	1    3800 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW24
+U 1 1 5EAF8708
+P 4800 6400
+F 0 "SW24" H 4800 6635 50  0000 C CNN
+F 1 "SW_SPST" H 4800 6544 50  0000 C CNN
+F 2 "custom:TS-023E" H 4800 6400 50  0001 C CNN
+F 3 "~" H 4800 6400 50  0001 C CNN
+	1    4800 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW25
+U 1 1 5EAF870E
+P 5800 6400
+F 0 "SW25" H 5800 6635 50  0000 C CNN
+F 1 "SW_SPST" H 5800 6544 50  0000 C CNN
+F 2 "custom:TS-023E" H 5800 6400 50  0001 C CNN
+F 3 "~" H 5800 6400 50  0001 C CNN
+	1    5800 6400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D45
+U 1 1 5EAF8714
+P 5800 6700
+F 0 "D45" H 5793 6916 50  0000 C CNN
+F 1 "LED" H 5793 6825 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 5800 6700 50  0001 C CNN
+F 3 "~" H 5800 6700 50  0001 C CNN
+	1    5800 6700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D44
+U 1 1 5EAF871A
+P 4800 6700
+F 0 "D44" H 4793 6916 50  0000 C CNN
+F 1 "LED" H 4793 6825 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 4800 6700 50  0001 C CNN
+F 3 "~" H 4800 6700 50  0001 C CNN
+	1    4800 6700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D43
+U 1 1 5EAF8720
+P 3800 6700
+F 0 "D43" H 3793 6916 50  0000 C CNN
+F 1 "LED" H 3793 6825 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 3800 6700 50  0001 C CNN
+F 3 "~" H 3800 6700 50  0001 C CNN
+	1    3800 6700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D42
+U 1 1 5EAF8726
+P 2800 6700
+F 0 "D42" H 2793 6916 50  0000 C CNN
+F 1 "LED" H 2793 6825 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 2800 6700 50  0001 C CNN
+F 3 "~" H 2800 6700 50  0001 C CNN
+	1    2800 6700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D41
+U 1 1 5EAF872C
+P 1800 6700
+F 0 "D41" H 1793 6916 50  0000 C CNN
+F 1 "LED" H 1793 6825 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 1800 6700 50  0001 C CNN
+F 3 "~" H 1800 6700 50  0001 C CNN
+	1    1800 6700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 5850 2400 7000
+Wire Wire Line
+	3400 5850 3400 7000
+Wire Wire Line
+	4400 5850 4400 7000
+Wire Wire Line
+	5400 5850 5400 7000
+Wire Wire Line
+	1400 5850 1400 7000
+Wire Wire Line
+	1300 5550 1300 6700
+Wire Wire Line
+	3150 6700 3150 6050
+Wire Wire Line
+	1150 6050 2150 6050
+Connection ~ 2150 6050
+Wire Wire Line
+	2150 6050 3150 6050
+Connection ~ 3150 6050
+Wire Wire Line
+	3150 6050 4150 6050
+Connection ~ 4150 6050
+Wire Wire Line
+	4150 6050 5150 6050
+Connection ~ 5150 6050
+Wire Wire Line
+	5150 6050 6150 6050
+Connection ~ 1300 4400
+Connection ~ 1300 5550
+Connection ~ 2300 5550
+Connection ~ 3300 5550
+Connection ~ 4300 5550
+Connection ~ 4300 4400
+Connection ~ 5300 4400
+Connection ~ 3300 4400
+Connection ~ 2300 4400
+Connection ~ 5300 5550
+Connection ~ 3300 3250
+Connection ~ 2300 3250
+Connection ~ 1300 3250
+Connection ~ 4300 3250
+Connection ~ 5300 3250
+Connection ~ 5300 2100
+Connection ~ 4300 2100
+Connection ~ 3300 2100
+Connection ~ 2300 2100
+Connection ~ 1300 2100
+$Comp
+L customLibrary:sx1503 U1
+U 1 1 5DD49023
+P 8900 4700
+F 0 "U1" H 8925 5715 50  0000 C CNN
+F 1 "sx1503" H 8925 5624 50  0000 C CNN
+F 2 "custom:sx1503" H 8600 5600 50  0001 C CNN
+F 3 "" H 8600 5600 50  0001 C CNN
+	1    8900 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R5
+U 1 1 5DDB12E6
+P 8450 5600
+F 0 "R5" V 8655 5600 50  0000 C CNN
+F 1 "100" V 8564 5600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 8490 5590 50  0001 C CNN
+F 3 "~" H 8450 5600 50  0001 C CNN
+	1    8450 5600
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R_US R4
+U 1 1 5DDB33B8
+P 8150 5600
+F 0 "R4" V 8355 5600 50  0000 C CNN
+F 1 "100" V 8264 5600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 8190 5590 50  0001 C CNN
+F 3 "~" H 8150 5600 50  0001 C CNN
+	1    8150 5600
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R_US R3
+U 1 1 5DDB3624
+P 7850 5600
+F 0 "R3" V 8055 5600 50  0000 C CNN
+F 1 "100" V 7964 5600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 7890 5590 50  0001 C CNN
+F 3 "~" H 7850 5600 50  0001 C CNN
+	1    7850 5600
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R_US R2
+U 1 1 5DDB3A96
+P 7550 5600
+F 0 "R2" V 7755 5600 50  0000 C CNN
+F 1 "100" V 7664 5600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 7590 5590 50  0001 C CNN
+F 3 "~" H 7550 5600 50  0001 C CNN
+	1    7550 5600
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R_US R1
+U 1 1 5DDB3C59
+P 7250 5600
+F 0 "R1" V 7455 5600 50  0000 C CNN
+F 1 "100" V 7364 5600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 7290 5590 50  0001 C CNN
+F 3 "~" H 7250 5600 50  0001 C CNN
+	1    7250 5600
+	-1   0    0    1   
+$EndComp
+Text GLabel 8450 5750 3    50   Input ~ 0
+LED_col1
+Text GLabel 8150 5750 3    50   Input ~ 0
+LED_col2
+Text GLabel 7850 5750 3    50   Input ~ 0
+LED_col3
+Text GLabel 7550 5750 3    50   Input ~ 0
+LED_col4
+Text GLabel 7250 5750 3    50   Input ~ 0
+LED_col5
+Text GLabel 7050 4900 0    50   Input ~ 0
+LED_row2
+Text GLabel 7050 4650 0    50   Input ~ 0
+LED_row3
+Text GLabel 7050 4400 0    50   Input ~ 0
+LED_row4
+Text GLabel 7050 4150 0    50   Input ~ 0
+LED_row5
+Text GLabel 7700 3850 1    50   Input ~ 0
+switch_col1
+Text GLabel 7800 3850 1    50   Input ~ 0
+switch_col2
+Text GLabel 7900 3850 1    50   Input ~ 0
+switch_col3
+Text GLabel 8000 3850 1    50   Input ~ 0
+switch_col4
+Text GLabel 8100 3850 1    50   Input ~ 0
+switch_col5
+Wire Wire Line
+	8150 5450 8150 5350
+Wire Wire Line
+	8150 5350 8450 5350
+Wire Wire Line
+	7850 5450 7850 5250
+Wire Wire Line
+	7850 5250 8450 5250
+Wire Wire Line
+	7550 5450 7550 5150
+Wire Wire Line
+	7550 5150 8450 5150
+Wire Wire Line
+	7250 5450 7250 5050
+Wire Wire Line
+	8450 4450 7700 4450
+Wire Wire Line
+	7700 4450 7700 3850
+Wire Wire Line
+	8450 4350 7800 4350
+Wire Wire Line
+	7800 4350 7800 3850
+Wire Wire Line
+	8450 4250 7900 4250
+Wire Wire Line
+	7900 4250 7900 3850
+Wire Wire Line
+	8450 4150 8000 4150
+Wire Wire Line
+	8000 4150 8000 3850
+Wire Wire Line
+	8450 4050 8100 4050
+Wire Wire Line
+	8100 4050 8100 3850
+Text GLabel 7050 4050 0    50   Input ~ 0
+switch_row5
+Text GLabel 7050 4300 0    50   Input ~ 0
+switch_row4
+Text GLabel 7050 4550 0    50   Input ~ 0
+switch_row3
+Text GLabel 7050 4800 0    50   Input ~ 0
+switch_row2
+Text GLabel 7050 5050 0    50   Input ~ 0
+switch_row1
+Text GLabel 7050 5150 0    50   Input ~ 0
+LED_row1
+Wire Wire Line
+	7250 5050 8450 5050
+Wire Wire Line
+	8450 4950 7200 4950
+Wire Wire Line
+	7200 4950 7200 5050
+Wire Wire Line
+	7200 5150 7050 5150
+Wire Wire Line
+	7050 5050 7200 5050
+Connection ~ 7200 5050
+Wire Wire Line
+	7200 5050 7200 5150
+Wire Wire Line
+	8450 4850 7050 4850
+Wire Wire Line
+	7050 4850 7050 4800
+Wire Wire Line
+	7050 4850 7050 4900
+Connection ~ 7050 4850
+Wire Wire Line
+	8450 4650 7200 4650
+Wire Wire Line
+	7200 4650 7200 4400
+Wire Wire Line
+	7200 4400 7050 4400
+Wire Wire Line
+	7200 4400 7200 4300
+Wire Wire Line
+	7200 4300 7050 4300
+Connection ~ 7200 4400
+Wire Wire Line
+	8450 4550 7250 4550
+Wire Wire Line
+	7250 4550 7250 4150
+Wire Wire Line
+	7250 4150 7200 4150
+Wire Wire Line
+	7200 4150 7200 4050
+Wire Wire Line
+	7200 4050 7050 4050
+Connection ~ 7200 4150
+Wire Wire Line
+	7200 4150 7050 4150
+Wire Wire Line
+	8450 4750 7100 4750
+Wire Wire Line
+	7100 4750 7100 4650
+Wire Wire Line
+	7100 4550 7050 4550
+Wire Wire Line
+	7050 4650 7100 4650
+Connection ~ 7100 4650
+Wire Wire Line
+	7100 4650 7100 4550
+$Comp
+L Connector:Conn_01x07_Female J2
+U 1 1 5EE16318
+P 7750 2700
+F 0 "J2" H 7778 2726 50  0000 L CNN
+F 1 "0.96_OLED" H 7778 2635 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical" H 7750 2700 50  0001 C CNN
+F 3 "~" H 7750 2700 50  0001 C CNN
+	1    7750 2700
+	1    0    0    -1  
+$EndComp
+Text GLabel 7400 1450 0    50   Input ~ 0
+vcc
+Text GLabel 7400 1550 0    50   Input ~ 0
+I2Csda
+Text GLabel 7400 1650 0    50   Input ~ 0
+I2Cscl
+$Comp
+L Device:Microphone MK1
+U 1 1 5E881CA3
+P 9150 1600
+F 0 "MK1" V 8883 1600 50  0000 C CNN
+F 1 "Microphone" V 8974 1600 50  0000 C CNN
+F 2 "digikey:Mic_CMA-4544PF-W" V 9150 1700 50  0001 C CNN
+F 3 "~" V 9150 1700 50  0001 C CNN
+	1    9150 1600
+	0    1    1    0   
+$EndComp
+Text GLabel 7900 1550 2    50   Input ~ 0
+OLEDdc
+Text GLabel 7900 1650 2    50   Input ~ 0
+OLEDres
+Text GLabel 7400 1750 0    50   Input ~ 0
+SPIcs
+Text GLabel 7900 1450 2    50   Input ~ 0
+SPIsck
+Text GLabel 7900 1350 2    50   Input ~ 0
+SPImosi
+Text GLabel 7900 1750 2    50   Input ~ 0
+mic
+Text GLabel 9350 1600 2    50   Input ~ 0
+mic
+$Comp
+L power:GND #PWR0101
+U 1 1 5E9CBC4A
+P 8950 1600
+F 0 "#PWR0101" H 8950 1350 50  0001 C CNN
+F 1 "GND" H 8955 1427 50  0000 C CNN
+F 2 "" H 8950 1600 50  0001 C CNN
+F 3 "" H 8950 1600 50  0001 C CNN
+	1    8950 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0102
+U 1 1 5E9CC714
+P 7250 1350
+F 0 "#PWR0102" H 7250 1100 50  0001 C CNN
+F 1 "GND" H 7255 1177 50  0000 C CNN
+F 2 "" H 7250 1350 50  0001 C CNN
+F 3 "" H 7250 1350 50  0001 C CNN
+	1    7250 1350
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7400 1350 7250 1350
+$Comp
+L power:GND #PWR0103
+U 1 1 5EA5DD96
+P 7550 3000
+F 0 "#PWR0103" H 7550 2750 50  0001 C CNN
+F 1 "GND" V 7555 2872 50  0000 R CNN
+F 2 "" H 7550 3000 50  0001 C CNN
+F 3 "" H 7550 3000 50  0001 C CNN
+	1    7550 3000
+	0    1    1    0   
+$EndComp
+Text GLabel 7550 2900 0    50   Input ~ 0
+vcc
+Text GLabel 7550 2800 0    50   Input ~ 0
+SPIsck
+Text GLabel 7550 2700 0    50   Input ~ 0
+SPImosi
+Text GLabel 7550 2600 0    50   Input ~ 0
+OLEDres
+Text GLabel 7550 2500 0    50   Input ~ 0
+OLEDdc
+Text GLabel 7550 2400 0    50   Input ~ 0
+SPIcs
+$Comp
+L power:GND #PWR0104
+U 1 1 5EB4038E
+P 9600 4500
+F 0 "#PWR0104" H 9600 4250 50  0001 C CNN
+F 1 "GND" V 9605 4372 50  0000 R CNN
+F 2 "" H 9600 4500 50  0001 C CNN
+F 3 "" H 9600 4500 50  0001 C CNN
+	1    9600 4500
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	9300 4500 9500 4500
+Wire Wire Line
+	9300 4800 9600 4800
+Wire Wire Line
+	9600 4800 9600 4500
+Connection ~ 9600 4500
+Wire Wire Line
+	9300 4700 9550 4700
+Wire Wire Line
+	9550 4700 9550 4500
+Connection ~ 9550 4500
+Wire Wire Line
+	9550 4500 9600 4500
+Wire Wire Line
+	9300 4600 9500 4600
+Wire Wire Line
+	9500 4600 9500 4500
+Connection ~ 9500 4500
+Wire Wire Line
+	9500 4500 9550 4500
+Text GLabel 9300 4900 2    50   Input ~ 0
+I2Csda
+Text GLabel 9300 5000 2    50   Input ~ 0
+I2Cscl
+Text GLabel 9600 4200 2    50   Input ~ 0
+vcc
+Wire Wire Line
+	9300 4200 9450 4200
+Wire Wire Line
+	9300 4400 9550 4400
+Wire Wire Line
+	9550 4400 9550 4200
+Connection ~ 9550 4200
+Wire Wire Line
+	9550 4200 9600 4200
+Wire Wire Line
+	9300 4300 9500 4300
+Wire Wire Line
+	9500 4300 9500 4200
+Connection ~ 9500 4200
+Wire Wire Line
+	9500 4200 9550 4200
+$Comp
+L Device:R_US R6
+U 1 1 5EC4739B
+P 9800 5200
+F 0 "R6" V 10005 5200 50  0000 C CNN
+F 1 "10k" V 9914 5200 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 9840 5190 50  0001 C CNN
+F 3 "~" H 9800 5200 50  0001 C CNN
+	1    9800 5200
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	9300 5200 9650 5200
+Wire Wire Line
+	9950 5200 9950 4050
+Wire Wire Line
+	9950 4050 9450 4050
+Wire Wire Line
+	9450 4050 9450 4200
+Connection ~ 9450 4200
+Wire Wire Line
+	9450 4200 9500 4200
+$Comp
+L customLibrary:encoderHole EC1
+U 1 1 5EDC74F7
+P 9150 2100
+F 0 "EC1" H 9278 2146 50  0000 L CNN
+F 1 "encoderHole" H 9278 2055 50  0000 L CNN
+F 2 "custom:ENC_hole" H 9100 2250 50  0001 C CNN
+F 3 "" H 9100 2250 50  0001 C CNN
+	1    9150 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:encoderHole EC2
+U 1 1 5EDC81B8
+P 9150 2400
+F 0 "EC2" H 9278 2446 50  0000 L CNN
+F 1 "encoderHole" H 9278 2355 50  0000 L CNN
+F 2 "custom:ENC_hole" H 9100 2550 50  0001 C CNN
+F 3 "" H 9100 2550 50  0001 C CNN
+	1    9150 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x06_Top_Bottom J1
+U 1 1 5DBF44B2
+P 7600 1550
+F 0 "J1" H 7650 1967 50  0000 C CNN
+F 1 "Conn_02x06_Counter_Clockwise" H 7650 1876 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical" H 7600 1550 50  0001 C CNN
+F 3 "~" H 7600 1550 50  0001 C CNN
+	1    7600 1550
+	1    0    0    -1  
+$EndComp
+Text GLabel 7400 1850 0    50   Input ~ 0
+GPIO_interrupt
+Text GLabel 9400 5400 3    50   Input ~ 0
+GPIO_interrupt
+Wire Wire Line
+	9300 5100 9400 5100
+Wire Wire Line
+	9400 5100 9400 5350
+$Comp
+L Device:R_US R7
+U 1 1 5DC1F3A8
+P 9800 5350
+F 0 "R7" V 10005 5350 50  0000 C CNN
+F 1 "10k" V 9914 5350 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 9840 5340 50  0001 C CNN
+F 3 "~" H 9800 5350 50  0001 C CNN
+	1    9800 5350
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	9400 5350 9650 5350
+Wire Wire Line
+	9950 5350 9950 5200
+Connection ~ 9950 5200
+Wire Wire Line
+	9400 5350 9400 5400
+Connection ~ 9400 5350
+Text Label 8250 4950 0    50   ~ 0
+row1
+Text Label 8250 4850 0    50   ~ 0
+row2
+Text Label 8250 4750 0    50   ~ 0
+row3
+Text Label 8250 4650 0    50   ~ 0
+row4
+Text Label 8250 4550 0    50   ~ 0
+row5
+Text Label 8150 4450 0    50   ~ 0
+scol1
+Text Label 8150 4350 0    50   ~ 0
+scol2
+Text Label 8150 4250 0    50   ~ 0
+scol3
+Text Label 8150 4150 0    50   ~ 0
+scol4
+Text Label 8150 4050 0    50   ~ 0
+scol5
+Text Label 8150 5050 0    50   ~ 0
+lcol5
+Text Label 8150 5150 0    50   ~ 0
+lcol4
+Text Label 8150 5250 0    50   ~ 0
+lcol3
+Text Label 8150 5350 0    50   ~ 0
+lcol2
+Wire Wire Line
+	9300 5450 9300 6200
+Wire Wire Line
+	9300 6200 9050 6200
+Wire Wire Line
+	9050 6200 9050 6150
+$Comp
+L power:GND #PWR0105
+U 1 1 5DE2175C
+P 9050 6150
+F 0 "#PWR0105" H 9050 5900 50  0001 C CNN
+F 1 "GND" H 9055 5977 50  0000 C CNN
+F 2 "" H 9050 6150 50  0001 C CNN
+F 3 "" H 9050 6150 50  0001 C CNN
+	1    9050 6150
+	-1   0    0    1   
+$EndComp
+$Comp
+L Mechanical:MountingHole H1
+U 1 1 5DC61172
+P 9150 2750
+F 0 "H1" H 9250 2796 50  0000 L CNN
+F 1 "MountingHole" H 9250 2705 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm" H 9150 2750 50  0001 C CNN
+F 3 "~" H 9150 2750 50  0001 C CNN
+	1    9150 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 5DC61E74
+P 9150 3000
+F 0 "H2" H 9250 3046 50  0000 L CNN
+F 1 "MountingHole" H 9250 2955 50  0000 L CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm" H 9150 3000 50  0001 C CNN
+F 3 "~" H 9150 3000 50  0001 C CNN
+	1    9150 3000
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
