@@ -1,6 +1,8 @@
 #include <DMAChannel.h>
 #include <SPI.h>
 #include <DmaSpi.h>
+#include "font8x8_basic.h"
+
 #define FRAMESIZE 6144//96*64
 uint32_t srcHi[FRAMESIZE];
 uint16_t src[FRAMESIZE];
@@ -157,44 +159,13 @@ void writePixel(uint16_t w)
   SPI.transfer(w >> 8);
   SPI.transfer(w);
 }
-struct Particle
-{
-  float x=0;
-  float y=0;
-  float sx;
-  float sy;
-  int age =100;
-  
-  void init()
-  {
-    sx = random(100)/100.0f;
-    sy = random(100)/100.0f;
-    age = random(50, 100);
-  }
-  void update()
-  {
-    x+=sx;
-    y+=sy;
-    age--;
-    if(x<0||x>=96)
-      sx*=-1;
-    if(y<0||y>=64)
-      sy*=-1;
-  }
-};
-Particle particles[100];
 
 void ScreenSetup()
 {
-    for(int i=0;i<100;i++)
-  {
-    particles[i].init();
-  }
-
   for (size_t i = 0; i < FRAMESIZE; i++)
   {
     src[i] = 0;
-    srcHi[i] =0xffffff;
+    srcHi[i] = 0;
   }
     pinMode(_cs, OUTPUT);
   digitalWrite(_cs, HIGH);
@@ -242,6 +213,38 @@ void spidmaisr(void)
   dma.disable();
 }
 bool dmaStarted = false;
+
+void ScreenPrintChar(uint32_t color, char c, int sx, int sy)
+{
+  char *bitmap = font8x8_basic[c];
+  int x,y;
+  for (x=0; x < 8; x++) {
+    for (y=0; y < 8; y++) {
+      // need to make sure we aren't writing past the end of the buffer here
+      int8_t mask = (bitmap[y] & (1 << x));
+      srcHi[x+sx+(y+sy)*96] = mask?color:0;
+      if(y>63)
+      {
+        break;
+      }
+    }
+    if(x>95)
+    {
+      break;
+    }
+  }
+}
+
+void ScreenPrint(uint32_t c, const char* input, int sx, int sy)
+{
+  for(int i = 0; input[i]!= 0; i++)
+  {
+    ScreenPrintChar(c, input[i], sx+i*8, sy);
+  }
+}
+
+
+
 void ScreenLoop()
 {
   if(dmaStarted && !dma.complete())
@@ -250,26 +253,7 @@ void ScreenLoop()
   }
   dmaStarted = true;
   dma.clearComplete();
-  /**/
-  for(int i=0;i<64*96;i++)
-  {
-    // fade src hi
-    uint8_t r = (srcHi[i]>>16)&0xff;
-    uint8_t g = (srcHi[i]>>8)&0xff;
-    uint8_t b = (srcHi[i]&0xff);
-    r = (uint8_t)(((float)g)*0.93f);
-    g =r;
-    b =r;
-    srcHi[i] = ((uint32_t)r<<16)|((uint16_t)g<<8)|b;
-  }
-  for(int i=0;i<100;i++)
-  {
-    //particles[i].update();
-    int x = random(96);
-    int y = random(64);
-    //srcHi[(int)particles[i].x+(int)particles[i].y*96] = 0xffffff;
-    srcHi[x+y*96] = 0xffffff;
-  }
+
   digitalWrite(_cs, LOW);
   digitalWrite(_dc, HIGH);
   for(int i=0;i<64*96;i++)
@@ -280,12 +264,10 @@ void ScreenLoop()
     src[i] = Color(r,g,b);
     // swap the values so that the endianess is correct
     // this can probably be solved on the spi side
-    //writePixel(src[i]);
     src[i] = ((src[i]&0xff)<<8)|(src[i]>>8);
   }
   // should be ready ot just smash the values over
   int startMils = micros();
   
   dmaTx();
-  //Serial.println(micros()-startMils);
 }

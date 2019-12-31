@@ -30,7 +30,6 @@ void AudioSamplerSimple::play(const unsigned int *data)
   length = min(length-start, max(0, length-end));
   
   playing = format >> 24;
-  Serial.println(playing);
 }
 
 extern "C" {

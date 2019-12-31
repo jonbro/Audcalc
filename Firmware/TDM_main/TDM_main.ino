@@ -106,6 +106,8 @@ void UpdateScreenAndButtons()
     }
     else
     {
+      ScreenPrint(0xff00ff, "debug output", 0,0);
+      ScreenPrint(0xff0000, "REC: 0", 0,10);
       ScreenLoop();
     }
     lorb++;

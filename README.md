@@ -4,6 +4,9 @@ a pocket sized groovebox.
 
 ## changelog
 
+*12/30/19*
+- screen bitmap font writer (for debug)
+
 ## hardware todo
 - fix the oled -> mic noise issue (seperate audio / other ground planes)
 - test the line in cutout
@@ -18,8 +21,11 @@ a pocket sized groovebox.
 ## firmware todo
 
 - encapsulate the core data / serialize to flash when changed
+- get the current sample thing working with pattern triggers
+- convert the screen.ino into a class
+- sample to the serial flash
 - pitched playback for the sampler
-- screen bitmap font writer (for debug)
+
 - setup the sleep mode
 - setup the gpio sleep interrupt
 - subtractive synth
@@ -30,4 +36,5 @@ a pocket sized groovebox.
 - modular synth?
 - lua system?
 
-186+100+50+40
+(186+100+50+40)/5
+333+200+100+80
