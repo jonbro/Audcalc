@@ -38,7 +38,7 @@ void Matrix::update()
     int xReg = 0;
     for (int x = 0; x < 5; x++)
     {
-      if (this->loopCount >= this->brightness[x][y])
+      if (this->brightness[x][y] <= 0)
       {
         xReg |= (1 << x);
       }

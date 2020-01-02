@@ -20,12 +20,12 @@ a pocket sized groovebox.
 
 ## firmware todo
 
-- encapsulate the core data / serialize to flash when changed
+- encapsulate the core data
+- serialize to flash when changed
 - get the current sample thing working with pattern triggers
 - convert the screen.ino into a class
 - sample to the serial flash
 - pitched playback for the sampler
-
 - setup the sleep mode
 - setup the gpio sleep interrupt
 - subtractive synth

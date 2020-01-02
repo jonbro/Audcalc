@@ -60,6 +60,7 @@ inline uint16_t Color(uint8_t r, uint8_t g, uint8_t b){
 #define SSD1331_CMD_PRECHARGEC    0x8C
 #define SSD1331_CMD_PRECHARGELEVEL  0xBB
 #define SSD1331_CMD_VCOMH       0xBE
+bool dmaStarted = false;
 
 void sendCommand(uint8_t commandByte, uint8_t *dataBytes = NULL, uint8_t numDataBytes = 0) {
     //SPI.beginTransaction(ssettings);
@@ -201,6 +202,10 @@ void ScreenSetup()
   dma.disableOnCompletion();
   //DMAPriorityOrder(AudioOutputI2S::dma, dma);
 }
+void spidmaisr(void)
+{
+  dma.disable();
+}
 void dmaTx()
 {
   dma.enable();
@@ -208,11 +213,6 @@ void dmaTx()
   dma.triggerAtHardwareEvent( DMAMUX_SOURCE_LPSPI4_TX );  // start
   dma.attachInterrupt(spidmaisr);
 }
-void spidmaisr(void)
-{
-  dma.disable();
-}
-bool dmaStarted = false;
 
 void ScreenPrintChar(uint32_t color, char c, int sx, int sy)
 {
