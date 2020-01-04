@@ -27,7 +27,6 @@ AudioConnection          patchCord6(mixer1, 0, i2s1, 0);
 AudioConnection          patchCord7(mixer1, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=762,495
 // GUItool: end automatically generated code
-#include "AudioSampleMug.h"
 
 void setup() {
   Wire.setClock(400000);
@@ -47,7 +46,7 @@ void setup() {
   envelope1.decay(10.4);
   envelope1.sustain(0.0);
   envelope1.release(84.5);
-  sampler = new Sampler();
+  sampler = new Sampler(&playMem1);
   Wire.begin(); // join i2c bus (address optional for master)
   delay(700);
   Serial.begin(9600);

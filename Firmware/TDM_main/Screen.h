@@ -160,15 +160,18 @@ void writePixel(uint16_t w)
   SPI.transfer(w >> 8);
   SPI.transfer(w);
 }
-
-void ScreenSetup()
+void screen_clear()
 {
   for (size_t i = 0; i < FRAMESIZE; i++)
   {
-    src[i] = 0;
     srcHi[i] = 0;
   }
-    pinMode(_cs, OUTPUT);
+}
+
+void screen_setup()
+{
+  screen_clear();
+  pinMode(_cs, OUTPUT);
   digitalWrite(_cs, HIGH);
 
   pinMode(_reset, OUTPUT);
@@ -213,8 +216,7 @@ void dmaTx()
   dma.triggerAtHardwareEvent( DMAMUX_SOURCE_LPSPI4_TX );  // start
   dma.attachInterrupt(spidmaisr);
 }
-
-void ScreenPrintChar(uint32_t color, char c, int sx, int sy)
+void screen_printchar(uint32_t color, char c, int sx, int sy)
 {
   char *bitmap = font8x8_basic[c];
   int x,y;
@@ -235,17 +237,17 @@ void ScreenPrintChar(uint32_t color, char c, int sx, int sy)
   }
 }
 
-void ScreenPrint(uint32_t c, const char* input, int sx, int sy)
+void screen_print(uint32_t c, const char* input, int sx, int sy)
 {
   for(int i = 0; input[i]!= 0; i++)
   {
-    ScreenPrintChar(c, input[i], sx+i*8, sy);
+    screen_printchar(c, input[i], sx+i*8, sy);
   }
 }
 
 
 
-void ScreenLoop()
+void screen_update()
 {
   if(dmaStarted && !dma.complete())
   {
