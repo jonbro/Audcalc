@@ -258,8 +258,6 @@ Text GLabel 4000 7150 0    50   Input ~ 0
 enc1b
 Text GLabel 4000 7050 0    50   Input ~ 0
 enc1a
-Text Label 8000 3650 0    50   ~ 0
-VBAT
 Wire Wire Line
 	8500 1200 8800 1200
 $Comp
@@ -281,25 +279,12 @@ Wire Wire Line
 	8550 1100 8500 1100
 Wire Wire Line
 	8550 1000 8550 1100
-$Comp
-L tdm_mainboard-eagle-import:5.0V #U$02
-U 1 1 5DA3ED06
-P 8550 900
-F 0 "#U$02" H 8550 900 50  0001 C CNN
-F 1 "5.0V" H 8490 940 42  0000 L BNN
-F 2 "" H 8550 900 50  0001 C CNN
-F 3 "" H 8550 900 50  0001 C CNN
-	1    8550 900 
-	1    0    0    -1  
-$EndComp
 Text Notes 6200 2850 0    50   ~ 0
 Power
 Wire Notes Line
-	6200 5600 6200 2850
+	11400 4600 6200 4600
 Wire Notes Line
-	11400 5600 6200 5600
-Wire Notes Line
-	11400 2850 11400 5600
+	11400 2850 11400 4600
 Wire Notes Line
 	6200 2850 11400 2850
 Text GLabel 1700 7100 0    50   Input ~ 0
@@ -357,329 +342,29 @@ F 5 "1.01" H 2400 7850 50  0001 L BNN "Field5"
 	-1   0    0    1   
 $EndComp
 $Comp
-L power:GND #PWR015
-U 1 1 5D9BBF26
-P 10200 3950
-F 0 "#PWR015" H 10200 3700 50  0001 C CNN
-F 1 "GND" H 10205 3777 50  0000 C CNN
-F 2 "" H 10200 3950 50  0001 C CNN
-F 3 "" H 10200 3950 50  0001 C CNN
-	1    10200 3950
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR014
-U 1 1 5D9BBBAC
-P 9900 3950
-F 0 "#PWR014" H 9900 3700 50  0001 C CNN
-F 1 "GND" H 9905 3777 50  0000 C CNN
-F 2 "" H 9900 3950 50  0001 C CNN
-F 3 "" H 9900 3950 50  0001 C CNN
-	1    9900 3950
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR013
-U 1 1 5D9B5B1F
-P 9700 4500
-F 0 "#PWR013" H 9700 4250 50  0001 C CNN
-F 1 "GND" H 9705 4327 50  0000 C CNN
-F 2 "" H 9700 4500 50  0001 C CNN
-F 3 "" H 9700 4500 50  0001 C CNN
-	1    9700 4500
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR012
-U 1 1 5D9B5A0F
-P 8200 4850
-F 0 "#PWR012" H 8200 4600 50  0001 C CNN
-F 1 "GND" H 8205 4677 50  0000 C CNN
-F 2 "" H 8200 4850 50  0001 C CNN
-F 3 "" H 8200 4850 50  0001 C CNN
-	1    8200 4850
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR010
-U 1 1 5D9B57E2
-P 7800 4850
-F 0 "#PWR010" H 7800 4600 50  0001 C CNN
-F 1 "GND" H 7805 4677 50  0000 C CNN
-F 2 "" H 7800 4850 50  0001 C CNN
-F 3 "" H 7800 4850 50  0001 C CNN
-	1    7800 4850
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR08
-U 1 1 5D9B5530
-P 7500 4050
-F 0 "#PWR08" H 7500 3800 50  0001 C CNN
-F 1 "GND" H 7505 3877 50  0000 C CNN
-F 2 "" H 7500 4050 50  0001 C CNN
-F 3 "" H 7500 4050 50  0001 C CNN
-	1    7500 4050
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR07
 U 1 1 5D9B536E
-P 7200 4150
-F 0 "#PWR07" H 7200 3900 50  0001 C CNN
-F 1 "GND" H 7205 3977 50  0000 C CNN
-F 2 "" H 7200 4150 50  0001 C CNN
-F 3 "" H 7200 4150 50  0001 C CNN
-	1    7200 4150
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR06
-U 1 1 5D9B4D48
-P 7500 6250
-F 0 "#PWR06" H 7500 6000 50  0001 C CNN
-F 1 "GND" H 7505 6077 50  0000 C CNN
-F 2 "" H 7500 6250 50  0001 C CNN
-F 3 "" H 7500 6250 50  0001 C CNN
-	1    7500 6250
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	10600 3300 10600 3450
-Text Notes 9700 3250 0    59   ~ 0
-R4 = 200K\nR3 = 1.85Mohm
-Text Notes 6700 5150 0    59   ~ 0
-R2 < 500K\nR1 = 5.5*R2 (3.2V LBO)
-Text Notes 7600 3250 0    59   ~ 0
-6.8uH power\nw/2A current
-Text Notes 7100 4650 0    59   ~ 0
-See Pg 15\n1st para
-$Comp
-L tdm_mainboard-eagle-import:RESISTOR0805_NOOUTLINE R10
-U 1 1 25F60968
-P 7800 3850
-F 0 "R10" H 7800 3950 50  0000 C CNN
-F 1 "1.87M" H 7800 3850 40  0000 C CNB
-F 2 "Resistors_SMD:R_0603" H 7800 3850 50  0001 C CNN
-F 3 "" H 7800 3850 50  0001 C CNN
-	1    7800 3850
-	0    -1   -1   0   
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:RESISTOR0805_NOOUTLINE R11
-U 1 1 E1A3DAAF
-P 7800 4550
-F 0 "R11" H 7800 4650 50  0000 C CNN
-F 1 "340K" H 7800 4550 40  0000 C CNB
-F 2 "Resistors_SMD:R_0603" H 7800 4550 50  0001 C CNN
-F 3 "" H 7800 4550 50  0001 C CNN
-	1    7800 4550
-	0    -1   -1   0   
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:RESISTOR0805_NOOUTLINE R14
-U 1 1 AFC485DA
-P 9700 4050
-F 0 "R14" H 9700 4150 50  0000 C CNN
-F 1 "200K" H 9700 4050 40  0000 C CNB
-F 2 "Resistors_SMD:R_0603" H 9700 4050 50  0001 C CNN
-F 3 "" H 9700 4050 50  0001 C CNN
-	1    9700 4050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:RESISTOR0805_NOOUTLINE R13
-U 1 1 D19AE326
-P 9700 3650
-F 0 "R13" H 9700 3750 50  0000 C CNN
-F 1 "1.87M" H 9700 3650 40  0000 C CNB
-F 2 "Resistors_SMD:R_0603" H 9700 3650 50  0001 C CNN
-F 3 "" H 9700 3650 50  0001 C CNN
-	1    9700 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:CAP_CERAMIC0805-NOOUTLINE C20
-U 1 1 03F6E73E
-P 7500 3950
-F 0 "C20" V 7410 3999 50  0000 C CNN
-F 1 "0.1uF" V 7590 3999 50  0000 C CNN
-F 2 "Capacitors_SMD:C_0603" H 7500 3950 50  0001 C CNN
-F 3 "" H 7500 3950 50  0001 C CNN
-	1    7500 3950
-	1    0    0    -1  
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:VBAT #U$03
-U 1 1 88B45EA1
-P 8450 4750
-F 0 "#U$03" H 8450 4750 50  0001 C CNN
-F 1 "VBAT" H 8390 4790 42  0000 L BNN
-F 2 "" H 8450 4750 50  0001 C CNN
-F 3 "" H 8450 4750 50  0001 C CNN
-	1    8450 4750
-	1    0    0    -1  
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:RESISTOR0805_NOOUTLINE R12
-U 1 1 39D92388
-P 8450 5050
-F 0 "R12" H 8450 5150 50  0000 C CNN
-F 1 "340K" H 8450 5050 40  0000 C CNB
-F 2 "Resistors_SMD:R_0603" H 8450 5050 50  0001 C CNN
-F 3 "" H 8450 5050 50  0001 C CNN
-	1    8450 5050
-	0    1    1    0   
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:VBAT #U$01
-U 1 1 1DEA58DA
-P 7200 3250
-F 0 "#U$01" H 7200 3250 50  0001 C CNN
-F 1 "VBAT" H 7140 3290 42  0000 L BNN
-F 2 "" H 7200 3250 50  0001 C CNN
-F 3 "" H 7200 3250 50  0001 C CNN
-	1    7200 3250
-	1    0    0    -1  
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:5.0V #U$05
-U 1 1 63C62AE7
-P 10600 3200
-F 0 "#U$05" H 10600 3200 50  0001 C CNN
-F 1 "5.0V" H 10540 3240 42  0000 L BNN
-F 2 "" H 10600 3200 50  0001 C CNN
-F 3 "" H 10600 3200 50  0001 C CNN
-	1    10600 3200
-	1    0    0    -1  
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:CAP_CERAMIC0805-NOOUTLINE C21
-U 1 1 00AD4B43
-P 9900 3750
-F 0 "C21" V 9810 3799 50  0000 C CNN
-F 1 "2.2uF" V 9990 3799 50  0000 C CNN
-F 2 "Capacitors_SMD:C_0603" H 9900 3750 50  0001 C CNN
-F 3 "" H 9900 3750 50  0001 C CNN
-	1    9900 3750
+P 9400 3900
+F 0 "#PWR07" H 9400 3650 50  0001 C CNN
+F 1 "GND" H 9405 3727 50  0000 C CNN
+F 2 "" H 9400 3900 50  0001 C CNN
+F 3 "" H 9400 3900 50  0001 C CNN
+	1    9400 3900
 	1    0    0    -1  
 $EndComp
 $Comp
 L tdm_mainboard-eagle-import:CAP_CERAMIC0805-NOOUTLINE C19
 U 1 1 E7D47EA7
-P 7200 3950
-F 0 "C19" V 7110 3999 50  0000 C CNN
-F 1 "10uF" V 7290 3999 50  0000 C CNN
-F 2 "Capacitors_SMD:C_0603" H 7200 3950 50  0001 C CNN
-F 3 "" H 7200 3950 50  0001 C CNN
-	1    7200 3950
+P 9400 3700
+F 0 "C19" V 9310 3749 50  0000 C CNN
+F 1 "10uF" V 9490 3749 50  0000 C CNN
+F 2 "Capacitors_SMD:C_0603" H 9400 3700 50  0001 C CNN
+F 3 "" H 9400 3700 50  0001 C CNN
+	1    9400 3700
 	1    0    0    -1  
 $EndComp
-$Comp
-L tdm_mainboard-eagle-import:INDUCTORTDK_VLC5045 L2
-U 1 1 117C7455
-P 7900 3450
-F 0 "L2" H 7900 3550 42  0000 C CNN
-F 1 "VLC5045-6.8uH" H 7900 3390 42  0000 C CNN
-F 2 "SamacSys_Parts:INDPM5050X450N" H 7900 3450 50  0001 C CNN
-F 3 "" H 7900 3450 50  0001 C CNN
-	1    7900 3450
-	1    0    0    -1  
-$EndComp
-$Comp
-L tdm_mainboard-eagle-import:VREG_TPS6103X U5
-U 1 1 B2CBD2F8
-P 9000 3850
-F 0 "U5" H 8600 4700 56  0000 L BNN
-F 1 "TPS61090RSAR" H 8600 2950 56  0000 L BNN
-F 2 "SamacSys_Parts:QFN65P400X400X100-17N" H 9000 3850 50  0001 C CNN
-F 3 "" H 9000 3850 50  0001 C CNN
-	1    9000 3850
-	1    0    0    -1  
-$EndComp
-Connection ~ 9700 3850
 Wire Wire Line
-	9500 3850 9700 3850
-Wire Wire Line
-	9500 3750 9500 3850
-Wire Wire Line
-	8500 3750 8000 3750
-Text Label 8550 5250 0    50   ~ 0
-ENABLE
-Wire Wire Line
-	9050 5250 8450 5250
-Connection ~ 7800 3650
-Connection ~ 7200 3450
-Connection ~ 7500 3650
-Connection ~ 7200 3650
-Wire Wire Line
-	6600 3650 7200 3650
-Wire Wire Line
-	7200 3450 7200 3350
-Wire Wire Line
-	7500 3750 7500 3650
-Wire Wire Line
-	7200 3450 7200 3650
-Wire Wire Line
-	7700 3450 7200 3450
-Wire Wire Line
-	7200 3650 7200 3750
-Wire Wire Line
-	7500 3650 7200 3650
-Wire Wire Line
-	7800 3650 7500 3650
-Wire Wire Line
-	8500 3650 7800 3650
-Connection ~ 9700 3450
-Connection ~ 10200 3450
-Connection ~ 9900 3450
-Wire Wire Line
-	10200 3450 10200 3550
-Wire Wire Line
-	9900 3550 9900 3450
-Wire Wire Line
-	10200 3450 10600 3450
-Wire Wire Line
-	9900 3450 10200 3450
-Wire Wire Line
-	9700 3450 9900 3450
-Wire Wire Line
-	9500 3450 9700 3450
-Connection ~ 7800 4250
-Wire Wire Line
-	7800 4250 7800 4350
-Wire Wire Line
-	7800 4250 7800 4050
-Wire Wire Line
-	8000 4250 7800 4250
-Wire Wire Line
-	8000 4250 8000 3850
-Wire Wire Line
-	8500 3850 8000 3850
-Wire Wire Line
-	8500 3450 8100 3450
-Wire Wire Line
-	7800 4850 7800 4750
-Wire Wire Line
-	10200 3850 10200 3950
-Wire Wire Line
-	9900 3850 9900 3900
-Connection ~ 9700 4250
-Wire Wire Line
-	9700 4250 9700 4500
-Wire Wire Line
-	9500 4250 9700 4250
-Wire Wire Line
-	7200 4050 7200 4150
-Connection ~ 8200 4250
-Wire Wire Line
-	8200 4050 8200 4250
-Wire Wire Line
-	8500 4050 8200 4050
-Wire Wire Line
-	8200 4250 8200 4850
-Wire Wire Line
-	8500 4250 8200 4250
+	9400 3800 9400 3900
 Text Notes 700  4100 0    50   ~ 0
 Amp & Speaker
 Wire Notes Line
@@ -1591,41 +1276,28 @@ Wire Notes Line
 	10950 2750 9500 2750
 Text Notes 9500 700  0    50   ~ 0
 Connector to i/o board
-Text Label 8000 3750 0    50   ~ 0
-ENABLE
 Wire Wire Line
 	1800 1050 2250 1050
 $Comp
-L Device:CP1 C22
-U 1 1 5DC3A110
-P 10200 3700
-F 0 "C22" V 10452 3700 50  0000 C CNN
-F 1 "100uF electrolytic" V 10361 3700 50  0000 C CNN
-F 2 "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow" H 10200 3700 50  0001 C CNN
-F 3 "~" H 10200 3700 50  0001 C CNN
-	1    10200 3700
-	1    0    0    -1  
-$EndComp
-$Comp
 L tdm_mainboard-rescue:MOUNTINGHOLE2.5-Adafruit_PAM8302-eagle-import U6
 U 1 1 5DEEC0F6
-P 6850 8000
-F 0 "U6" H 6900 8050 50  0001 C CNN
-F 1 "MOUNTINGHOLE2.5" H 6850 8000 50  0001 C CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm" H 6850 8000 50  0001 C CNN
-F 3 "" H 6850 8000 50  0001 C CNN
-	1    6850 8000
+P 6350 4850
+F 0 "U6" H 6400 4900 50  0001 C CNN
+F 1 "MOUNTINGHOLE2.5" H 6350 4850 50  0001 C CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm" H 6350 4850 50  0001 C CNN
+F 3 "" H 6350 4850 50  0001 C CNN
+	1    6350 4850
 	1    0    0    -1  
 $EndComp
 $Comp
 L tdm_mainboard-rescue:MOUNTINGHOLE2.5-Adafruit_PAM8302-eagle-import U7
 U 1 1 5DEEC3EE
-P 7100 8000
-F 0 "U7" H 7150 8050 50  0001 C CNN
-F 1 "MOUNTINGHOLE2.5" H 7100 8000 50  0001 C CNN
-F 2 "Mounting_Holes:MountingHole_2.5mm" H 7100 8000 50  0001 C CNN
-F 3 "" H 7100 8000 50  0001 C CNN
-	1    7100 8000
+P 6600 4850
+F 0 "U7" H 6650 4900 50  0001 C CNN
+F 1 "MOUNTINGHOLE2.5" H 6600 4850 50  0001 C CNN
+F 2 "Mounting_Holes:MountingHole_2.5mm" H 6600 4850 50  0001 C CNN
+F 3 "" H 6600 4850 50  0001 C CNN
+	1    6600 4850
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1652,35 +1324,7 @@ F 3 "" H 8800 1000 50  0001 C CNN
 	1    8800 1000
 	-1   0    0    1   
 $EndComp
-Wire Wire Line
-	9500 3950 9500 3900
-Wire Wire Line
-	9500 3900 9900 3900
-Connection ~ 9900 3900
-Wire Wire Line
-	9900 3900 9900 3950
-$Comp
-L SamacSys_Parts:1013 U8
-U 1 1 5E07ECF5
-P 6700 6250
-F 0 "U8" H 7100 6515 50  0000 C CNN
-F 1 "1013" H 7100 6424 50  0000 C CNN
-F 2 "SamacSys_Parts:1013" H 7350 6350 50  0001 L CNN
-F 3 "https://componentsearchengine.com/Datasheets/1/1013.pdf" H 7350 6250 50  0001 L CNN
-F 4 "KEYSTONE - 1013 - BATTERY HOLDER, AA, THROUGH HOLE" H 7350 6150 50  0001 L CNN "Description"
-F 5 "14" H 7350 6050 50  0001 L CNN "Height"
-F 6 "534-1013" H 7350 5950 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=534-1013" H 7350 5850 50  0001 L CNN "Mouser Price/Stock"
-F 8 "Keystone Electronics" H 7350 5750 50  0001 L CNN "Manufacturer_Name"
-F 9 "1013" H 7350 5650 50  0001 L CNN "Manufacturer_Part_Number"
-	1    6700 6250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6600 3650 6600 3850
-Text GLabel 7500 6350 2    50   Input ~ 0
-battery
-Text GLabel 6600 3850 3    50   Input ~ 0
+Text GLabel 9950 3500 2    50   Input ~ 0
 battery
 $Comp
 L SharedLibrary:ENC E1
@@ -1709,73 +1353,73 @@ Connection ~ 5150 8550
 $Comp
 L SamacSys_Parts:W25Q128JVSIQ IC1
 U 1 1 5E148D94
-P 8600 6250
-F 0 "IC1" H 9700 6515 50  0000 C CNN
-F 1 "W25Q128JVSIQ" H 9700 6424 50  0000 C CNN
-F 2 "SamacSys_Parts:SOIC127P790X216-8N" H 10650 6350 50  0001 L CNN
-F 3 "https://componentsearchengine.com/Datasheets/1/W25Q128JVSIQ.pdf" H 10650 6250 50  0001 L CNN
-F 4 "NOR Flash spiFlash, 3V, 128M-bit, 4Kb Uniform Sector" H 10650 6150 50  0001 L CNN "Description"
-F 5 "2.16" H 10650 6050 50  0001 L CNN "Height"
-F 6 "454-W25Q128JVSIQ" H 10650 5950 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=454-W25Q128JVSIQ" H 10650 5850 50  0001 L CNN "Mouser Price/Stock"
-F 8 "Winbond" H 10650 5750 50  0001 L CNN "Manufacturer_Name"
-F 9 "W25Q128JVSIQ" H 10650 5650 50  0001 L CNN "Manufacturer_Part_Number"
-	1    8600 6250
+P 8950 5150
+F 0 "IC1" H 10050 5415 50  0000 C CNN
+F 1 "W25Q128JVSIQ" H 10050 5324 50  0000 C CNN
+F 2 "SamacSys_Parts:SOIC127P790X216-8N" H 11000 5250 50  0001 L CNN
+F 3 "https://componentsearchengine.com/Datasheets/1/W25Q128JVSIQ.pdf" H 11000 5150 50  0001 L CNN
+F 4 "NOR Flash spiFlash, 3V, 128M-bit, 4Kb Uniform Sector" H 11000 5050 50  0001 L CNN "Description"
+F 5 "2.16" H 11000 4950 50  0001 L CNN "Height"
+F 6 "454-W25Q128JVSIQ" H 11000 4850 50  0001 L CNN "Mouser Part Number"
+F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=454-W25Q128JVSIQ" H 11000 4750 50  0001 L CNN "Mouser Price/Stock"
+F 8 "Winbond" H 11000 4650 50  0001 L CNN "Manufacturer_Name"
+F 9 "W25Q128JVSIQ" H 11000 4550 50  0001 L CNN "Manufacturer_Part_Number"
+	1    8950 5150
 	1    0    0    -1  
 $EndComp
 Text GLabel 7600 2400 0    50   Input ~ 0
 MISO
-Text GLabel 8600 6350 0    50   Input ~ 0
+Text GLabel 8950 5250 0    50   Input ~ 0
 MISO
-Text GLabel 10800 6550 2    50   Input ~ 0
+Text GLabel 11150 5450 2    50   Input ~ 0
 MOSI
-Text GLabel 10800 6450 2    50   Input ~ 0
+Text GLabel 11150 5350 2    50   Input ~ 0
 SCK
 Wire Wire Line
-	10800 6350 10800 6250
+	11150 5250 11150 5150
 Wire Wire Line
-	10800 6200 10800 6250
-Connection ~ 10800 6250
+	11150 5100 11150 5150
+Connection ~ 11150 5150
 $Comp
 L power:+3.3V #PWR0119
 U 1 1 5E16BB91
-P 10800 6200
-F 0 "#PWR0119" H 10800 6050 50  0001 C CNN
-F 1 "+3.3V" V 10815 6328 50  0000 L CNN
-F 2 "" H 10800 6200 50  0001 C CNN
-F 3 "" H 10800 6200 50  0001 C CNN
-	1    10800 6200
+P 11150 5100
+F 0 "#PWR0119" H 11150 4950 50  0001 C CNN
+F 1 "+3.3V" V 11165 5228 50  0000 L CNN
+F 2 "" H 11150 5100 50  0001 C CNN
+F 3 "" H 11150 5100 50  0001 C CNN
+	1    11150 5100
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8600 6450 8400 6450
+	8950 5350 8750 5350
 Wire Wire Line
-	8400 6450 8400 6550
+	8750 5350 8750 5450
 $Comp
 L power:+3.3V #PWR0120
 U 1 1 5E1758B9
-P 8400 6550
-F 0 "#PWR0120" H 8400 6400 50  0001 C CNN
-F 1 "+3.3V" V 8415 6678 50  0000 L CNN
-F 2 "" H 8400 6550 50  0001 C CNN
-F 3 "" H 8400 6550 50  0001 C CNN
-	1    8400 6550
+P 8750 5450
+F 0 "#PWR0120" H 8750 5300 50  0001 C CNN
+F 1 "+3.3V" V 8765 5578 50  0000 L CNN
+F 2 "" H 8750 5450 50  0001 C CNN
+F 3 "" H 8750 5450 50  0001 C CNN
+	1    8750 5450
 	-1   0    0    1   
 $EndComp
 $Comp
 L power:GND #PWR0121
 U 1 1 5E175F16
-P 8600 6550
-F 0 "#PWR0121" H 8600 6300 50  0001 C CNN
-F 1 "GND" H 8605 6377 50  0000 C CNN
-F 2 "" H 8600 6550 50  0001 C CNN
-F 3 "" H 8600 6550 50  0001 C CNN
-	1    8600 6550
+P 8950 5450
+F 0 "#PWR0121" H 8950 5200 50  0001 C CNN
+F 1 "GND" H 8955 5277 50  0000 C CNN
+F 2 "" H 8950 5450 50  0001 C CNN
+F 3 "" H 8950 5450 50  0001 C CNN
+	1    8950 5450
 	1    0    0    -1  
 $EndComp
 Text GLabel 8500 1500 2    50   Input ~ 0
 FlashCS
-Text GLabel 8600 6250 0    50   Input ~ 0
+Text GLabel 8950 5150 0    50   Input ~ 0
 FlashCS
 $Comp
 L Connector:TestPoint_2Pole TP1
@@ -1908,8 +1552,6 @@ $EndComp
 Connection ~ 3500 1400
 Wire Wire Line
 	3500 1400 3350 1400
-Wire Wire Line
-	6700 6250 6700 6350
 $Comp
 L Connector:TestPoint_2Pole TP6
 U 1 1 5DE7449D
@@ -1961,4 +1603,140 @@ Wire Wire Line
 	1850 5350 1350 5350
 Text GLabel 7600 2100 0    50   Input ~ 0
 ampEnable
+$Comp
+L dk_PMIC-Battery-Chargers:MCP73831T-2ACI_OT U?
+U 1 1 5E885055
+P 8550 3500
+F 0 "U?" H 8550 3903 60  0000 C CNN
+F 1 "MCP73831T-2ACI_OT" H 8550 3797 60  0000 C CNN
+F 2 "digikey-footprints:SOT-753" H 8750 3700 60  0001 L CNN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf" H 8750 3800 60  0001 L CNN
+F 4 "MCP73831T-2ACI/OTCT-ND" H 8750 3900 60  0001 L CNN "Digi-Key_PN"
+F 5 "MCP73831T-2ACI/OT" H 8750 4000 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 8750 4100 60  0001 L CNN "Category"
+F 7 "PMIC - Battery Chargers" H 8750 4200 60  0001 L CNN "Family"
+F 8 "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf" H 8750 4300 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/microchip-technology/MCP73831T-2ACI-OT/MCP73831T-2ACI-OTCT-ND/1979802" H 8750 4400 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC CONTROLLR LI-ION 4.2V SOT23-5" H 8750 4500 60  0001 L CNN "Description"
+F 11 "Microchip Technology" H 8750 4600 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 8750 4700 60  0001 L CNN "Status"
+	1    8550 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 5E8CD984
+P 8950 3750
+F 0 "R?" H 9018 3796 50  0000 L CNN
+F 1 "1k" H 9018 3705 50  0000 L CNN
+F 2 "Resistors_SMD:R_0603" V 8990 3740 50  0001 C CNN
+F 3 "~" H 8950 3750 50  0001 C CNN
+	1    8950 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED D?
+U 1 1 5E8DF0D6
+P 8950 4050
+F 0 "D?" H 8943 4266 50  0000 C CNN
+F 1 "LED" H 8943 4175 50  0000 C CNN
+F 2 "" H 8950 4050 50  0001 C CNN
+F 3 "~" H 8950 4050 50  0001 C CNN
+	1    8950 4050
+	0    1    1    0   
+$EndComp
+Connection ~ 9400 3500
+Wire Wire Line
+	9400 3500 8950 3500
+$Comp
+L power:GND #PWR?
+U 1 1 5E92A1A7
+P 8550 3900
+F 0 "#PWR?" H 8550 3650 50  0001 C CNN
+F 1 "GND" H 8555 3727 50  0000 C CNN
+F 2 "" H 8550 3900 50  0001 C CNN
+F 3 "" H 8550 3900 50  0001 C CNN
+	1    8550 3900
+	1    0    0    -1  
+$EndComp
+Text GLabel 7800 3300 0    50   Input ~ 0
+vbus
+Wire Wire Line
+	7800 3300 8550 3300
+Text GLabel 8950 4200 3    50   Input ~ 0
+vbus
+Text Notes 6450 3450 0    50   ~ 0
+vbus goes to the teensy usb power
+Text Notes 7050 3900 0    50   ~ 0
+set the battery capacity\n10k = 100ma\n5k = 200ma\n2k = 500ma\n1k = 1000ma
+$Comp
+L Device:R_US R?
+U 1 1 5E955C15
+P 7900 3750
+F 0 "R?" H 7968 3796 50  0000 L CNN
+F 1 "5k" H 7968 3705 50  0000 L CNN
+F 2 "" V 7940 3740 50  0001 C CNN
+F 3 "~" H 7900 3750 50  0001 C CNN
+	1    7900 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8150 3600 7900 3600
+$Comp
+L power:GND #PWR?
+U 1 1 5E961452
+P 7900 3900
+F 0 "#PWR?" H 7900 3650 50  0001 C CNN
+F 1 "GND" H 7905 3727 50  0000 C CNN
+F 2 "" H 7900 3900 50  0001 C CNN
+F 3 "" H 7900 3900 50  0001 C CNN
+	1    7900 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:D_Schottky D?
+U 1 1 5E980CCB
+P 9750 3650
+F 0 "D?" V 9796 3571 50  0000 R CNN
+F 1 "mbr120" V 9705 3571 50  0000 R CNN
+F 2 "" H 9750 3650 50  0001 C CNN
+F 3 "~" H 9750 3650 50  0001 C CNN
+	1    9750 3650
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	9950 3500 9750 3500
+Wire Wire Line
+	9400 3500 9750 3500
+Connection ~ 9750 3500
+Text GLabel 8550 1000 1    50   Input ~ 0
+batteryPower
+Text GLabel 9750 3800 3    50   Input ~ 0
+batteryPower
+$Comp
+L Connector:Conn_01x02_Female J?
+U 1 1 5E9C1334
+P 9950 3150
+F 0 "J?" H 9978 3126 50  0000 L CNN
+F 1 "batteryConnection (jstph)" H 9978 3035 50  0000 L CNN
+F 2 "" H 9950 3150 50  0001 C CNN
+F 3 "~" H 9950 3150 50  0001 C CNN
+	1    9950 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9750 3250 9750 3500
+$Comp
+L power:GND #PWR?
+U 1 1 5E9E4400
+P 9750 3150
+F 0 "#PWR?" H 9750 2900 50  0001 C CNN
+F 1 "GND" H 9755 2977 50  0000 C CNN
+F 2 "" H 9750 3150 50  0001 C CNN
+F 3 "" H 9750 3150 50  0001 C CNN
+	1    9750 3150
+	-1   0    0    1   
+$EndComp
+Wire Notes Line
+	6200 4600 6200 2850
 $EndSCHEMATC
