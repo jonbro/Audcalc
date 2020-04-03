@@ -3,23 +3,28 @@
 a pocket sized groovebox.
 
 ## changelog
+*4/4/2020*
+- updates to the backboard schematic
+
+*4/3/2020*
+- swapped out the boost converter for a battery charge circuit
 
 *12/30/19*
 - screen bitmap font writer (for debug)
 
 ## hardware todo
-- fix the oled -> mic noise issue (seperate audio / other ground planes)
+- update layout with all the new stuff
 - test the line in cutout
-- test the headphone cutout (paranoid about this one, might kill the teensy)
-- debug the amplifier section (determine if it is necessary)
-- fix the codec data line issues
+- test the headphone cutout
+- get samd11 test board blinking
+- check out if stm32f0 is a better solution than samd11
+- amp issue might be that I purchased the wrong amp type (a instead of d)
 - fix the screen header order (is currently reversed)
-- remove the power source and swap for a battery charger & jst connector for lipo
-- castellated vias for teensy connection
-- add sd card port
 
 ## firmware todo
 
+- subtractive synth
+- physical modeled drum
 - encapsulate the core data
 - serialize to flash when changed
 - get the current sample thing working with pattern triggers
@@ -28,13 +33,8 @@ a pocket sized groovebox.
 - pitched playback for the sampler
 - setup the sleep mode
 - setup the gpio sleep interrupt
-- subtractive synth
-- physical modeled drum
 
 ## later release
 
 - modular synth?
 - lua system?
-
-(186+100+50+40)/5
-333+200+100+80

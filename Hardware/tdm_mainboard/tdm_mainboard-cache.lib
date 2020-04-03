@@ -21,6 +21,37 @@ X Pin_2 2 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
+# Connector_Generic_Conn_01x08
+#
+DEF Connector_Generic_Conn_01x08 J 0 40 Y N 1 F N
+F0 "J" 0 400 50 H V C CNN
+F1 "Connector_Generic_Conn_01x08" 0 -500 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Connector*:*_1x??_*
+$ENDFPLIST
+DRAW
+S -50 -395 0 -405 1 1 6 N
+S -50 -295 0 -305 1 1 6 N
+S -50 -195 0 -205 1 1 6 N
+S -50 -95 0 -105 1 1 6 N
+S -50 5 0 -5 1 1 6 N
+S -50 105 0 95 1 1 6 N
+S -50 205 0 195 1 1 6 N
+S -50 305 0 295 1 1 6 N
+S -50 350 50 -450 1 1 10 f
+X Pin_1 1 -200 300 150 R 50 50 1 1 P
+X Pin_2 2 -200 200 150 R 50 50 1 1 P
+X Pin_3 3 -200 100 150 R 50 50 1 1 P
+X Pin_4 4 -200 0 150 R 50 50 1 1 P
+X Pin_5 5 -200 -100 150 R 50 50 1 1 P
+X Pin_6 6 -200 -200 150 R 50 50 1 1 P
+X Pin_7 7 -200 -300 150 R 50 50 1 1 P
+X Pin_8 8 -200 -400 150 R 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
 # Connector_Generic_Conn_02x06_Top_Bottom
 #
 DEF Connector_Generic_Conn_02x06_Top_Bottom J 0 40 Y N 1 F N
@@ -456,6 +487,51 @@ X DOUT 8 -450 -300 100 R 50 50 1 1 O
 X 9 9 -450 -400 100 R 50 50 1 1 I
 X GND GND 450 500 100 L 50 50 1 1 I
 X Vin Vin 450 600 100 L 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# customLibrary_SPWmicrophone
+#
+DEF customLibrary_SPWmicrophone U 0 40 Y Y 1 F N
+F0 "U" -150 200 50 H V C CNN
+F1 "customLibrary_SPWmicrophone" 100 -200 50 H V C CNN
+F2 "" -150 200 50 H I C CNN
+F3 "" -150 200 50 H I C CNN
+DRAW
+S -150 150 150 -150 0 1 0 N
+X gnd 1 250 100 100 L 50 50 1 1 O
+X vdd 2 250 0 100 L 50 50 1 1 O
+X output 3 250 -100 100 L 50 50 1 1 O
+ENDDRAW
+ENDDEF
+#
+# dk_Memory-Connectors-PC-Card-Sockets_2908-05WB-MG
+#
+DEF dk_Memory-Connectors-PC-Card-Sockets_2908-05WB-MG J 0 40 Y Y 1 F N
+F0 "J" -500 500 60 H V C CNN
+F1 "dk_Memory-Connectors-PC-Card-Sockets_2908-05WB-MG" 0 -400 60 V V L CNN
+F2 "digikey-footprints:MicroSD_2908-05WB-MG" 200 200 60 H I L CNN
+F3 "http://multimedia.3m.com/mws/media/416257O/3mtm-card-connector-microsdtm-2900-series-ts2197.pdf" 200 300 60 H I L CNN
+F4 "3M5607CT-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "2908-05WB-MG" 200 500 60 H I L CNN "MPN"
+F6 "Connectors, Interconnects" 200 600 60 H I L CNN "Category"
+F7 "Memory Connectors - PC Card Sockets" 200 700 60 H I L CNN "Family"
+F8 "http://multimedia.3m.com/mws/media/416257O/3mtm-card-connector-microsdtm-2900-series-ts2197.pdf" 200 800 60 H I L CNN "DK_Datasheet_Link"
+F9 "/product-detail/en/3m/2908-05WB-MG/3M5607CT-ND/1242498" 200 900 60 H I L CNN "DK_Detail_Page"
+F10 "CONN MICRO SD CARD PUSH-PUSH R/A" 200 1000 60 H I L CNN "Description"
+F11 "3M" 200 1100 60 H I L CNN "Manufacturer"
+F12 "Active" 200 1200 60 H I L CNN "Status"
+DRAW
+P 11 0 1 0 -500 -550 -500 400 -300 400 -200 500 -100 500 -100 400 0 400 100 500 600 500 600 -550 -500 -550 f
+X DAT2 1 -600 300 100 R 50 50 1 1 B
+X CD/DAT3 2 -600 200 100 R 50 50 1 1 B
+X CMD 3 -600 100 100 R 50 50 1 1 B
+X VDD 4 -600 0 100 R 50 50 1 1 W
+X CLK 5 -600 -100 100 R 50 50 1 1 O
+X VSS 6 -600 -200 100 R 50 50 1 1 W
+X DAT0 7 -600 -300 100 R 50 50 1 1 B
+X DAT1 8 -600 -400 100 R 50 50 1 1 B
+X SHLD 9 -600 -500 100 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
