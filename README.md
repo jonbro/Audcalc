@@ -8,5 +8,4 @@ a pocket sized groovebox.
 - RP2040 (overclocked to 300mhz)
 - 1/8in audio i/o
 - onboard mic
-- trs midi i/o
 - 104mm x 68mm x 14mm
