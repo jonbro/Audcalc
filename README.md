@@ -9,4 +9,4 @@ a pocket sized groovebox.
 - 1/8in audio i/o
 - onboard mic
 - trs midi i/o
-- 5 channels audio
+- 104mm x 68mm x 14mm
