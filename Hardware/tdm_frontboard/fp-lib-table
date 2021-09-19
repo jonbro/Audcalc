@@ -1,6 +1,0 @@
-(fp_lib_table
-  (lib (name custom)(type KiCad)(uri C:/Users/jonbro/Documents/Projects/teensy_op)(options "")(descr ""))
-  (lib (name digikey)(type KiCad)(uri C:/Users/jonbro/Documents/kicadLibraries/digikey-kicad-library-master/digikey-footprints.pretty)(options "")(descr ""))
-  (lib (name nornhat)(type KiCad)(uri C:/Users/jonbro/Documents/Projects/nornhat/footprints)(options "")(descr ""))
-  (lib (name SJ1-3534)(type Legacy)(uri C:/Users/jonbro/Documents/Projects/nornhat/footprints/SJ1-3534.mod)(options "")(descr ""))
-)

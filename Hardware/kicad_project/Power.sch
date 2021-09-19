@@ -1,0 +1,333 @@
+EESchema Schematic File Version 4
+LIBS:tdm_v6-cache
+EELAYER 29 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 5 5
+Title "TDM"
+Date "2021-09-17"
+Rev "6"
+Comp "TWR"
+Comment1 "Pocket Sound Computer"
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:+BATT #PWR?
+U 1 1 63689321
+P 7300 2550
+F 0 "#PWR?" H 7300 2400 50  0001 C CNN
+F 1 "+BATT" H 7315 2723 50  0000 C CNN
+F 2 "" H 7300 2550 50  0001 C CNN
+F 3 "" H 7300 2550 50  0001 C CNN
+	1    7300 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8050 3700 8050 3800
+Connection ~ 8050 3250
+Wire Wire Line
+	8050 3250 8050 3400
+Wire Wire Line
+	7700 3250 8050 3250
+$Comp
+L power:GND #PWR?
+U 1 1 6368932B
+P 8050 3800
+F 0 "#PWR?" H 8050 3550 50  0001 C CNN
+F 1 "GND" H 8055 3627 50  0000 C CNN
+F 2 "" H 8050 3800 50  0001 C CNN
+F 3 "" H 8050 3800 50  0001 C CNN
+	1    8050 3800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 63689331
+P 8050 3550
+F 0 "C?" H 8165 3596 50  0000 L CNN
+F 1 "10u" H 8165 3505 50  0000 L CNN
+F 2 "" H 8088 3400 50  0001 C CNN
+F 3 "~" H 8050 3550 50  0001 C CNN
+	1    8050 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 63689337
+P 8050 3250
+F 0 "#PWR?" H 8050 3100 50  0001 C CNN
+F 1 "+3.3V" H 8065 3423 50  0000 C CNN
+F 2 "" H 8050 3250 50  0001 C CNN
+F 3 "" H 8050 3250 50  0001 C CNN
+	1    8050 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 6368933D
+P 7400 3550
+F 0 "#PWR?" H 7400 3300 50  0001 C CNN
+F 1 "GND" H 7405 3377 50  0000 C CNN
+F 2 "" H 7400 3550 50  0001 C CNN
+F 3 "" H 7400 3550 50  0001 C CNN
+	1    7400 3550
+	1    0    0    -1  
+$EndComp
+Connection ~ 6900 3250
+Wire Wire Line
+	6900 3250 7100 3250
+$Comp
+L Regulator_Linear:NCP1117-3.3_SOT223 U?
+U 1 1 63689345
+P 7400 3250
+F 0 "U?" H 7400 3492 50  0000 C CNN
+F 1 "NCP1117-3.3_SOT223" H 7400 3401 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 7400 3450 50  0001 C CNN
+F 3 "http://www.onsemi.com/pub_link/Collateral/NCP1117-D.PDF" H 7500 3000 50  0001 C CNN
+	1    7400 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+BATT #PWR?
+U 1 1 6368934B
+P 3150 3550
+F 0 "#PWR?" H 3150 3400 50  0001 C CNN
+F 1 "+BATT" H 3165 3723 50  0000 C CNN
+F 2 "" H 3150 3550 50  0001 C CNN
+F 3 "" H 3150 3550 50  0001 C CNN
+	1    3150 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 63689351
+P 3150 3650
+F 0 "#PWR?" H 3150 3400 50  0001 C CNN
+F 1 "GND" H 3155 3477 50  0000 C CNN
+F 2 "" H 3150 3650 50  0001 C CNN
+F 3 "" H 3150 3650 50  0001 C CNN
+	1    3150 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J?
+U 1 1 63689357
+P 3350 3550
+F 0 "J?" H 3430 3542 50  0000 L CNN
+F 1 "battery" H 3430 3451 50  0000 L CNN
+F 2 "Connectors_JST:JST_PH_B2B-PH-SM4-TB_02x2.00mm_Straight" H 3350 3550 50  0001 C CNN
+F 3 "~" H 3350 3550 50  0001 C CNN
+	1    3350 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 6368935E
+P 6550 3400
+F 0 "R?" V 6345 3400 50  0000 C CNN
+F 1 "100k" V 6436 3400 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603" V 6590 3390 50  0001 C CNN
+F 3 "~" H 6550 3400 50  0001 C CNN
+F 4 "c25803" H 6550 3400 50  0001 C CNN "LCSC"
+	1    6550 3400
+	-1   0    0    1   
+$EndComp
+Connection ~ 6550 3250
+$Comp
+L power:GND #PWR?
+U 1 1 63689365
+P 6550 3550
+F 0 "#PWR?" H 6550 3300 50  0001 C CNN
+F 1 "GND" H 6555 3377 50  0000 C CNN
+F 2 "" H 6550 3550 50  0001 C CNN
+F 3 "" H 6550 3550 50  0001 C CNN
+	1    6550 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 6368936C
+P 4250 3350
+F 0 "R?" V 4045 3350 50  0000 C CNN
+F 1 "4.7k" V 4136 3350 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603" V 4290 3340 50  0001 C CNN
+F 3 "~" H 4250 3350 50  0001 C CNN
+F 4 "c23162" H 4250 3350 50  0001 C CNN "LCSC"
+	1    4250 3350
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4100 3350 4100 3650
+$Comp
+L dk_PMIC-Battery-Chargers:MCP73831T-2ATI_OT U?
+U 1 1 6368937D
+P 4800 3250
+F 0 "U?" H 4800 3653 60  0000 C CNN
+F 1 "MCP73831T-2ATI_OT" H 4800 3547 60  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:SOT-23-5" H 5000 3450 60  0001 L CNN
+F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf" H 5000 3550 60  0001 L CNN
+F 4 "MCP73831T-2ATI/OTCT-ND" H 5000 3650 60  0001 L CNN "Digi-Key_PN"
+F 5 "MCP73831T-2ATI/OT" H 5000 3750 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 5000 3850 60  0001 L CNN "Category"
+F 7 "PMIC - Battery Chargers" H 5000 3950 60  0001 L CNN "Family"
+F 8 "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf" H 5000 4050 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/microchip-technology/MCP73831T-2ATI-OT/MCP73831T-2ATI-OTCT-ND/1979803" H 5000 4150 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC CONTROLLR LI-ION 4.2V SOT23-5" H 5000 4250 60  0001 L CNN "Description"
+F 11 "Microchip Technology" H 5000 4350 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 5000 4450 60  0001 L CNN "Status"
+F 13 "C14879" H 4800 3250 50  0001 C CNN "LCSC"
+	1    4800 3250
+	1    0    0    -1  
+$EndComp
+Connection ~ 4800 3650
+Connection ~ 6550 2850
+Wire Wire Line
+	6550 2850 7000 2850
+Wire Wire Line
+	6900 2950 6900 3250
+Wire Wire Line
+	7300 2950 6900 2950
+Wire Wire Line
+	6850 3250 6900 3250
+Wire Wire Line
+	6550 2850 6550 3250
+$Comp
+L Device:D_Schottky D?
+U 1 1 6368938B
+P 6700 3250
+F 0 "D?" H 6700 3034 50  0000 C CNN
+F 1 "D_Schottky" H 6700 3125 50  0000 C CNN
+F 2 "Diodes_SMD:D_SMA" H 6700 3250 50  0001 C CNN
+F 3 "~" H 6700 3250 50  0001 C CNN
+F 4 "c14996" H 6700 3250 50  0001 C CNN "LCSC"
+	1    6700 3250
+	-1   0    0    1   
+$EndComp
+$Comp
+L dk_Transistors-FETs-MOSFETs-Single:DMG2305UX-13 Q?
+U 1 1 6368939B
+P 7300 2750
+F 0 "Q?" H 7408 2803 60  0000 L CNN
+F 1 "DMG2305UX-13" H 7408 2697 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-3" H 7500 2950 60  0001 L CNN
+F 3 "https://www.diodes.com/assets/Datasheets/DMG2305UX.pdf" H 7500 3050 60  0001 L CNN
+F 4 "DMG2305UX-13DICT-ND" H 7500 3150 60  0001 L CNN "Digi-Key_PN"
+F 5 "DMG2305UX-13" H 7500 3250 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 7500 3350 60  0001 L CNN "Category"
+F 7 "Transistors - FETs, MOSFETs - Single" H 7500 3450 60  0001 L CNN "Family"
+F 8 "https://www.diodes.com/assets/Datasheets/DMG2305UX.pdf" H 7500 3550 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/diodes-incorporated/DMG2305UX-13/DMG2305UX-13DICT-ND/4251589" H 7500 3650 60  0001 L CNN "DK_Detail_Page"
+F 10 "MOSFET P-CH 20V 4.2A SOT23" H 7500 3750 60  0001 L CNN "Description"
+F 11 "Diodes Incorporated" H 7500 3850 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 7500 3950 60  0001 L CNN "Status"
+F 13 "c144153" H 7300 2750 50  0001 C CNN "LCSC"
+	1    7300 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:VBUS #PWR?
+U 1 1 636893A1
+P 6550 2850
+F 0 "#PWR?" H 6550 2700 50  0001 C CNN
+F 1 "VBUS" H 6565 3023 50  0000 C CNN
+F 2 "" H 6550 2850 50  0001 C CNN
+F 3 "" H 6550 2850 50  0001 C CNN
+	1    6550 2850
+	1    0    0    -1  
+$EndComp
+Connection ~ 6000 3250
+Wire Wire Line
+	5200 3250 6000 3250
+$Comp
+L power:GND #PWR?
+U 1 1 636893A9
+P 6000 3550
+F 0 "#PWR?" H 6000 3300 50  0001 C CNN
+F 1 "GND" H 6005 3377 50  0000 C CNN
+F 2 "" H 6000 3550 50  0001 C CNN
+F 3 "" H 6000 3550 50  0001 C CNN
+	1    6000 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 636893B0
+P 6000 3400
+F 0 "C?" H 6115 3446 50  0000 L CNN
+F 1 "10u" H 6115 3355 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6038 3250 50  0001 C CNN
+F 3 "~" H 6000 3400 50  0001 C CNN
+F 4 "c19702" H 6000 3400 50  0001 C CNN "LCSC"
+	1    6000 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+BATT #PWR?
+U 1 1 636893B6
+P 6000 3250
+F 0 "#PWR?" H 6000 3100 50  0001 C CNN
+F 1 "+BATT" H 6015 3423 50  0000 C CNN
+F 2 "" H 6000 3250 50  0001 C CNN
+F 3 "" H 6000 3250 50  0001 C CNN
+	1    6000 3250
+	1    0    0    -1  
+$EndComp
+Connection ~ 4800 2750
+Wire Wire Line
+	5800 2750 5800 3350
+Wire Wire Line
+	4800 2750 5800 2750
+$Comp
+L Device:LED D?
+U 1 1 636893C0
+P 5650 3350
+F 0 "D?" H 5643 3566 50  0000 C CNN
+F 1 "LED" H 5643 3475 50  0000 C CNN
+F 2 "LEDs:LED_0603" H 5650 3350 50  0001 C CNN
+F 3 "~" H 5650 3350 50  0001 C CNN
+F 4 "c2286" H 5650 3350 50  0001 C CNN "LCSC"
+	1    5650 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R_US R?
+U 1 1 636893C7
+P 5350 3350
+F 0 "R?" V 5145 3350 50  0000 C CNN
+F 1 "1k" V 5236 3350 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603" V 5390 3340 50  0001 C CNN
+F 3 "~" H 5350 3350 50  0001 C CNN
+F 4 "c21190" H 5350 3350 50  0001 C CNN "LCSC"
+	1    5350 3350
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4800 3050 4800 2750
+$Comp
+L power:VBUS #PWR?
+U 1 1 636893CE
+P 4800 2750
+F 0 "#PWR?" H 4800 2600 50  0001 C CNN
+F 1 "VBUS" H 4815 2923 50  0000 C CNN
+F 2 "" H 4800 2750 50  0001 C CNN
+F 3 "" H 4800 2750 50  0001 C CNN
+	1    4800 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4100 3650 4800 3650
+$Comp
+L power:GND #PWR?
+U 1 1 636893D5
+P 4800 3650
+F 0 "#PWR?" H 4800 3400 50  0001 C CNN
+F 1 "GND" H 4805 3477 50  0000 C CNN
+F 2 "" H 4800 3650 50  0001 C CNN
+F 3 "" H 4800 3650 50  0001 C CNN
+	1    4800 3650
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC

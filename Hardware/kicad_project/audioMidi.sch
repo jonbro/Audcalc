@@ -1,0 +1,766 @@
+EESchema Schematic File Version 4
+LIBS:tdm_v6-cache
+EELAYER 29 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 2 5
+Title "TDM"
+Date "2021-09-17"
+Rev "6"
+Comp "TWR"
+Comment1 "Pocket Sound Computer"
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62EE9D3B
+P 6800 1800
+AR Path="/62EE9D3B" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9D3B" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 6800 1650 50  0001 C CNN
+F 1 "+3.3V" H 6815 1973 50  0000 C CNN
+F 2 "" H 6800 1800 50  0001 C CNN
+F 3 "" H 6800 1800 50  0001 C CNN
+	1    6800 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9D42
+P 6650 1950
+AR Path="/62EE9D42" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9D42" Ref="C?"  Part="1" 
+F 0 "C?" H 6765 1996 50  0000 L CNN
+F 1 "10u" H 6765 1905 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6688 1800 50  0001 C CNN
+F 3 "~" H 6650 1950 50  0001 C CNN
+F 4 "c19702" H 6650 1950 50  0001 C CNN "LCSC"
+	1    6650 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:HRO-PJ-327C-A J?
+U 1 1 62EE9D4A
+P 6500 3100
+AR Path="/62EE9D4A" Ref="J?"  Part="1" 
+AR Path="/62E6C628/62EE9D4A" Ref="J?"  Part="1" 
+F 0 "J?" H 6557 3667 50  0000 C CNN
+F 1 "headphone_out" H 6557 3576 50  0000 C CNN
+F 2 "RandomJunk:HRO-PJ-327C-A" H 6500 3100 50  0001 L BNN
+F 3 "" H 6500 3100 50  0001 L BNN
+F 4 "CUI Inc" H 6500 3100 50  0001 L BNN "Field4"
+F 5 "1.01" H 6500 3100 50  0001 L BNN "Field5"
+	1    6500 3100
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9D50
+P 3500 1800
+AR Path="/62EE9D50" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9D50" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3500 1550 50  0001 C CNN
+F 1 "GND" H 3505 1627 50  0000 C CNN
+F 2 "" H 3500 1800 50  0001 C CNN
+F 3 "" H 3500 1800 50  0001 C CNN
+	1    3500 1800
+	0    1    1    0   
+$EndComp
+$Comp
+L customLibrary:TLV320AIC3204 U?
+U 1 1 62EE9D57
+P 4300 1800
+AR Path="/62EE9D57" Ref="U?"  Part="1" 
+AR Path="/62E6C628/62EE9D57" Ref="U?"  Part="1" 
+F 0 "U?" H 4300 2665 50  0000 C CNN
+F 1 "TLV320AIC3204" H 4300 2574 50  0000 C CNN
+F 2 "Housings_DFN_QFN:QFN-32-1EP_5x5mm_Pitch0.5mm" H 3800 2600 50  0001 C CNN
+F 3 "" H 3800 2600 50  0001 C CNN
+F 4 "C24109" H 4300 1800 50  0001 C CNN "LCSC"
+	1    4300 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62EE9D5D
+P 3300 1700
+AR Path="/62EE9D5D" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9D5D" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3300 1550 50  0001 C CNN
+F 1 "+3.3V" H 3315 1873 50  0000 C CNN
+F 2 "" H 3300 1700 50  0001 C CNN
+F 3 "" H 3300 1700 50  0001 C CNN
+	1    3300 1700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9D64
+P 6450 1950
+AR Path="/62EE9D64" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9D64" Ref="C?"  Part="1" 
+F 0 "C?" H 6565 1996 50  0000 L CNN
+F 1 "1.0u" H 6565 1905 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6488 1800 50  0001 C CNN
+F 3 "~" H 6450 1950 50  0001 C CNN
+F 4 "c15849" H 6450 1950 50  0001 C CNN "LCSC"
+	1    6450 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9D6B
+P 6250 1950
+AR Path="/62EE9D6B" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9D6B" Ref="C?"  Part="1" 
+F 0 "C?" H 6365 1996 50  0000 L CNN
+F 1 ".1uF" H 6365 1905 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6288 1800 50  0001 C CNN
+F 3 "~" H 6250 1950 50  0001 C CNN
+F 4 "c14663" H 6250 1950 50  0001 C CNN "LCSC"
+	1    6250 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 2300 3500 2300
+Wire Wire Line
+	3300 1700 3750 1700
+Wire Wire Line
+	4850 1800 6250 1800
+Connection ~ 6250 1800
+Wire Wire Line
+	6250 1800 6450 1800
+Connection ~ 6450 1800
+Wire Wire Line
+	6450 1800 6650 1800
+Connection ~ 6650 1800
+Wire Wire Line
+	6650 1800 6800 1800
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9D7A
+P 6450 2100
+AR Path="/62EE9D7A" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9D7A" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 6450 1850 50  0001 C CNN
+F 1 "GND" H 6455 1927 50  0000 C CNN
+F 2 "" H 6450 2100 50  0001 C CNN
+F 3 "" H 6450 2100 50  0001 C CNN
+	1    6450 2100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6250 2100 6450 2100
+Connection ~ 6450 2100
+Wire Wire Line
+	6450 2100 6650 2100
+Wire Wire Line
+	4850 1400 6450 1400
+Wire Wire Line
+	6450 1400 6450 1800
+$Comp
+L Device:C C?
+U 1 1 62EE9D86
+P 6600 1350
+AR Path="/62EE9D86" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9D86" Ref="C?"  Part="1" 
+F 0 "C?" H 6715 1396 50  0000 L CNN
+F 1 "10u" H 6715 1305 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6638 1200 50  0001 C CNN
+F 3 "~" H 6600 1350 50  0001 C CNN
+F 4 "c19702" H 6600 1350 50  0001 C CNN "LCSC"
+	1    6600 1350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9D8D
+P 6000 2150
+AR Path="/62EE9D8D" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9D8D" Ref="C?"  Part="1" 
+F 0 "C?" H 6115 2196 50  0000 L CNN
+F 1 "10u" H 6115 2105 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 6038 2000 50  0001 C CNN
+F 3 "~" H 6000 2150 50  0001 C CNN
+F 4 "c19702" H 6000 2150 50  0001 C CNN "LCSC"
+	1    6000 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 2000 6000 2000
+Wire Wire Line
+	6000 2300 6250 2300
+Wire Wire Line
+	6250 2300 6250 2100
+Connection ~ 6250 2100
+Wire Wire Line
+	4850 1500 6600 1500
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9D98
+P 6600 1200
+AR Path="/62EE9D98" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9D98" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 6600 950 50  0001 C CNN
+F 1 "GND" H 6605 1027 50  0000 C CNN
+F 2 "" H 6600 1200 50  0001 C CNN
+F 3 "" H 6600 1200 50  0001 C CNN
+	1    6600 1200
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4850 1600 7150 1600
+Wire Wire Line
+	7150 1600 7150 1200
+Wire Wire Line
+	7150 1200 6600 1200
+Connection ~ 6600 1200
+Connection ~ 7150 1600
+Wire Wire Line
+	7150 2700 7150 1600
+Wire Wire Line
+	4850 2700 5150 2700
+Wire Wire Line
+	3750 1800 3500 1800
+Wire Wire Line
+	3500 1800 3500 2300
+$Comp
+L Device:C C?
+U 1 1 62EE9DAA
+P 5000 2600
+AR Path="/62EE9DAA" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DAA" Ref="C?"  Part="1" 
+F 0 "C?" H 5115 2646 50  0000 L CNN
+F 1 "10u" H 5115 2555 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 5038 2450 50  0001 C CNN
+F 3 "~" H 5000 2600 50  0001 C CNN
+F 4 "c19702" H 5000 2600 50  0001 C CNN "LCSC"
+	1    5000 2600
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5150 2600 5150 2700
+Connection ~ 5150 2700
+Wire Wire Line
+	5150 2700 7150 2700
+$Comp
+L Device:C C?
+U 1 1 62EE9DB7
+P 5650 2900
+AR Path="/62EE9DB7" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DB7" Ref="C?"  Part="1" 
+F 0 "C?" H 5765 2946 50  0000 L CNN
+F 1 "47uf" H 5765 2855 50  0000 L CNN
+F 2 "Capacitors_SMD:C_1206" H 5688 2750 50  0001 C CNN
+F 3 "~" H 5650 2900 50  0001 C CNN
+F 4 " C96123" H 5650 2900 50  0001 C CNN "LCSC"
+	1    5650 2900
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9DBE
+P 5650 3300
+AR Path="/62EE9DBE" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DBE" Ref="C?"  Part="1" 
+F 0 "C?" H 5765 3346 50  0000 L CNN
+F 1 "47uf" H 5765 3255 50  0000 L CNN
+F 2 "Capacitors_SMD:C_1206" H 5688 3150 50  0001 C CNN
+F 3 "~" H 5650 3300 50  0001 C CNN
+F 4 " C96123" H 5650 3300 50  0001 C CNN "LCSC"
+	1    5650 3300
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9DC4
+P 5800 3400
+AR Path="/62EE9DC4" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9DC4" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 5800 3150 50  0001 C CNN
+F 1 "GND" H 5805 3227 50  0000 C CNN
+F 2 "" H 5800 3400 50  0001 C CNN
+F 3 "" H 5800 3400 50  0001 C CNN
+	1    5800 3400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 1700 5500 1700
+Wire Wire Line
+	5500 1700 5500 2900
+Wire Wire Line
+	4850 1900 5400 1900
+Wire Wire Line
+	5400 1900 5400 3300
+Wire Wire Line
+	5400 3300 5500 3300
+Wire Wire Line
+	2800 3100 2950 3100
+Wire Wire Line
+	2950 3100 2950 2700
+$Comp
+L Device:R_US R?
+U 1 1 62EE9DD2
+P 2200 2600
+AR Path="/62EE9DD2" Ref="R?"  Part="1" 
+AR Path="/62E6C628/62EE9DD2" Ref="R?"  Part="1" 
+F 0 "R?" V 1995 2600 50  0000 C CNN
+F 1 "4.7k" V 2086 2600 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603" V 2240 2590 50  0001 C CNN
+F 3 "~" H 2200 2600 50  0001 C CNN
+F 4 "c23162" H 2200 2600 50  0001 C CNN "LCSC"
+	1    2200 2600
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4850 2500 5250 2500
+Wire Wire Line
+	5250 2500 5250 3300
+Wire Wire Line
+	2050 3300 2050 2600
+$Comp
+L Device:C C?
+U 1 1 62EE9DDC
+P 3250 2600
+AR Path="/62EE9DDC" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DDC" Ref="C?"  Part="1" 
+F 0 "C?" H 3365 2646 50  0000 L CNN
+F 1 ".47u" H 3365 2555 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 3288 2450 50  0001 C CNN
+F 3 "~" H 3250 2600 50  0001 C CNN
+F 4 "c1623" H 3250 2600 50  0001 C CNN "LCSC"
+	1    3250 2600
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9DE3
+P 3100 2700
+AR Path="/62EE9DE3" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DE3" Ref="C?"  Part="1" 
+F 0 "C?" H 3215 2746 50  0000 L CNN
+F 1 ".47u" H 3215 2655 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 3138 2550 50  0001 C CNN
+F 3 "~" H 3100 2700 50  0001 C CNN
+F 4 "c1623" H 3100 2700 50  0001 C CNN "LCSC"
+	1    3100 2700
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3250 2700 3750 2700
+$Comp
+L Device:C C?
+U 1 1 62EE9DEB
+P 2850 1850
+AR Path="/62EE9DEB" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DEB" Ref="C?"  Part="1" 
+F 0 "C?" H 2965 1896 50  0000 L CNN
+F 1 ".47u" H 2965 1805 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 2888 1700 50  0001 C CNN
+F 3 "~" H 2850 1850 50  0001 C CNN
+F 4 "c1623" H 2850 1850 50  0001 C CNN "LCSC"
+	1    2850 1850
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9DF2
+P 2850 2250
+AR Path="/62EE9DF2" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9DF2" Ref="C?"  Part="1" 
+F 0 "C?" H 2965 2296 50  0000 L CNN
+F 1 ".47u" H 2965 2205 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 2888 2100 50  0001 C CNN
+F 3 "~" H 2850 2250 50  0001 C CNN
+F 4 "c1623" H 2850 2250 50  0001 C CNN "LCSC"
+	1    2850 2250
+	0    1    1    0   
+$EndComp
+$Comp
+L customLibrary:HRO-PJ-327C-A J?
+U 1 1 62EE9DFA
+P 2000 2050
+AR Path="/62EE9DFA" Ref="J?"  Part="1" 
+AR Path="/62E6C628/62EE9DFA" Ref="J?"  Part="1" 
+F 0 "J?" H 2057 2617 50  0000 C CNN
+F 1 "line_in" H 2057 2526 50  0000 C CNN
+F 2 "RandomJunk:HRO-PJ-327C-A" H 2000 2050 50  0001 L BNN
+F 3 "" H 2000 2050 50  0001 L BNN
+F 4 "CUI Inc" H 2000 2050 50  0001 L BNN "Field4"
+F 5 "1.01" H 2000 2050 50  0001 L BNN "Field5"
+	1    2000 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E00
+P 2700 1750
+AR Path="/62EE9E00" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E00" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 2700 1500 50  0001 C CNN
+F 1 "GND" H 2705 1577 50  0000 C CNN
+F 2 "" H 2700 1750 50  0001 C CNN
+F 3 "" H 2700 1750 50  0001 C CNN
+	1    2700 1750
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3750 2600 3400 2600
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E07
+P 4300 2900
+AR Path="/62EE9E07" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E07" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 4300 2650 50  0001 C CNN
+F 1 "GND" H 4305 2727 50  0000 C CNN
+F 2 "" H 4300 2900 50  0001 C CNN
+F 3 "" H 4300 2900 50  0001 C CNN
+	1    4300 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2800 3000 2800 3100
+Wire Wire Line
+	3000 1850 3150 1850
+Wire Wire Line
+	3150 1850 3150 2400
+Wire Wire Line
+	3150 2400 3750 2400
+Wire Wire Line
+	3000 2250 3000 2500
+Wire Wire Line
+	3000 2500 3750 2500
+Connection ~ 3500 1800
+Text Notes 4650 1050 0    50   ~ 0
+addr: 18
+$Comp
+L customLibrary:SPWmicrophone U?
+U 1 1 62EE9E15
+P 2550 2900
+AR Path="/62EE9E15" Ref="U?"  Part="1" 
+AR Path="/62E6C628/62EE9E15" Ref="U?"  Part="1" 
+F 0 "U?" H 2587 3225 50  0000 C CNN
+F 1 "SPWmicrophone" H 2587 3134 50  0000 C CNN
+F 2 "RandomJunk:SPW2430HR5H-B" H 2400 3100 50  0001 C CNN
+F 3 "" H 2400 3100 50  0001 C CNN
+	1    2550 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2900 2600 3100 2600
+Wire Wire Line
+	2900 2900 2800 2900
+Wire Wire Line
+	2900 2600 2900 2900
+Wire Wire Line
+	2900 2600 2350 2600
+Connection ~ 2900 2600
+Wire Wire Line
+	2050 3300 5250 3300
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E21
+P 2800 2800
+AR Path="/62EE9E21" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E21" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 2800 2550 50  0001 C CNN
+F 1 "GND" H 2805 2627 50  0000 C CNN
+F 2 "" H 2800 2800 50  0001 C CNN
+F 3 "" H 2800 2800 50  0001 C CNN
+	1    2800 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L dk_Optoisolators-Logic-Output:6N137 U?
+U 1 1 62EE9E30
+P 4550 5350
+AR Path="/62EE9E30" Ref="U?"  Part="1" 
+AR Path="/62E6C628/62EE9E30" Ref="U?"  Part="1" 
+F 0 "U?" H 4350 5550 60  0000 C CNN
+F 1 "6N137" H 4850 5100 60  0000 C CNN
+F 2 "digikey-footprints:DIP-8_W7.62mm" H 4750 5550 60  0001 L CNN
+F 3 "https://media.digikey.com/pdf/Data%20Sheets/Lite-On%20PDFs/6N137%20Series.pdf" H 4750 5650 60  0001 L CNN
+F 4 "160-1791-ND" H 4750 5750 60  0001 L CNN "Digi-Key_PN"
+F 5 "6N137" H 4750 5850 60  0001 L CNN "MPN"
+F 6 "Isolators" H 4750 5950 60  0001 L CNN "Category"
+F 7 "Optoisolators - Logic Output" H 4750 6050 60  0001 L CNN "Family"
+F 8 "https://media.digikey.com/pdf/Data%20Sheets/Lite-On%20PDFs/6N137%20Series.pdf" H 4750 6150 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/lite-on-inc/6N137/160-1791-ND/1969175" H 4750 6250 60  0001 L CNN "DK_Detail_Page"
+F 10 "OPTOISO 5KV 1CH OPEN COLL 8DIP" H 4750 6350 60  0001 L CNN "Description"
+F 11 "Lite-On Inc." H 4750 6450 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 4750 6550 60  0001 L CNN "Status"
+	1    4550 5350
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E36
+P 4550 5800
+AR Path="/62EE9E36" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E36" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 4550 5550 50  0001 C CNN
+F 1 "GND" H 4555 5627 50  0000 C CNN
+F 2 "" H 4550 5800 50  0001 C CNN
+F 3 "" H 4550 5800 50  0001 C CNN
+	1    4550 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:D D?
+U 1 1 62EE9E3D
+P 3750 5350
+AR Path="/62EE9E3D" Ref="D?"  Part="1" 
+AR Path="/62E6C628/62EE9E3D" Ref="D?"  Part="1" 
+F 0 "D?" V 3796 5271 50  0000 R CNN
+F 1 "D" V 3705 5271 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3750 5350 50  0001 C CNN
+F 3 "~" H 3750 5350 50  0001 C CNN
+F 4 "c2128" H 3750 5350 50  0001 C CNN "LCSC"
+	1    3750 5350
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 62EE9E43
+P 3400 5200
+AR Path="/62EE9E43" Ref="R?"  Part="1" 
+AR Path="/62E6C628/62EE9E43" Ref="R?"  Part="1" 
+F 0 "R?" V 3193 5200 50  0000 C CNN
+F 1 "220" V 3284 5200 50  0000 C CNN
+F 2 "" V 3330 5200 50  0001 C CNN
+F 3 "~" H 3400 5200 50  0001 C CNN
+	1    3400 5200
+	0    1    1    0   
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62EE9E49
+P 4550 4600
+AR Path="/62EE9E49" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E49" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 4550 4450 50  0001 C CNN
+F 1 "+3.3V" H 4565 4773 50  0000 C CNN
+F 2 "" H 4550 4600 50  0001 C CNN
+F 3 "" H 4550 4600 50  0001 C CNN
+	1    4550 4600
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E4F
+P 5050 4950
+AR Path="/62EE9E4F" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E4F" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 5050 4700 50  0001 C CNN
+F 1 "GND" H 5055 4777 50  0000 C CNN
+F 2 "" H 5050 4950 50  0001 C CNN
+F 3 "" H 5050 4950 50  0001 C CNN
+	1    5050 4950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 62EE9E56
+P 5050 4750
+AR Path="/62EE9E56" Ref="C?"  Part="1" 
+AR Path="/62E6C628/62EE9E56" Ref="C?"  Part="1" 
+F 0 "C?" H 5165 4796 50  0000 L CNN
+F 1 "10u" H 5165 4705 50  0000 L CNN
+F 2 "RandomJunk:C_0603_nosilk" H 5088 4600 50  0001 C CNN
+F 3 "~" H 5050 4750 50  0001 C CNN
+F 4 "c19702" H 5050 4750 50  0001 C CNN "LCSC"
+	1    5050 4750
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 62EE9E5C
+P 5550 5200
+AR Path="/62EE9E5C" Ref="R?"  Part="1" 
+AR Path="/62E6C628/62EE9E5C" Ref="R?"  Part="1" 
+F 0 "R?" V 5343 5200 50  0000 C CNN
+F 1 "1k" V 5434 5200 50  0000 C CNN
+F 2 "" V 5480 5200 50  0001 C CNN
+F 3 "~" H 5550 5200 50  0001 C CNN
+	1    5550 5200
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4950 5350 5550 5350
+Wire Wire Line
+	5550 5050 5550 4600
+Wire Wire Line
+	5550 4600 5050 4600
+Wire Wire Line
+	5050 4600 4550 4600
+Connection ~ 5050 4600
+Wire Wire Line
+	5050 4900 5050 4950
+Wire Wire Line
+	4550 5050 4550 4600
+Connection ~ 4550 4600
+Wire Wire Line
+	4550 5650 4550 5800
+Wire Wire Line
+	4150 5450 4150 5500
+Wire Wire Line
+	4150 5250 4150 5200
+Wire Wire Line
+	4150 5200 3750 5200
+Wire Wire Line
+	3550 5200 3750 5200
+Connection ~ 3750 5200
+$Comp
+L customLibrary:HRO-PJ-327C-A J?
+U 1 1 62EE9E72
+P 2500 5400
+AR Path="/62EE9E72" Ref="J?"  Part="1" 
+AR Path="/62E6C628/62EE9E72" Ref="J?"  Part="1" 
+F 0 "J?" H 2557 5967 50  0000 C CNN
+F 1 "midi_in" H 2557 5876 50  0000 C CNN
+F 2 "RandomJunk:HRO-PJ-327C-A" H 2500 5400 50  0001 L BNN
+F 3 "" H 2500 5400 50  0001 L BNN
+F 4 "CUI Inc" H 2500 5400 50  0001 L BNN "Field4"
+F 5 "1.01" H 2500 5400 50  0001 L BNN "Field5"
+	1    2500 5400
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	4150 5500 3750 5500
+Wire Wire Line
+	3250 5200 3200 5200
+Wire Wire Line
+	3200 5600 3750 5600
+Wire Wire Line
+	3750 5600 3750 5500
+Connection ~ 3750 5500
+Connection ~ 5550 5350
+$Comp
+L customLibrary:HRO-PJ-327C-A J?
+U 1 1 62EE9E82
+P 2500 6450
+AR Path="/62EE9E82" Ref="J?"  Part="1" 
+AR Path="/62E6C628/62EE9E82" Ref="J?"  Part="1" 
+F 0 "J?" H 2557 7017 50  0000 C CNN
+F 1 "midi_out" H 2557 6926 50  0000 C CNN
+F 2 "RandomJunk:HRO-PJ-327C-A" H 2500 6450 50  0001 L BNN
+F 3 "" H 2500 6450 50  0001 L BNN
+F 4 "CUI Inc" H 2500 6450 50  0001 L BNN "Field4"
+F 5 "1.01" H 2500 6450 50  0001 L BNN "Field5"
+	1    2500 6450
+	1    0    0    1   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 62EE9E88
+P 3450 6650
+AR Path="/62EE9E88" Ref="R?"  Part="1" 
+AR Path="/62E6C628/62EE9E88" Ref="R?"  Part="1" 
+F 0 "R?" V 3243 6650 50  0000 C CNN
+F 1 "220" V 3334 6650 50  0000 C CNN
+F 2 "" V 3380 6650 50  0001 C CNN
+F 3 "~" H 3450 6650 50  0001 C CNN
+	1    3450 6650
+	0    1    1    0   
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62EE9E8E
+P 3700 6250
+AR Path="/62EE9E8E" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E8E" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3700 6100 50  0001 C CNN
+F 1 "+3.3V" H 3715 6423 50  0000 C CNN
+F 2 "" H 3700 6250 50  0001 C CNN
+F 3 "" H 3700 6250 50  0001 C CNN
+	1    3700 6250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 62EE9E94
+P 3450 6250
+AR Path="/62EE9E94" Ref="R?"  Part="1" 
+AR Path="/62E6C628/62EE9E94" Ref="R?"  Part="1" 
+F 0 "R?" V 3243 6250 50  0000 C CNN
+F 1 "220" V 3334 6250 50  0000 C CNN
+F 2 "" V 3380 6250 50  0001 C CNN
+F 3 "~" H 3450 6250 50  0001 C CNN
+	1    3450 6250
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3200 6250 3300 6250
+Wire Wire Line
+	3600 6250 3700 6250
+Wire Wire Line
+	3200 6650 3300 6650
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9E9F
+P 3200 5800
+AR Path="/62EE9E9F" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9E9F" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3200 5550 50  0001 C CNN
+F 1 "GND" H 3205 5627 50  0000 C CNN
+F 2 "" H 3200 5800 50  0001 C CNN
+F 3 "" H 3200 5800 50  0001 C CNN
+	1    3200 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 62EE9EA5
+P 3200 6850
+AR Path="/62EE9EA5" Ref="#PWR?"  Part="1" 
+AR Path="/62E6C628/62EE9EA5" Ref="#PWR?"  Part="1" 
+F 0 "#PWR?" H 3200 6600 50  0001 C CNN
+F 1 "GND" H 3205 6677 50  0000 C CNN
+F 2 "" H 3200 6850 50  0001 C CNN
+F 3 "" H 3200 6850 50  0001 C CNN
+	1    3200 6850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3200 5700 3200 5800
+Wire Wire Line
+	3200 6750 3200 6850
+Text HLabel 5650 5350 2    50   Input ~ 0
+MIDI_RX
+Text HLabel 3650 6650 2    50   Input ~ 0
+MIDI_TX
+Wire Wire Line
+	3600 6650 3650 6650
+Wire Wire Line
+	5550 5350 5650 5350
+Text HLabel 3650 1200 0    50   Input ~ 0
+mclk
+Text HLabel 3650 1300 0    50   Input ~ 0
+bclk
+Text HLabel 3650 1400 0    50   Input ~ 0
+lrclk
+Text HLabel 3650 1500 0    50   Input ~ 0
+din
+Text HLabel 3650 1600 0    50   Input ~ 0
+dout
+Wire Wire Line
+	3750 1200 3650 1200
+Wire Wire Line
+	3750 1300 3650 1300
+Wire Wire Line
+	3750 1400 3650 1400
+Wire Wire Line
+	3750 1600 3650 1600
+Wire Wire Line
+	3650 1500 3750 1500
+Text HLabel 4850 1300 2    50   Input ~ 0
+codec_reset
+Text HLabel 3750 2000 0    50   Input ~ 0
+scl
+Text HLabel 3750 2100 0    50   Input ~ 0
+sda
+$EndSCHEMATC
