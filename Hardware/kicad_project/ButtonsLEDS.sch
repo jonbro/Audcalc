@@ -14,2064 +14,1820 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Comp
-L Device:D D?
-U 1 1 6334311E
-P 1400 2200
-AR Path="/6334311E" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334311E" Ref="D?"  Part="1" 
-F 0 "D?" V 1446 2121 50  0000 R CNN
-F 1 "D" V 1355 2121 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1400 2200 50  0001 C CNN
-F 3 "~" H 1400 2200 50  0001 C CNN
-F 4 "c2128" H 1400 2200 50  0001 C CNN "LCSC"
-	1    1400 2200
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343125
-P 2150 2200
-AR Path="/63343125" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343125" Ref="D?"  Part="1" 
-F 0 "D?" H 2150 2416 50  0000 C CNN
-F 1 "D" H 2150 2325 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2150 2200 50  0001 C CNN
-F 3 "~" H 2150 2200 50  0001 C CNN
-F 4 "c2128" H 2150 2200 50  0001 C CNN "LCSC"
-	1    2150 2200
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334312C
-P 2800 2200
-AR Path="/6334312C" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334312C" Ref="D?"  Part="1" 
-F 0 "D?" V 2846 2121 50  0000 R CNN
-F 1 "D" V 2755 2121 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2800 2200 50  0001 C CNN
-F 3 "~" H 2800 2200 50  0001 C CNN
-F 4 "c2128" H 2800 2200 50  0001 C CNN "LCSC"
-	1    2800 2200
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343133
-P 3550 2200
-AR Path="/63343133" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343133" Ref="D?"  Part="1" 
-F 0 "D?" H 3550 2416 50  0000 C CNN
-F 1 "D" H 3550 2325 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 3550 2200 50  0001 C CNN
-F 3 "~" H 3550 2200 50  0001 C CNN
-F 4 "c2128" H 3550 2200 50  0001 C CNN "LCSC"
-	1    3550 2200
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334313A
-P 1400 2950
-AR Path="/6334313A" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334313A" Ref="D?"  Part="1" 
-F 0 "D?" V 1446 2871 50  0000 R CNN
-F 1 "D" V 1355 2871 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1400 2950 50  0001 C CNN
-F 3 "~" H 1400 2950 50  0001 C CNN
-F 4 "c2128" H 1400 2950 50  0001 C CNN "LCSC"
-	1    1400 2950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343141
-P 2150 2950
-AR Path="/63343141" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343141" Ref="D?"  Part="1" 
-F 0 "D?" H 2150 3166 50  0000 C CNN
-F 1 "D" H 2150 3075 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2150 2950 50  0001 C CNN
-F 3 "~" H 2150 2950 50  0001 C CNN
-F 4 "c2128" H 2150 2950 50  0001 C CNN "LCSC"
-	1    2150 2950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343148
-P 2800 2950
-AR Path="/63343148" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343148" Ref="D?"  Part="1" 
-F 0 "D?" V 2846 2871 50  0000 R CNN
-F 1 "D" V 2755 2871 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2800 2950 50  0001 C CNN
-F 3 "~" H 2800 2950 50  0001 C CNN
-F 4 "c2128" H 2800 2950 50  0001 C CNN "LCSC"
-	1    2800 2950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334314F
-P 3550 2950
-AR Path="/6334314F" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334314F" Ref="D?"  Part="1" 
-F 0 "D?" H 3550 3166 50  0000 C CNN
-F 1 "D" H 3550 3075 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 3550 2950 50  0001 C CNN
-F 3 "~" H 3550 2950 50  0001 C CNN
-F 4 "c2128" H 3550 2950 50  0001 C CNN "LCSC"
-	1    3550 2950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343156
-P 4200 2950
-AR Path="/63343156" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343156" Ref="D?"  Part="1" 
-F 0 "D?" V 4246 2871 50  0000 R CNN
-F 1 "D" V 4155 2871 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 4200 2950 50  0001 C CNN
-F 3 "~" H 4200 2950 50  0001 C CNN
-F 4 "c2128" H 4200 2950 50  0001 C CNN "LCSC"
-	1    4200 2950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334315D
-P 1400 3650
-AR Path="/6334315D" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334315D" Ref="D?"  Part="1" 
-F 0 "D?" V 1446 3571 50  0000 R CNN
-F 1 "D" V 1355 3571 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1400 3650 50  0001 C CNN
-F 3 "~" H 1400 3650 50  0001 C CNN
-F 4 "c2128" H 1400 3650 50  0001 C CNN "LCSC"
-	1    1400 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343164
-P 2150 3650
-AR Path="/63343164" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343164" Ref="D?"  Part="1" 
-F 0 "D?" H 2150 3866 50  0000 C CNN
-F 1 "D" H 2150 3775 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2150 3650 50  0001 C CNN
-F 3 "~" H 2150 3650 50  0001 C CNN
-F 4 "c2128" H 2150 3650 50  0001 C CNN "LCSC"
-	1    2150 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334316B
-P 2800 3650
-AR Path="/6334316B" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334316B" Ref="D?"  Part="1" 
-F 0 "D?" V 2846 3571 50  0000 R CNN
-F 1 "D" V 2755 3571 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2800 3650 50  0001 C CNN
-F 3 "~" H 2800 3650 50  0001 C CNN
-F 4 "c2128" H 2800 3650 50  0001 C CNN "LCSC"
-	1    2800 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343172
-P 3550 3650
-AR Path="/63343172" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343172" Ref="D?"  Part="1" 
-F 0 "D?" H 3550 3866 50  0000 C CNN
-F 1 "D" H 3550 3775 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 3550 3650 50  0001 C CNN
-F 3 "~" H 3550 3650 50  0001 C CNN
-F 4 "c2128" H 3550 3650 50  0001 C CNN "LCSC"
-	1    3550 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343179
-P 4200 3650
-AR Path="/63343179" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343179" Ref="D?"  Part="1" 
-F 0 "D?" V 4246 3571 50  0000 R CNN
-F 1 "D" V 4155 3571 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 4200 3650 50  0001 C CNN
-F 3 "~" H 4200 3650 50  0001 C CNN
-F 4 "c2128" H 4200 3650 50  0001 C CNN "LCSC"
-	1    4200 3650
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343180
-P 1400 4350
-AR Path="/63343180" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343180" Ref="D?"  Part="1" 
-F 0 "D?" V 1446 4271 50  0000 R CNN
-F 1 "D" V 1355 4271 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1400 4350 50  0001 C CNN
-F 3 "~" H 1400 4350 50  0001 C CNN
-F 4 "c2128" H 1400 4350 50  0001 C CNN "LCSC"
-	1    1400 4350
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343187
-P 2150 4350
-AR Path="/63343187" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343187" Ref="D?"  Part="1" 
-F 0 "D?" H 2150 4566 50  0000 C CNN
-F 1 "D" H 2150 4475 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2150 4350 50  0001 C CNN
-F 3 "~" H 2150 4350 50  0001 C CNN
-F 4 "c2128" H 2150 4350 50  0001 C CNN "LCSC"
-	1    2150 4350
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334318E
-P 2800 4350
-AR Path="/6334318E" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334318E" Ref="D?"  Part="1" 
-F 0 "D?" V 2846 4271 50  0000 R CNN
-F 1 "D" V 2755 4271 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2800 4350 50  0001 C CNN
-F 3 "~" H 2800 4350 50  0001 C CNN
-F 4 "c2128" H 2800 4350 50  0001 C CNN "LCSC"
-	1    2800 4350
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 63343195
-P 3550 4350
-AR Path="/63343195" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343195" Ref="D?"  Part="1" 
-F 0 "D?" H 3550 4566 50  0000 C CNN
-F 1 "D" H 3550 4475 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 3550 4350 50  0001 C CNN
-F 3 "~" H 3550 4350 50  0001 C CNN
-F 4 "c2128" H 3550 4350 50  0001 C CNN "LCSC"
-	1    3550 4350
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 6334319C
-P 4200 4350
-AR Path="/6334319C" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334319C" Ref="D?"  Part="1" 
-F 0 "D?" V 4246 4271 50  0000 R CNN
-F 1 "D" V 4155 4271 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 4200 4350 50  0001 C CNN
-F 3 "~" H 4200 4350 50  0001 C CNN
-F 4 "c2128" H 4200 4350 50  0001 C CNN "LCSC"
-	1    4200 4350
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 633431A3
-P 1400 5050
-AR Path="/633431A3" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431A3" Ref="D?"  Part="1" 
-F 0 "D?" V 1446 4971 50  0000 R CNN
-F 1 "D" V 1355 4971 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1400 5050 50  0001 C CNN
-F 3 "~" H 1400 5050 50  0001 C CNN
-F 4 "c2128" H 1400 5050 50  0001 C CNN "LCSC"
-	1    1400 5050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 633431AA
-P 2150 5050
-AR Path="/633431AA" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431AA" Ref="D?"  Part="1" 
-F 0 "D?" H 2150 5266 50  0000 C CNN
-F 1 "D" H 2150 5175 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2150 5050 50  0001 C CNN
-F 3 "~" H 2150 5050 50  0001 C CNN
-F 4 "c2128" H 2150 5050 50  0001 C CNN "LCSC"
-	1    2150 5050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 633431B1
-P 2800 5050
-AR Path="/633431B1" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431B1" Ref="D?"  Part="1" 
-F 0 "D?" V 2846 4971 50  0000 R CNN
-F 1 "D" V 2755 4971 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 2800 5050 50  0001 C CNN
-F 3 "~" H 2800 5050 50  0001 C CNN
-F 4 "c2128" H 2800 5050 50  0001 C CNN "LCSC"
-	1    2800 5050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 633431B8
-P 3550 5050
-AR Path="/633431B8" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431B8" Ref="D?"  Part="1" 
-F 0 "D?" H 3550 5266 50  0000 C CNN
-F 1 "D" H 3550 5175 50  0000 C CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 3550 5050 50  0001 C CNN
-F 3 "~" H 3550 5050 50  0001 C CNN
-F 4 "c2128" H 3550 5050 50  0001 C CNN "LCSC"
-	1    3550 5050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:D D?
-U 1 1 633431BF
-P 4200 5050
-AR Path="/633431BF" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431BF" Ref="D?"  Part="1" 
-F 0 "D?" V 4246 4971 50  0000 R CNN
-F 1 "D" V 4155 4971 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 4200 5050 50  0001 C CNN
-F 3 "~" H 4200 5050 50  0001 C CNN
-F 4 "c2128" H 4200 5050 50  0001 C CNN "LCSC"
-	1    4200 5050
-	0    -1   -1   0   
-$EndComp
-Text GLabel 1800 1600 1    50   Input ~ 0
-key_col1
-Text GLabel 2550 1600 1    50   Input ~ 0
-key_col2
-Text GLabel 3200 1600 1    50   Input ~ 0
-key_col3
-Text GLabel 3950 1600 1    50   Input ~ 0
-key_col4
-Text GLabel 4600 1600 1    50   Input ~ 0
-key_col5
-Text GLabel 1150 3100 0    50   Input ~ 0
-key_row2
-Text GLabel 1150 3800 0    50   Input ~ 0
-key_row3
-Text GLabel 1150 4500 0    50   Input ~ 0
-key_row4
-Text GLabel 1150 5200 0    50   Input ~ 0
-key_row5
 Wire Wire Line
-	4200 2350 3550 2350
-Connection ~ 2150 2350
-Wire Wire Line
-	2150 2350 1400 2350
-Connection ~ 2800 2350
-Wire Wire Line
-	2800 2350 2150 2350
-Connection ~ 3550 2350
-Wire Wire Line
-	3550 2350 2800 2350
-Wire Wire Line
-	4200 3100 3550 3100
-Connection ~ 1400 3100
-Wire Wire Line
-	1400 3100 1150 3100
-Connection ~ 2150 3100
-Wire Wire Line
-	2150 3100 1400 3100
-Connection ~ 2800 3100
-Wire Wire Line
-	2800 3100 2150 3100
-Connection ~ 3550 3100
-Wire Wire Line
-	3550 3100 2800 3100
-Wire Wire Line
-	4200 3800 3550 3800
-Connection ~ 1400 3800
-Wire Wire Line
-	1400 3800 1150 3800
-Connection ~ 2150 3800
-Wire Wire Line
-	2150 3800 1400 3800
-Connection ~ 2800 3800
-Wire Wire Line
-	2800 3800 2150 3800
-Connection ~ 3550 3800
-Wire Wire Line
-	3550 3800 2800 3800
-Wire Wire Line
-	4200 4500 3550 4500
-Connection ~ 1400 4500
-Wire Wire Line
-	1400 4500 1150 4500
-Connection ~ 2150 4500
-Wire Wire Line
-	2150 4500 1400 4500
-Connection ~ 2800 4500
-Wire Wire Line
-	2800 4500 2150 4500
-Connection ~ 3550 4500
-Wire Wire Line
-	3550 4500 2800 4500
-Wire Wire Line
-	4200 5200 3550 5200
-Connection ~ 1400 5200
-Wire Wire Line
-	1400 5200 1150 5200
-Connection ~ 2150 5200
-Wire Wire Line
-	2150 5200 1400 5200
-Connection ~ 2800 5200
-Wire Wire Line
-	2800 5200 2150 5200
-Connection ~ 3550 5200
-Wire Wire Line
-	3550 5200 2800 5200
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633431FA
-P 6450 1450
-AR Path="/633431FA" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633431FA" Ref="D?"  Part="1" 
-F 0 "D?" H 6794 1496 50  0000 L CNN
-F 1 "WS2812B" H 6794 1405 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 6500 1150 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 6550 1075 50  0001 L TNN
-F 4 "C965555" H 6450 1450 50  0001 C CNN "LCSC"
-	1    6450 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6750 1450 6950 1450
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343202
-P 6450 2400
-AR Path="/63343202" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343202" Ref="D?"  Part="1" 
-F 0 "D?" H 6794 2446 50  0000 L CNN
-F 1 "WS2812B" H 6794 2355 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 6500 2100 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 6550 2025 50  0001 L TNN
-F 4 "C965555" H 6450 2400 50  0001 C CNN "LCSC"
-	1    6450 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9950 4300 9950 4800
-Wire Wire Line
-	9950 4800 5950 4800
-Wire Wire Line
-	5950 4800 5950 5250
-Wire Wire Line
-	9950 3350 9950 3800
-Wire Wire Line
-	9950 3800 5950 3800
-Wire Wire Line
-	5950 3800 5950 4300
-Wire Wire Line
-	9950 2400 9950 2900
-Wire Wire Line
-	5950 2900 5950 3350
-Wire Wire Line
-	9950 1450 9950 1950
-Wire Wire Line
-	9950 1950 5950 1950
-Wire Wire Line
-	5950 1950 5950 2400
-Wire Wire Line
-	5950 2400 6150 2400
-$Comp
-L power:GND #PWR?
-U 1 1 63343214
-P 5700 5750
-AR Path="/63343214" Ref="#PWR?"  Part="1" 
-AR Path="/631EE57A/63343214" Ref="#PWR?"  Part="1" 
-F 0 "#PWR?" H 5700 5500 50  0001 C CNN
-F 1 "GND" H 5705 5577 50  0000 C CNN
-F 2 "" H 5700 5750 50  0001 C CNN
-F 3 "" H 5700 5750 50  0001 C CNN
-	1    5700 5750
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6450 1150 6850 1150
-Wire Wire Line
-	6450 2700 5700 2700
-Wire Wire Line
-	5700 1750 5700 2700
-Connection ~ 6450 1750
-Wire Wire Line
-	6450 1750 5700 1750
-Connection ~ 5700 2700
-$Comp
-L Device:C C?
-U 1 1 63343221
-P 6850 1450
-AR Path="/63343221" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343221" Ref="C?"  Part="1" 
-F 0 "C?" H 6965 1496 50  0000 L CNN
-F 1 "1u" H 6965 1405 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 6888 1300 50  0001 C CNN
-F 3 "~" H 6850 1450 50  0001 C CNN
-F 4 "52923" H 6850 1450 50  0001 C CNN "LCSC"
-	1    6850 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6850 1150 6850 1300
-Wire Wire Line
-	6850 1600 6850 1750
-Wire Wire Line
-	6850 1750 6450 1750
-Text GLabel 5700 1450 0    50   Input ~ 0
-led_din
-Wire Wire Line
-	5700 1450 6150 1450
-$Comp
-L power:+3.3V #PWR?
-U 1 1 6334322C
-P 10450 1000
-AR Path="/6334322C" Ref="#PWR?"  Part="1" 
-AR Path="/631EE57A/6334322C" Ref="#PWR?"  Part="1" 
-F 0 "#PWR?" H 10450 850 50  0001 C CNN
-F 1 "+3.3V" H 10465 1173 50  0000 C CNN
-F 2 "" H 10450 1000 50  0001 C CNN
-F 3 "" H 10450 1000 50  0001 C CNN
-	1    10450 1000
-	1    0    0    -1  
-$EndComp
-Connection ~ 6850 1150
-Wire Wire Line
-	6850 1150 7250 1150
-Connection ~ 6850 1750
-Wire Wire Line
-	7250 1750 6850 1750
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343237
-P 7250 1450
-AR Path="/63343237" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343237" Ref="D?"  Part="1" 
-F 0 "D?" H 7594 1496 50  0000 L CNN
-F 1 "WS2812B" H 7594 1405 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 7300 1150 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 7350 1075 50  0001 L TNN
-F 4 "C965555" H 7250 1450 50  0001 C CNN "LCSC"
-	1    7250 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 1450 7750 1450
-Wire Wire Line
-	7250 1150 7650 1150
-$Comp
-L Device:C C?
-U 1 1 63343240
-P 7650 1450
-AR Path="/63343240" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343240" Ref="C?"  Part="1" 
-F 0 "C?" H 7765 1496 50  0000 L CNN
-F 1 "1u" H 7765 1405 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 7688 1300 50  0001 C CNN
-F 3 "~" H 7650 1450 50  0001 C CNN
-F 4 "52923" H 7650 1450 50  0001 C CNN "LCSC"
-	1    7650 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7650 1150 7650 1300
-Wire Wire Line
-	7650 1600 7650 1750
-Wire Wire Line
-	7650 1750 7250 1750
-Connection ~ 7650 1150
-Wire Wire Line
-	7650 1150 8050 1150
-Connection ~ 7650 1750
-Wire Wire Line
-	8050 1750 7650 1750
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334324E
-P 8050 1450
-AR Path="/6334324E" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334324E" Ref="D?"  Part="1" 
-F 0 "D?" H 8394 1496 50  0000 L CNN
-F 1 "WS2812B" H 8394 1405 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8100 1150 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8150 1075 50  0001 L TNN
-F 4 "C965555" H 8050 1450 50  0001 C CNN "LCSC"
-	1    8050 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8350 1450 8550 1450
-Wire Wire Line
-	8050 1150 8450 1150
-$Comp
-L Device:C C?
-U 1 1 63343257
-P 8450 1450
-AR Path="/63343257" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343257" Ref="C?"  Part="1" 
-F 0 "C?" H 8565 1496 50  0000 L CNN
-F 1 "1u" H 8565 1405 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 8488 1300 50  0001 C CNN
-F 3 "~" H 8450 1450 50  0001 C CNN
-F 4 "52923" H 8450 1450 50  0001 C CNN "LCSC"
-	1    8450 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8450 1150 8450 1300
-Wire Wire Line
-	8450 1600 8450 1750
-Wire Wire Line
-	8450 1750 8050 1750
-Connection ~ 8450 1150
-Wire Wire Line
-	8450 1150 8850 1150
-Connection ~ 8450 1750
-Wire Wire Line
-	8850 1750 8450 1750
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343265
-P 8850 1450
-AR Path="/63343265" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343265" Ref="D?"  Part="1" 
-F 0 "D?" H 9194 1496 50  0000 L CNN
-F 1 "WS2812B" H 9194 1405 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8900 1150 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8950 1075 50  0001 L TNN
-F 4 "C965555" H 8850 1450 50  0001 C CNN "LCSC"
-	1    8850 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9150 1450 9350 1450
-Wire Wire Line
-	8850 1150 9250 1150
-$Comp
-L Device:C C?
-U 1 1 6334326E
-P 9250 1450
-AR Path="/6334326E" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334326E" Ref="C?"  Part="1" 
-F 0 "C?" H 9365 1496 50  0000 L CNN
-F 1 "1u" H 9365 1405 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 9288 1300 50  0001 C CNN
-F 3 "~" H 9250 1450 50  0001 C CNN
-F 4 "52923" H 9250 1450 50  0001 C CNN "LCSC"
-	1    9250 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9250 1150 9250 1300
-Wire Wire Line
-	9250 1600 9250 1750
-Wire Wire Line
-	9250 1750 8850 1750
-Connection ~ 9250 1150
-Wire Wire Line
-	9250 1150 9650 1150
-Connection ~ 9250 1750
-Wire Wire Line
-	9650 1750 9250 1750
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334327C
-P 9650 1450
-AR Path="/6334327C" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334327C" Ref="D?"  Part="1" 
-F 0 "D?" H 9994 1496 50  0000 L CNN
-F 1 "WS2812B" H 9994 1405 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 9700 1150 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9750 1075 50  0001 L TNN
-F 4 "C965555" H 9650 1450 50  0001 C CNN "LCSC"
-	1    9650 1450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6750 2400 6950 2400
-Wire Wire Line
-	6450 2100 6850 2100
-$Comp
-L Device:C C?
-U 1 1 63343285
-P 6850 2400
-AR Path="/63343285" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343285" Ref="C?"  Part="1" 
-F 0 "C?" H 6965 2446 50  0000 L CNN
-F 1 "1u" H 6965 2355 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 6888 2250 50  0001 C CNN
-F 3 "~" H 6850 2400 50  0001 C CNN
-F 4 "52923" H 6850 2400 50  0001 C CNN "LCSC"
-	1    6850 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6850 2100 6850 2250
-Wire Wire Line
-	6850 2550 6850 2700
-Wire Wire Line
-	6850 2700 6450 2700
-Connection ~ 6850 2100
-Wire Wire Line
-	6850 2100 7250 2100
-Connection ~ 6850 2700
-Wire Wire Line
-	7250 2700 6850 2700
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343293
-P 7250 2400
-AR Path="/63343293" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343293" Ref="D?"  Part="1" 
-F 0 "D?" H 7594 2446 50  0000 L CNN
-F 1 "WS2812B" H 7594 2355 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 7300 2100 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 7350 2025 50  0001 L TNN
-F 4 "C965555" H 7250 2400 50  0001 C CNN "LCSC"
-	1    7250 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 2400 7750 2400
-Wire Wire Line
-	7250 2100 7650 2100
-$Comp
-L Device:C C?
-U 1 1 6334329C
-P 7650 2400
-AR Path="/6334329C" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334329C" Ref="C?"  Part="1" 
-F 0 "C?" H 7765 2446 50  0000 L CNN
-F 1 "1u" H 7765 2355 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 7688 2250 50  0001 C CNN
-F 3 "~" H 7650 2400 50  0001 C CNN
-F 4 "52923" H 7650 2400 50  0001 C CNN "LCSC"
-	1    7650 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7650 2100 7650 2250
-Wire Wire Line
-	7650 2550 7650 2700
-Wire Wire Line
-	7650 2700 7250 2700
-Connection ~ 7650 2100
-Wire Wire Line
-	7650 2100 8050 2100
-Connection ~ 7650 2700
-Wire Wire Line
-	8050 2700 7650 2700
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633432AA
-P 8050 2400
-AR Path="/633432AA" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633432AA" Ref="D?"  Part="1" 
-F 0 "D?" H 8394 2446 50  0000 L CNN
-F 1 "WS2812B" H 8394 2355 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8100 2100 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8150 2025 50  0001 L TNN
-F 4 "C965555" H 8050 2400 50  0001 C CNN "LCSC"
-	1    8050 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8350 2400 8550 2400
-Wire Wire Line
-	8050 2100 8450 2100
-$Comp
-L Device:C C?
-U 1 1 633432B3
-P 8450 2400
-AR Path="/633432B3" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633432B3" Ref="C?"  Part="1" 
-F 0 "C?" H 8565 2446 50  0000 L CNN
-F 1 "1u" H 8565 2355 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 8488 2250 50  0001 C CNN
-F 3 "~" H 8450 2400 50  0001 C CNN
-F 4 "52923" H 8450 2400 50  0001 C CNN "LCSC"
-	1    8450 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8450 2100 8450 2250
-Wire Wire Line
-	8450 2550 8450 2700
-Wire Wire Line
-	8450 2700 8050 2700
-Connection ~ 8450 2100
-Wire Wire Line
-	8450 2100 8850 2100
-Connection ~ 8450 2700
-Wire Wire Line
-	8850 2700 8450 2700
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633432C1
-P 8850 2400
-AR Path="/633432C1" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633432C1" Ref="D?"  Part="1" 
-F 0 "D?" H 9194 2446 50  0000 L CNN
-F 1 "WS2812B" H 9194 2355 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8900 2100 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8950 2025 50  0001 L TNN
-F 4 "C965555" H 8850 2400 50  0001 C CNN "LCSC"
-	1    8850 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9150 2400 9350 2400
-Wire Wire Line
-	8850 2100 9250 2100
-$Comp
-L Device:C C?
-U 1 1 633432CA
-P 9250 2400
-AR Path="/633432CA" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633432CA" Ref="C?"  Part="1" 
-F 0 "C?" H 9365 2446 50  0000 L CNN
-F 1 "1u" H 9365 2355 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 9288 2250 50  0001 C CNN
-F 3 "~" H 9250 2400 50  0001 C CNN
-F 4 "52923" H 9250 2400 50  0001 C CNN "LCSC"
-	1    9250 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9250 2100 9250 2250
-Wire Wire Line
-	9250 2550 9250 2700
-Wire Wire Line
-	9250 2700 8850 2700
-Connection ~ 9250 2100
-Wire Wire Line
-	9250 2100 9650 2100
-Connection ~ 9250 2700
-Wire Wire Line
-	9650 2700 9250 2700
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633432D8
-P 9650 2400
-AR Path="/633432D8" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633432D8" Ref="D?"  Part="1" 
-F 0 "D?" H 9994 2446 50  0000 L CNN
-F 1 "WS2812B" H 9994 2355 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 9700 2100 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9750 2025 50  0001 L TNN
-F 4 "C965555" H 9650 2400 50  0001 C CNN "LCSC"
-	1    9650 2400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5700 2700 5700 3650
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633432E0
-P 6450 3350
-AR Path="/633432E0" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633432E0" Ref="D?"  Part="1" 
-F 0 "D?" H 6794 3396 50  0000 L CNN
-F 1 "WS2812B" H 6794 3305 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 6500 3050 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 6550 2975 50  0001 L TNN
-F 4 "C965555" H 6450 3350 50  0001 C CNN "LCSC"
-	1    6450 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5950 3350 6150 3350
-Wire Wire Line
-	6750 3350 6950 3350
-Wire Wire Line
-	6450 3050 6850 3050
-$Comp
-L Device:C C?
-U 1 1 633432EA
-P 6850 3350
-AR Path="/633432EA" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633432EA" Ref="C?"  Part="1" 
-F 0 "C?" H 6965 3396 50  0000 L CNN
-F 1 "1u" H 6965 3305 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 6888 3200 50  0001 C CNN
-F 3 "~" H 6850 3350 50  0001 C CNN
-F 4 "52923" H 6850 3350 50  0001 C CNN "LCSC"
-	1    6850 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6850 3050 6850 3200
-Wire Wire Line
-	6850 3500 6850 3650
-Wire Wire Line
-	6850 3650 6450 3650
-Connection ~ 6850 3050
-Wire Wire Line
-	6850 3050 7250 3050
-Connection ~ 6850 3650
-Wire Wire Line
-	7250 3650 6850 3650
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633432F8
-P 7250 3350
-AR Path="/633432F8" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633432F8" Ref="D?"  Part="1" 
-F 0 "D?" H 7594 3396 50  0000 L CNN
-F 1 "WS2812B" H 7594 3305 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 7300 3050 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 7350 2975 50  0001 L TNN
-F 4 "C965555" H 7250 3350 50  0001 C CNN "LCSC"
-	1    7250 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 3350 7750 3350
-Wire Wire Line
-	7250 3050 7650 3050
-$Comp
-L Device:C C?
-U 1 1 63343301
-P 7650 3350
-AR Path="/63343301" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343301" Ref="C?"  Part="1" 
-F 0 "C?" H 7765 3396 50  0000 L CNN
-F 1 "1u" H 7765 3305 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 7688 3200 50  0001 C CNN
-F 3 "~" H 7650 3350 50  0001 C CNN
-F 4 "52923" H 7650 3350 50  0001 C CNN "LCSC"
-	1    7650 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7650 3050 7650 3200
-Wire Wire Line
-	7650 3500 7650 3650
-Wire Wire Line
-	7650 3650 7250 3650
-Connection ~ 7650 3050
-Wire Wire Line
-	7650 3050 8050 3050
-Connection ~ 7650 3650
-Wire Wire Line
-	8050 3650 7650 3650
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334330F
-P 8050 3350
-AR Path="/6334330F" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334330F" Ref="D?"  Part="1" 
-F 0 "D?" H 8394 3396 50  0000 L CNN
-F 1 "WS2812B" H 8394 3305 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8100 3050 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8150 2975 50  0001 L TNN
-F 4 "C965555" H 8050 3350 50  0001 C CNN "LCSC"
-	1    8050 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8350 3350 8550 3350
-Wire Wire Line
-	8050 3050 8450 3050
-$Comp
-L Device:C C?
-U 1 1 63343318
-P 8450 3350
-AR Path="/63343318" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343318" Ref="C?"  Part="1" 
-F 0 "C?" H 8565 3396 50  0000 L CNN
-F 1 "1u" H 8565 3305 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 8488 3200 50  0001 C CNN
-F 3 "~" H 8450 3350 50  0001 C CNN
-F 4 "52923" H 8450 3350 50  0001 C CNN "LCSC"
-	1    8450 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8450 3050 8450 3200
-Wire Wire Line
-	8450 3500 8450 3650
-Wire Wire Line
-	8450 3650 8050 3650
-Connection ~ 8450 3050
-Wire Wire Line
-	8450 3050 8850 3050
-Connection ~ 8450 3650
-Wire Wire Line
-	8850 3650 8450 3650
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343326
-P 8850 3350
-AR Path="/63343326" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343326" Ref="D?"  Part="1" 
-F 0 "D?" H 9194 3396 50  0000 L CNN
-F 1 "WS2812B" H 9194 3305 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8900 3050 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8950 2975 50  0001 L TNN
-F 4 "C965555" H 8850 3350 50  0001 C CNN "LCSC"
-	1    8850 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9150 3350 9350 3350
-Wire Wire Line
-	8850 3050 9250 3050
-$Comp
-L Device:C C?
-U 1 1 6334332F
-P 9250 3350
-AR Path="/6334332F" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334332F" Ref="C?"  Part="1" 
-F 0 "C?" H 9365 3396 50  0000 L CNN
-F 1 "1u" H 9365 3305 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 9288 3200 50  0001 C CNN
-F 3 "~" H 9250 3350 50  0001 C CNN
-F 4 "52923" H 9250 3350 50  0001 C CNN "LCSC"
-	1    9250 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9250 3050 9250 3200
-Wire Wire Line
-	9250 3500 9250 3650
-Wire Wire Line
-	9250 3650 8850 3650
-Connection ~ 9250 3050
-Wire Wire Line
-	9250 3050 9650 3050
-Connection ~ 9250 3650
-Wire Wire Line
-	9650 3650 9250 3650
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334333D
-P 9650 3350
-AR Path="/6334333D" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334333D" Ref="D?"  Part="1" 
-F 0 "D?" H 9994 3396 50  0000 L CNN
-F 1 "WS2812B" H 9994 3305 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 9700 3050 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9750 2975 50  0001 L TNN
-F 4 "C965555" H 9650 3350 50  0001 C CNN "LCSC"
-	1    9650 3350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6450 3650 5700 3650
-Connection ~ 6450 3650
-Connection ~ 5700 3650
-Wire Wire Line
-	5950 2900 9950 2900
-Wire Wire Line
-	10450 1000 10450 1150
-Wire Wire Line
-	5700 3650 5700 4600
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334334A
-P 6450 4300
-AR Path="/6334334A" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334334A" Ref="D?"  Part="1" 
-F 0 "D?" H 6794 4346 50  0000 L CNN
-F 1 "WS2812B" H 6794 4255 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 6500 4000 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 6550 3925 50  0001 L TNN
-F 4 "C965555" H 6450 4300 50  0001 C CNN "LCSC"
-	1    6450 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5950 4300 6150 4300
-Wire Wire Line
-	6750 4300 6950 4300
-Wire Wire Line
-	6450 4000 6850 4000
-$Comp
-L Device:C C?
-U 1 1 63343354
-P 6850 4300
-AR Path="/63343354" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343354" Ref="C?"  Part="1" 
-F 0 "C?" H 6965 4346 50  0000 L CNN
-F 1 "1u" H 6965 4255 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 6888 4150 50  0001 C CNN
-F 3 "~" H 6850 4300 50  0001 C CNN
-F 4 "52923" H 6850 4300 50  0001 C CNN "LCSC"
-	1    6850 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6850 4000 6850 4150
-Wire Wire Line
-	6850 4450 6850 4600
-Wire Wire Line
-	6850 4600 6450 4600
-Connection ~ 6850 4000
-Wire Wire Line
-	6850 4000 7250 4000
-Connection ~ 6850 4600
-Wire Wire Line
-	7250 4600 6850 4600
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343362
-P 7250 4300
-AR Path="/63343362" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343362" Ref="D?"  Part="1" 
-F 0 "D?" H 7594 4346 50  0000 L CNN
-F 1 "WS2812B" H 7594 4255 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 7300 4000 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 7350 3925 50  0001 L TNN
-F 4 "C965555" H 7250 4300 50  0001 C CNN "LCSC"
-	1    7250 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 4300 7750 4300
-Wire Wire Line
-	7250 4000 7650 4000
-$Comp
-L Device:C C?
-U 1 1 6334336B
-P 7650 4300
-AR Path="/6334336B" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334336B" Ref="C?"  Part="1" 
-F 0 "C?" H 7765 4346 50  0000 L CNN
-F 1 "1u" H 7765 4255 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 7688 4150 50  0001 C CNN
-F 3 "~" H 7650 4300 50  0001 C CNN
-F 4 "52923" H 7650 4300 50  0001 C CNN "LCSC"
-	1    7650 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7650 4000 7650 4150
-Wire Wire Line
-	7650 4450 7650 4600
-Wire Wire Line
-	7650 4600 7250 4600
-Connection ~ 7650 4000
-Wire Wire Line
-	7650 4000 8050 4000
-Connection ~ 7650 4600
-Wire Wire Line
-	8050 4600 7650 4600
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343379
-P 8050 4300
-AR Path="/63343379" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343379" Ref="D?"  Part="1" 
-F 0 "D?" H 8394 4346 50  0000 L CNN
-F 1 "WS2812B" H 8394 4255 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8100 4000 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8150 3925 50  0001 L TNN
-F 4 "C965555" H 8050 4300 50  0001 C CNN "LCSC"
-	1    8050 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8350 4300 8550 4300
-Wire Wire Line
-	8050 4000 8450 4000
-$Comp
-L Device:C C?
-U 1 1 63343382
-P 8450 4300
-AR Path="/63343382" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343382" Ref="C?"  Part="1" 
-F 0 "C?" H 8565 4346 50  0000 L CNN
-F 1 "1u" H 8565 4255 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 8488 4150 50  0001 C CNN
-F 3 "~" H 8450 4300 50  0001 C CNN
-F 4 "52923" H 8450 4300 50  0001 C CNN "LCSC"
-	1    8450 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8450 4000 8450 4150
-Wire Wire Line
-	8450 4450 8450 4600
-Wire Wire Line
-	8450 4600 8050 4600
-Connection ~ 8450 4000
-Wire Wire Line
-	8450 4000 8850 4000
-Connection ~ 8450 4600
-Wire Wire Line
-	8850 4600 8450 4600
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 63343390
-P 8850 4300
-AR Path="/63343390" Ref="D?"  Part="1" 
-AR Path="/631EE57A/63343390" Ref="D?"  Part="1" 
-F 0 "D?" H 9194 4346 50  0000 L CNN
-F 1 "WS2812B" H 9194 4255 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8900 4000 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8950 3925 50  0001 L TNN
-F 4 "C965555" H 8850 4300 50  0001 C CNN "LCSC"
-	1    8850 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9150 4300 9350 4300
-Wire Wire Line
-	8850 4000 9250 4000
-$Comp
-L Device:C C?
-U 1 1 63343399
-P 9250 4300
-AR Path="/63343399" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343399" Ref="C?"  Part="1" 
-F 0 "C?" H 9365 4346 50  0000 L CNN
-F 1 "1u" H 9365 4255 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 9288 4150 50  0001 C CNN
-F 3 "~" H 9250 4300 50  0001 C CNN
-F 4 "52923" H 9250 4300 50  0001 C CNN "LCSC"
-	1    9250 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9250 4000 9250 4150
-Wire Wire Line
-	9250 4450 9250 4600
-Wire Wire Line
-	9250 4600 8850 4600
-Connection ~ 9250 4000
-Wire Wire Line
-	9250 4000 9650 4000
-Connection ~ 9250 4600
-Wire Wire Line
-	9650 4600 9250 4600
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633433A7
-P 9650 4300
-AR Path="/633433A7" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633433A7" Ref="D?"  Part="1" 
-F 0 "D?" H 9994 4346 50  0000 L CNN
-F 1 "WS2812B" H 9994 4255 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 9700 4000 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9750 3925 50  0001 L TNN
-F 4 "C965555" H 9650 4300 50  0001 C CNN "LCSC"
-	1    9650 4300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6450 4600 5700 4600
-Connection ~ 6450 4600
-Connection ~ 5700 4600
-Wire Wire Line
-	5700 4600 5700 5550
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633433B2
-P 6450 5250
-AR Path="/633433B2" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633433B2" Ref="D?"  Part="1" 
-F 0 "D?" H 6794 5296 50  0000 L CNN
-F 1 "WS2812B" H 6794 5205 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 6500 4950 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 6550 4875 50  0001 L TNN
-F 4 "C965555" H 6450 5250 50  0001 C CNN "LCSC"
-	1    6450 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5950 5250 6150 5250
-Wire Wire Line
-	6750 5250 6950 5250
-Wire Wire Line
-	6450 4950 6850 4950
-$Comp
-L Device:C C?
-U 1 1 633433BC
-P 6850 5250
-AR Path="/633433BC" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633433BC" Ref="C?"  Part="1" 
-F 0 "C?" H 6965 5296 50  0000 L CNN
-F 1 "1u" H 6965 5205 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 6888 5100 50  0001 C CNN
-F 3 "~" H 6850 5250 50  0001 C CNN
-F 4 "52923" H 6850 5250 50  0001 C CNN "LCSC"
-	1    6850 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6850 4950 6850 5100
-Wire Wire Line
-	6850 5400 6850 5550
-Wire Wire Line
-	6850 5550 6450 5550
-Connection ~ 6850 4950
-Wire Wire Line
-	6850 4950 7250 4950
-Connection ~ 6850 5550
-Wire Wire Line
-	7250 5550 6850 5550
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633433CA
-P 7250 5250
-AR Path="/633433CA" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633433CA" Ref="D?"  Part="1" 
-F 0 "D?" H 7594 5296 50  0000 L CNN
-F 1 "WS2812B" H 7594 5205 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 7300 4950 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 7350 4875 50  0001 L TNN
-F 4 "C965555" H 7250 5250 50  0001 C CNN "LCSC"
-	1    7250 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 5250 7750 5250
-Wire Wire Line
-	7250 4950 7650 4950
-$Comp
-L Device:C C?
-U 1 1 633433D3
-P 7650 5250
-AR Path="/633433D3" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633433D3" Ref="C?"  Part="1" 
-F 0 "C?" H 7765 5296 50  0000 L CNN
-F 1 "1u" H 7765 5205 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 7688 5100 50  0001 C CNN
-F 3 "~" H 7650 5250 50  0001 C CNN
-F 4 "52923" H 7650 5250 50  0001 C CNN "LCSC"
-	1    7650 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7650 4950 7650 5100
-Wire Wire Line
-	7650 5400 7650 5550
-Wire Wire Line
-	7650 5550 7250 5550
-Connection ~ 7650 4950
-Wire Wire Line
-	7650 4950 8050 4950
-Connection ~ 7650 5550
-Wire Wire Line
-	8050 5550 7650 5550
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633433E1
-P 8050 5250
-AR Path="/633433E1" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633433E1" Ref="D?"  Part="1" 
-F 0 "D?" H 8394 5296 50  0000 L CNN
-F 1 "WS2812B" H 8394 5205 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8100 4950 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8150 4875 50  0001 L TNN
-F 4 "C965555" H 8050 5250 50  0001 C CNN "LCSC"
-	1    8050 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8350 5250 8550 5250
-Wire Wire Line
-	8050 4950 8450 4950
-$Comp
-L Device:C C?
-U 1 1 633433EA
-P 8450 5250
-AR Path="/633433EA" Ref="C?"  Part="1" 
-AR Path="/631EE57A/633433EA" Ref="C?"  Part="1" 
-F 0 "C?" H 8565 5296 50  0000 L CNN
-F 1 "1u" H 8565 5205 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 8488 5100 50  0001 C CNN
-F 3 "~" H 8450 5250 50  0001 C CNN
-F 4 "52923" H 8450 5250 50  0001 C CNN "LCSC"
-	1    8450 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8450 4950 8450 5100
-Wire Wire Line
-	8450 5400 8450 5550
-Wire Wire Line
-	8450 5550 8050 5550
-Connection ~ 8450 4950
-Wire Wire Line
-	8450 4950 8850 4950
-Connection ~ 8450 5550
-Wire Wire Line
-	8850 5550 8450 5550
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 633433F8
-P 8850 5250
-AR Path="/633433F8" Ref="D?"  Part="1" 
-AR Path="/631EE57A/633433F8" Ref="D?"  Part="1" 
-F 0 "D?" H 9194 5296 50  0000 L CNN
-F 1 "WS2812B" H 9194 5205 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 8900 4950 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 8950 4875 50  0001 L TNN
-F 4 "C965555" H 8850 5250 50  0001 C CNN "LCSC"
-	1    8850 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9150 5250 9350 5250
-Wire Wire Line
-	8850 4950 9250 4950
-$Comp
-L Device:C C?
-U 1 1 63343401
-P 9250 5250
-AR Path="/63343401" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343401" Ref="C?"  Part="1" 
-F 0 "C?" H 9365 5296 50  0000 L CNN
-F 1 "1u" H 9365 5205 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 9288 5100 50  0001 C CNN
-F 3 "~" H 9250 5250 50  0001 C CNN
-F 4 "52923" H 9250 5250 50  0001 C CNN "LCSC"
-	1    9250 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9250 4950 9250 5100
-Wire Wire Line
-	9250 5400 9250 5550
-Wire Wire Line
-	9250 5550 8850 5550
-Connection ~ 9250 4950
-Wire Wire Line
-	9250 4950 9650 4950
-Connection ~ 9250 5550
-Wire Wire Line
-	9650 5550 9250 5550
-$Comp
-L customLibrary:WS2812B-2020 D?
-U 1 1 6334340F
-P 9650 5250
-AR Path="/6334340F" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334340F" Ref="D?"  Part="1" 
-F 0 "D?" H 9994 5296 50  0000 L CNN
-F 1 "WS2812B" H 9994 5205 50  0000 L CNN
-F 2 "RandomJunk:ws2812b-2020-lightpipe" H 9700 4950 50  0001 L TNN
-F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 9750 4875 50  0001 L TNN
-F 4 "C965555" H 9650 5250 50  0001 C CNN "LCSC"
-	1    9650 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	6450 5550 5700 5550
-Connection ~ 6450 5550
-Connection ~ 5700 5550
-Wire Wire Line
-	5700 5550 5700 5750
-Wire Wire Line
-	10450 4950 10100 4950
-Connection ~ 9650 4950
-Wire Wire Line
-	10450 4000 10150 4000
-Connection ~ 10450 4000
-Wire Wire Line
-	10450 4000 10450 4950
-Connection ~ 9650 4000
-Wire Wire Line
-	9650 3050 10150 3050
-Connection ~ 9650 3050
-Connection ~ 10450 3050
-Wire Wire Line
-	10450 3050 10450 4000
-Wire Wire Line
-	9650 2100 10150 2100
-Connection ~ 9650 2100
-Connection ~ 10450 2100
-Wire Wire Line
-	10450 2100 10450 3050
-Wire Wire Line
-	9650 1150 10150 1150
-Connection ~ 9650 1150
-Connection ~ 10450 1150
-Wire Wire Line
-	10450 1150 10450 2100
-$Comp
-L Device:C C?
-U 1 1 6334342C
-P 10150 1450
-AR Path="/6334342C" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334342C" Ref="C?"  Part="1" 
-F 0 "C?" H 10265 1496 50  0000 L CNN
-F 1 "1u" H 10265 1405 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 10188 1300 50  0001 C CNN
-F 3 "~" H 10150 1450 50  0001 C CNN
-F 4 "52923" H 10150 1450 50  0001 C CNN "LCSC"
-	1    10150 1450
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C C?
-U 1 1 63343433
-P 10150 2400
-AR Path="/63343433" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343433" Ref="C?"  Part="1" 
-F 0 "C?" H 10265 2446 50  0000 L CNN
-F 1 "1u" H 10265 2355 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 10188 2250 50  0001 C CNN
-F 3 "~" H 10150 2400 50  0001 C CNN
-F 4 "52923" H 10150 2400 50  0001 C CNN "LCSC"
-	1    10150 2400
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C C?
-U 1 1 6334343A
-P 10150 3350
-AR Path="/6334343A" Ref="C?"  Part="1" 
-AR Path="/631EE57A/6334343A" Ref="C?"  Part="1" 
-F 0 "C?" H 10265 3396 50  0000 L CNN
-F 1 "1u" H 10265 3305 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 10188 3200 50  0001 C CNN
-F 3 "~" H 10150 3350 50  0001 C CNN
-F 4 "52923" H 10150 3350 50  0001 C CNN "LCSC"
-	1    10150 3350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C C?
-U 1 1 63343441
-P 10150 4300
-AR Path="/63343441" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343441" Ref="C?"  Part="1" 
-F 0 "C?" H 10265 4346 50  0000 L CNN
-F 1 "1u" H 10265 4255 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 10188 4150 50  0001 C CNN
-F 3 "~" H 10150 4300 50  0001 C CNN
-F 4 "52923" H 10150 4300 50  0001 C CNN "LCSC"
-	1    10150 4300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:C C?
-U 1 1 63343448
-P 10100 5250
-AR Path="/63343448" Ref="C?"  Part="1" 
-AR Path="/631EE57A/63343448" Ref="C?"  Part="1" 
-F 0 "C?" H 10215 5296 50  0000 L CNN
-F 1 "1u" H 10215 5205 50  0000 L CNN
-F 2 "RandomJunk:C_0402_NoSilk" H 10138 5100 50  0001 C CNN
-F 3 "~" H 10100 5250 50  0001 C CNN
-F 4 "52923" H 10100 5250 50  0001 C CNN "LCSC"
-	1    10100 5250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	10150 3200 10150 3050
-Connection ~ 10150 3050
-Wire Wire Line
-	10150 3050 10450 3050
-Wire Wire Line
-	10150 3500 10150 3650
-Wire Wire Line
-	10150 3650 9650 3650
-Connection ~ 9650 3650
-Wire Wire Line
-	10150 2550 10150 2700
-Wire Wire Line
-	10150 2700 9650 2700
-Connection ~ 9650 2700
-Wire Wire Line
-	10150 2250 10150 2100
-Connection ~ 10150 2100
-Wire Wire Line
-	10150 2100 10450 2100
-Wire Wire Line
-	10150 1300 10150 1150
-Connection ~ 10150 1150
-Wire Wire Line
-	10150 1150 10450 1150
-Wire Wire Line
-	10150 1600 10150 1750
-Wire Wire Line
-	10150 1750 9650 1750
-Connection ~ 9650 1750
-Wire Wire Line
-	10150 4450 10150 4600
-Wire Wire Line
-	10150 4600 9650 4600
-Connection ~ 9650 4600
-Wire Wire Line
-	10150 4150 10150 4000
-Connection ~ 10150 4000
-Wire Wire Line
-	10150 4000 9650 4000
-Wire Wire Line
-	10100 5400 10100 5550
-Wire Wire Line
-	10100 5550 9650 5550
-Connection ~ 9650 5550
-Wire Wire Line
-	10100 5100 10100 4950
-Connection ~ 10100 4950
-Wire Wire Line
-	10100 4950 9650 4950
+	5900 2450 5900 3400
+Connection ~ 5900 3400
 $Comp
 L customLibrary:spst_4_pin_internal SW?
-U 1 1 6334346D
-P 1600 2100
-AR Path="/6334346D" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/6334346D" Ref="SW?"  Part="1" 
-F 0 "SW?" H 1575 2490 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 1575 2399 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 1600 2100 50  0001 C CNN
-F 3 "" H 1600 2100 50  0001 C CNN
-F 4 "C480275" H 1600 2100 50  0001 C CNN "LCSC"
-	1    1600 2100
+U 1 1 617D2AD7
+P 4950 10200
+AR Path="/617D2AD7" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2AD7" Ref="SW25"  Part="1" 
+F 0 "SW25" H 4950 10590 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4950 10499 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 5000 10200 50  0001 C CNN
+F 3 "" H 5000 10200 50  0001 C CNN
+F 4 "C480275" H 4950 10200 50  0001 C CNN "LCSC"
+	1    4950 10200
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2ADE
+P 4300 10200
+AR Path="/617D2ADE" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2ADE" Ref="SW24"  Part="1" 
+F 0 "SW24" H 4300 10590 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4300 10499 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4350 10200 50  0001 C CNN
+F 3 "" H 4350 10200 50  0001 C CNN
+F 4 "C480275" H 4300 10200 50  0001 C CNN "LCSC"
+	1    4300 10200
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2AE5
+P 3550 10200
+AR Path="/617D2AE5" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2AE5" Ref="SW23"  Part="1" 
+F 0 "SW23" H 3550 10590 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 3550 10499 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3600 10200 50  0001 C CNN
+F 3 "" H 3600 10200 50  0001 C CNN
+F 4 "C480275" H 3550 10200 50  0001 C CNN "LCSC"
+	1    3550 10200
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2AEC
+P 2900 10200
+AR Path="/617D2AEC" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2AEC" Ref="SW22"  Part="1" 
+F 0 "SW22" H 2900 10590 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2900 10499 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2950 10200 50  0001 C CNN
+F 3 "" H 2950 10200 50  0001 C CNN
+F 4 "C480275" H 2900 10200 50  0001 C CNN "LCSC"
+	1    2900 10200
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2AF3
+P 2150 10200
+AR Path="/617D2AF3" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2AF3" Ref="SW21"  Part="1" 
+F 0 "SW21" H 2150 10590 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2150 10499 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2200 10200 50  0001 C CNN
+F 3 "" H 2200 10200 50  0001 C CNN
+F 4 "C480275" H 2150 10200 50  0001 C CNN "LCSC"
+	1    2150 10200
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1800 1600 1800 1950
-Connection ~ 1400 2350
+	5150 9450 5150 10050
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2AFB
+P 4950 9500
+AR Path="/617D2AFB" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2AFB" Ref="SW20"  Part="1" 
+F 0 "SW20" H 4950 9890 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4950 9799 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 5000 9500 50  0001 C CNN
+F 3 "" H 5000 9500 50  0001 C CNN
+F 4 "C480275" H 4950 9500 50  0001 C CNN "LCSC"
+	1    4950 9500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	1400 2350 1150 2350
-Text GLabel 1150 2350 0    50   Input ~ 0
+	4500 9450 4500 10050
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B03
+P 4300 9500
+AR Path="/617D2B03" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B03" Ref="SW19"  Part="1" 
+F 0 "SW19" H 4300 9890 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4300 9799 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4350 9500 50  0001 C CNN
+F 3 "" H 4350 9500 50  0001 C CNN
+F 4 "C480275" H 4300 9500 50  0001 C CNN "LCSC"
+	1    4300 9500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 9450 3750 10050
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B0B
+P 3550 9500
+AR Path="/617D2B0B" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B0B" Ref="SW18"  Part="1" 
+F 0 "SW18" H 3550 9890 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 3550 9799 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3600 9500 50  0001 C CNN
+F 3 "" H 3600 9500 50  0001 C CNN
+F 4 "C480275" H 3550 9500 50  0001 C CNN "LCSC"
+	1    3550 9500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3100 9450 3100 10050
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B13
+P 2900 9500
+AR Path="/617D2B13" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B13" Ref="SW17"  Part="1" 
+F 0 "SW17" H 2900 9890 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2900 9799 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2950 9500 50  0001 C CNN
+F 3 "" H 2950 9500 50  0001 C CNN
+F 4 "C480275" H 2900 9500 50  0001 C CNN "LCSC"
+	1    2900 9500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2350 9450 2350 10050
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B1B
+P 2150 9500
+AR Path="/617D2B1B" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B1B" Ref="SW16"  Part="1" 
+F 0 "SW16" H 2150 9890 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2150 9799 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2200 9500 50  0001 C CNN
+F 3 "" H 2200 9500 50  0001 C CNN
+F 4 "C480275" H 2150 9500 50  0001 C CNN "LCSC"
+	1    2150 9500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 8750 5150 9350
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B23
+P 4950 8800
+AR Path="/617D2B23" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B23" Ref="SW15"  Part="1" 
+F 0 "SW15" H 4950 9190 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4950 9099 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 5000 8800 50  0001 C CNN
+F 3 "" H 5000 8800 50  0001 C CNN
+F 4 "C480275" H 4950 8800 50  0001 C CNN "LCSC"
+	1    4950 8800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 8050 5150 8650
+Wire Wire Line
+	4500 8750 4500 9350
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B2C
+P 4300 8800
+AR Path="/617D2B2C" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B2C" Ref="SW14"  Part="1" 
+F 0 "SW14" H 4300 9190 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4300 9099 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4350 8800 50  0001 C CNN
+F 3 "" H 4350 8800 50  0001 C CNN
+F 4 "C480275" H 4300 8800 50  0001 C CNN "LCSC"
+	1    4300 8800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 8750 3750 9350
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B34
+P 3550 8800
+AR Path="/617D2B34" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B34" Ref="SW13"  Part="1" 
+F 0 "SW13" H 3550 9190 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 3550 9099 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3600 8800 50  0001 C CNN
+F 3 "" H 3600 8800 50  0001 C CNN
+F 4 "C480275" H 3550 8800 50  0001 C CNN "LCSC"
+	1    3550 8800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3100 8750 3100 9350
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B3C
+P 2900 8800
+AR Path="/617D2B3C" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B3C" Ref="SW12"  Part="1" 
+F 0 "SW12" H 2900 9190 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2900 9099 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2950 8800 50  0001 C CNN
+F 3 "" H 2950 8800 50  0001 C CNN
+F 4 "C480275" H 2900 8800 50  0001 C CNN "LCSC"
+	1    2900 8800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2350 8750 2350 9350
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B44
+P 2150 8800
+AR Path="/617D2B44" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B44" Ref="SW11"  Part="1" 
+F 0 "SW11" H 2150 9190 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2150 9099 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2200 8800 50  0001 C CNN
+F 3 "" H 2200 8800 50  0001 C CNN
+F 4 "C480275" H 2150 8800 50  0001 C CNN "LCSC"
+	1    2150 8800
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B4B
+P 4950 8100
+AR Path="/617D2B4B" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B4B" Ref="SW10"  Part="1" 
+F 0 "SW10" H 4950 8490 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4950 8399 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 5000 8100 50  0001 C CNN
+F 3 "" H 5000 8100 50  0001 C CNN
+F 4 "C480275" H 4950 8100 50  0001 C CNN "LCSC"
+	1    4950 8100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4500 8050 4500 8650
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B53
+P 4300 8100
+AR Path="/617D2B53" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B53" Ref="SW9"  Part="1" 
+F 0 "SW9" H 4300 8490 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4300 8399 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4350 8100 50  0001 C CNN
+F 3 "" H 4350 8100 50  0001 C CNN
+F 4 "C480275" H 4300 8100 50  0001 C CNN "LCSC"
+	1    4300 8100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 8050 3750 8650
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B5B
+P 3550 8100
+AR Path="/617D2B5B" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B5B" Ref="SW8"  Part="1" 
+F 0 "SW8" H 3550 8490 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 3550 8399 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3600 8100 50  0001 C CNN
+F 3 "" H 3600 8100 50  0001 C CNN
+F 4 "C480275" H 3550 8100 50  0001 C CNN "LCSC"
+	1    3550 8100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3100 8050 3100 8650
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B63
+P 2900 8100
+AR Path="/617D2B63" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B63" Ref="SW7"  Part="1" 
+F 0 "SW7" H 2900 8490 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2900 8399 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2950 8100 50  0001 C CNN
+F 3 "" H 2950 8100 50  0001 C CNN
+F 4 "C480275" H 2900 8100 50  0001 C CNN "LCSC"
+	1    2900 8100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2350 8050 2350 8650
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B6B
+P 2150 8100
+AR Path="/617D2B6B" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B6B" Ref="SW6"  Part="1" 
+F 0 "SW6" H 2150 8490 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2150 8399 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2200 8100 50  0001 C CNN
+F 3 "" H 2200 8100 50  0001 C CNN
+F 4 "C480275" H 2150 8100 50  0001 C CNN "LCSC"
+	1    2150 8100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 7300 5150 7950
+Wire Wire Line
+	4500 7300 4500 7950
+Wire Wire Line
+	3750 7300 3750 7950
+Wire Wire Line
+	3100 7300 3100 7950
+Wire Wire Line
+	2350 7300 2350 7950
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B77
+P 4950 7350
+AR Path="/617D2B77" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B77" Ref="SW5"  Part="1" 
+F 0 "SW5" H 4950 7740 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4950 7649 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 5000 7350 50  0001 C CNN
+F 3 "" H 5000 7350 50  0001 C CNN
+F 4 "C480275" H 4950 7350 50  0001 C CNN "LCSC"
+	1    4950 7350
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B7E
+P 4300 7350
+AR Path="/617D2B7E" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B7E" Ref="SW4"  Part="1" 
+F 0 "SW4" H 4300 7740 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 4300 7649 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4350 7350 50  0001 C CNN
+F 3 "" H 4350 7350 50  0001 C CNN
+F 4 "C480275" H 4300 7350 50  0001 C CNN "LCSC"
+	1    4300 7350
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B85
+P 3550 7350
+AR Path="/617D2B85" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B85" Ref="SW3"  Part="1" 
+F 0 "SW3" H 3550 7740 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 3550 7649 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3600 7350 50  0001 C CNN
+F 3 "" H 3600 7350 50  0001 C CNN
+F 4 "C480275" H 3550 7350 50  0001 C CNN "LCSC"
+	1    3550 7350
+	1    0    0    -1  
+$EndComp
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2B8C
+P 2900 7350
+AR Path="/617D2B8C" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2B8C" Ref="SW2"  Part="1" 
+F 0 "SW2" H 2900 7740 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2900 7649 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2950 7350 50  0001 C CNN
+F 3 "" H 2950 7350 50  0001 C CNN
+F 4 "C480275" H 2900 7350 50  0001 C CNN "LCSC"
+	1    2900 7350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5150 6850 5150 7200
+$Comp
+L Device:D D?
+U 1 1 617D2B94
+P 4750 7450
+AR Path="/617D2B94" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2B94" Ref="D30"  Part="1" 
+F 0 "D30" V 4796 7371 50  0000 R CNN
+F 1 "D" V 4705 7371 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4750 7450 50  0001 C CNN
+F 3 "~" H 4750 7450 50  0001 C CNN
+F 4 "c2128" H 4750 7450 50  0001 C CNN "LCSC"
+	1    4750 7450
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4500 6850 4500 7200
+Wire Wire Line
+	3750 6850 3750 7200
+Wire Wire Line
+	3100 6850 3100 7200
+Text GLabel 1700 7600 0    50   Input ~ 0
 key_row1
 Wire Wire Line
-	2550 1600 2550 1950
+	2350 6850 2350 7200
+$Comp
+L customLibrary:spst_4_pin_internal SW?
+U 1 1 617D2BA0
+P 2150 7350
+AR Path="/617D2BA0" Ref="SW?"  Part="1" 
+AR Path="/631EE57A/617D2BA0" Ref="SW1"  Part="1" 
+F 0 "SW1" H 2125 7740 50  0000 C CNN
+F 1 "spst_4_pin_internal" H 2125 7649 50  0000 C CNN
+F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2150 7350 50  0001 C CNN
+F 3 "" H 2150 7350 50  0001 C CNN
+F 4 "C480275" H 2150 7350 50  0001 C CNN "LCSC"
+	1    2150 7350
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	3200 1600 3200 1950
+	5550 5450 5550 5300
 Wire Wire Line
-	3950 1600 3950 1950
+	5550 5750 5550 5900
+Wire Wire Line
+	5600 4500 5600 4350
+Wire Wire Line
+	5600 4800 5600 4950
+Wire Wire Line
+	5600 2450 5900 2450
+Connection ~ 5600 2450
+Wire Wire Line
+	5600 2600 5600 2450
+Wire Wire Line
+	5600 2900 5600 3050
+Wire Wire Line
+	5600 3850 5600 4000
+Wire Wire Line
+	5600 3400 5900 3400
+Connection ~ 5600 3400
+Wire Wire Line
+	5600 3550 5600 3400
+$Comp
+L Device:C C?
+U 1 1 617D2BB7
+P 5550 5600
+AR Path="/617D2BB7" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2BB7" Ref="C25"  Part="1" 
+F 0 "C25" H 5665 5646 50  0000 L CNN
+F 1 "1u" H 5665 5555 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 5588 5450 50  0001 C CNN
+F 3 "~" H 5550 5600 50  0001 C CNN
+F 4 "C52923" H 5550 5600 50  0001 C CNN "LCSC"
+	1    5550 5600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 617D2BBE
+P 5600 4650
+AR Path="/617D2BBE" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2BBE" Ref="C20"  Part="1" 
+F 0 "C20" H 5715 4696 50  0000 L CNN
+F 1 "1u" H 5715 4605 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 5638 4500 50  0001 C CNN
+F 3 "~" H 5600 4650 50  0001 C CNN
+F 4 "C52923" H 5600 4650 50  0001 C CNN "LCSC"
+	1    5600 4650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 617D2BC5
+P 5600 3700
+AR Path="/617D2BC5" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2BC5" Ref="C15"  Part="1" 
+F 0 "C15" H 5715 3746 50  0000 L CNN
+F 1 "1u" H 5715 3655 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 5638 3550 50  0001 C CNN
+F 3 "~" H 5600 3700 50  0001 C CNN
+F 4 "C52923" H 5600 3700 50  0001 C CNN "LCSC"
+	1    5600 3700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 617D2BCC
+P 5600 2750
+AR Path="/617D2BCC" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2BCC" Ref="C10"  Part="1" 
+F 0 "C10" H 5715 2796 50  0000 L CNN
+F 1 "1u" H 5715 2705 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 5638 2600 50  0001 C CNN
+F 3 "~" H 5600 2750 50  0001 C CNN
+F 4 "C52923" H 5600 2750 50  0001 C CNN "LCSC"
+	1    5600 2750
+	1    0    0    -1  
+$EndComp
+Connection ~ 5600 4350
+Wire Wire Line
+	5900 3400 5900 4350
+Wire Wire Line
+	5900 4350 5900 5300
+Connection ~ 5900 4350
+Wire Wire Line
+	5900 4350 5600 4350
+Connection ~ 5550 5300
+Wire Wire Line
+	5900 5300 5550 5300
+Wire Wire Line
+	1150 5900 1150 6100
+Wire Wire Line
+	5550 5300 5100 5300
+Connection ~ 5100 5300
+Wire Wire Line
+	5550 5900 5100 5900
+Connection ~ 5100 5900
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2BE6
+P 5100 5600
+AR Path="/617D2BE6" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2BE6" Ref="D25"  Part="1" 
+F 0 "D25" H 5444 5646 50  0000 L CNN
+F 1 "WS2812B" H 5444 5555 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 5150 5300 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 5200 5225 50  0001 L TNN
+F 4 "C965555" H 5100 5600 50  0001 C CNN "LCSC"
+	1    5100 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 5900 4700 5900
+Connection ~ 4700 5900
+Wire Wire Line
+	4700 5750 4700 5900
+Wire Wire Line
+	4700 5300 5100 5300
+Connection ~ 4700 5300
+Wire Wire Line
+	4700 5300 4700 5450
+$Comp
+L Device:C C?
+U 1 1 617D2BF3
+P 4700 5600
+AR Path="/617D2BF3" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2BF3" Ref="C24"  Part="1" 
+F 0 "C24" H 4815 5646 50  0000 L CNN
+F 1 "1u" H 4815 5555 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 4738 5450 50  0001 C CNN
+F 3 "~" H 4700 5600 50  0001 C CNN
+F 4 "C52923" H 4700 5600 50  0001 C CNN "LCSC"
+	1    4700 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 5600 4800 5600
+Wire Wire Line
+	4300 5300 4700 5300
+Connection ~ 4300 5300
+Wire Wire Line
+	4700 5900 4300 5900
+Connection ~ 4300 5900
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2BFF
+P 4300 5600
+AR Path="/617D2BFF" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2BFF" Ref="D24"  Part="1" 
+F 0 "D24" H 4644 5646 50  0000 L CNN
+F 1 "WS2812B" H 4644 5555 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 4350 5300 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 4400 5225 50  0001 L TNN
+F 4 "C965555" H 4300 5600 50  0001 C CNN "LCSC"
+	1    4300 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4300 5900 3900 5900
+Connection ~ 3900 5900
+Wire Wire Line
+	3900 5750 3900 5900
+Wire Wire Line
+	3900 5300 4300 5300
+Connection ~ 3900 5300
+Wire Wire Line
+	3900 5300 3900 5450
+$Comp
+L Device:C C?
+U 1 1 617D2C0C
+P 3900 5600
+AR Path="/617D2C0C" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C0C" Ref="C23"  Part="1" 
+F 0 "C23" H 4015 5646 50  0000 L CNN
+F 1 "1u" H 4015 5555 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3938 5450 50  0001 C CNN
+F 3 "~" H 3900 5600 50  0001 C CNN
+F 4 "C52923" H 3900 5600 50  0001 C CNN "LCSC"
+	1    3900 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 5600 4000 5600
+Wire Wire Line
+	3500 5300 3900 5300
+Connection ~ 3500 5300
+Wire Wire Line
+	3900 5900 3500 5900
+Connection ~ 3500 5900
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C18
+P 3500 5600
+AR Path="/617D2C18" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C18" Ref="D23"  Part="1" 
+F 0 "D23" H 3844 5646 50  0000 L CNN
+F 1 "WS2812B" H 3844 5555 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 3550 5300 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 3600 5225 50  0001 L TNN
+F 4 "C965555" H 3500 5600 50  0001 C CNN "LCSC"
+	1    3500 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3500 5900 3100 5900
+Connection ~ 3100 5900
+Wire Wire Line
+	3100 5750 3100 5900
+Wire Wire Line
+	3100 5300 3500 5300
+Connection ~ 3100 5300
+Wire Wire Line
+	3100 5300 3100 5450
+$Comp
+L Device:C C?
+U 1 1 617D2C25
+P 3100 5600
+AR Path="/617D2C25" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C25" Ref="C22"  Part="1" 
+F 0 "C22" H 3215 5646 50  0000 L CNN
+F 1 "1u" H 3215 5555 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3138 5450 50  0001 C CNN
+F 3 "~" H 3100 5600 50  0001 C CNN
+F 4 "C52923" H 3100 5600 50  0001 C CNN "LCSC"
+	1    3100 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 5600 3200 5600
+Wire Wire Line
+	2700 5300 3100 5300
+Connection ~ 2700 5300
+Wire Wire Line
+	3100 5900 2700 5900
+Connection ~ 2700 5900
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C31
+P 2700 5600
+AR Path="/617D2C31" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C31" Ref="D22"  Part="1" 
+F 0 "D22" H 3044 5646 50  0000 L CNN
+F 1 "WS2812B" H 3044 5555 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 2750 5300 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2800 5225 50  0001 L TNN
+F 4 "C965555" H 2700 5600 50  0001 C CNN "LCSC"
+	1    2700 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 5900 2300 5900
+Connection ~ 2300 5900
+Wire Wire Line
+	2300 5750 2300 5900
+Wire Wire Line
+	2300 5300 2700 5300
+Wire Wire Line
+	1900 5300 2300 5300
+Connection ~ 2300 5300
+Wire Wire Line
+	2300 5300 2300 5450
+$Comp
+L Device:C C?
+U 1 1 617D2C3F
+P 2300 5600
+AR Path="/617D2C3F" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C3F" Ref="C21"  Part="1" 
+F 0 "C21" H 2415 5646 50  0000 L CNN
+F 1 "1u" H 2415 5555 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 2338 5450 50  0001 C CNN
+F 3 "~" H 2300 5600 50  0001 C CNN
+F 4 "C52923" H 2300 5600 50  0001 C CNN "LCSC"
+	1    2300 5600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 5600 2400 5600
+Wire Wire Line
+	1400 5600 1600 5600
+Wire Wire Line
+	1900 5900 1150 5900
+Wire Wire Line
+	2300 5900 1900 5900
+Connection ~ 1900 5900
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C4B
+P 1900 5600
+AR Path="/617D2C4B" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C4B" Ref="D21"  Part="1" 
+F 0 "D21" H 2244 5646 50  0000 L CNN
+F 1 "WS2812B" H 2244 5555 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 1950 5300 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2000 5225 50  0001 L TNN
+F 4 "C965555" H 1900 5600 50  0001 C CNN "LCSC"
+	1    1900 5600
+	1    0    0    -1  
+$EndComp
+Connection ~ 1150 5900
+Wire Wire Line
+	1150 4950 1150 5900
+Wire Wire Line
+	5600 4350 5100 4350
+Connection ~ 5100 4350
+Wire Wire Line
+	5600 4950 5100 4950
+Connection ~ 5100 4950
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C58
+P 5100 4650
+AR Path="/617D2C58" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C58" Ref="D20"  Part="1" 
+F 0 "D20" H 5444 4696 50  0000 L CNN
+F 1 "WS2812B" H 5444 4605 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 5150 4350 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 5200 4275 50  0001 L TNN
+F 4 "C965555" H 5100 4650 50  0001 C CNN "LCSC"
+	1    5100 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 4950 4700 4950
+Connection ~ 4700 4950
+Wire Wire Line
+	4700 4800 4700 4950
+Wire Wire Line
+	4700 4350 5100 4350
+Connection ~ 4700 4350
+Wire Wire Line
+	4700 4350 4700 4500
+$Comp
+L Device:C C?
+U 1 1 617D2C65
+P 4700 4650
+AR Path="/617D2C65" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C65" Ref="C19"  Part="1" 
+F 0 "C19" H 4815 4696 50  0000 L CNN
+F 1 "1u" H 4815 4605 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 4738 4500 50  0001 C CNN
+F 3 "~" H 4700 4650 50  0001 C CNN
+F 4 "C52923" H 4700 4650 50  0001 C CNN "LCSC"
+	1    4700 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 4650 4800 4650
+Wire Wire Line
+	4300 4350 4700 4350
+Connection ~ 4300 4350
+Wire Wire Line
+	4700 4950 4300 4950
+Connection ~ 4300 4950
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C71
+P 4300 4650
+AR Path="/617D2C71" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C71" Ref="D19"  Part="1" 
+F 0 "D19" H 4644 4696 50  0000 L CNN
+F 1 "WS2812B" H 4644 4605 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 4350 4350 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 4400 4275 50  0001 L TNN
+F 4 "C965555" H 4300 4650 50  0001 C CNN "LCSC"
+	1    4300 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4300 4950 3900 4950
+Connection ~ 3900 4950
+Wire Wire Line
+	3900 4800 3900 4950
+Wire Wire Line
+	3900 4350 4300 4350
+Connection ~ 3900 4350
+Wire Wire Line
+	3900 4350 3900 4500
+$Comp
+L Device:C C?
+U 1 1 617D2C7E
+P 3900 4650
+AR Path="/617D2C7E" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C7E" Ref="C18"  Part="1" 
+F 0 "C18" H 4015 4696 50  0000 L CNN
+F 1 "1u" H 4015 4605 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3938 4500 50  0001 C CNN
+F 3 "~" H 3900 4650 50  0001 C CNN
+F 4 "C52923" H 3900 4650 50  0001 C CNN "LCSC"
+	1    3900 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 4650 4000 4650
+Wire Wire Line
+	3500 4350 3900 4350
+Connection ~ 3500 4350
+Wire Wire Line
+	3900 4950 3500 4950
+Connection ~ 3500 4950
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2C8A
+P 3500 4650
+AR Path="/617D2C8A" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2C8A" Ref="D18"  Part="1" 
+F 0 "D18" H 3844 4696 50  0000 L CNN
+F 1 "WS2812B" H 3844 4605 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 3550 4350 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 3600 4275 50  0001 L TNN
+F 4 "C965555" H 3500 4650 50  0001 C CNN "LCSC"
+	1    3500 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3500 4950 3100 4950
+Connection ~ 3100 4950
+Wire Wire Line
+	3100 4800 3100 4950
+Wire Wire Line
+	3100 4350 3500 4350
+Connection ~ 3100 4350
+Wire Wire Line
+	3100 4350 3100 4500
+$Comp
+L Device:C C?
+U 1 1 617D2C97
+P 3100 4650
+AR Path="/617D2C97" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2C97" Ref="C17"  Part="1" 
+F 0 "C17" H 3215 4696 50  0000 L CNN
+F 1 "1u" H 3215 4605 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3138 4500 50  0001 C CNN
+F 3 "~" H 3100 4650 50  0001 C CNN
+F 4 "C52923" H 3100 4650 50  0001 C CNN "LCSC"
+	1    3100 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 4650 3200 4650
+Wire Wire Line
+	2700 4350 3100 4350
+Connection ~ 2700 4350
+Wire Wire Line
+	3100 4950 2700 4950
+Connection ~ 2700 4950
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2CA3
+P 2700 4650
+AR Path="/617D2CA3" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2CA3" Ref="D17"  Part="1" 
+F 0 "D17" H 3044 4696 50  0000 L CNN
+F 1 "WS2812B" H 3044 4605 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 2750 4350 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2800 4275 50  0001 L TNN
+F 4 "C965555" H 2700 4650 50  0001 C CNN "LCSC"
+	1    2700 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 4950 2300 4950
+Connection ~ 2300 4950
+Wire Wire Line
+	2300 4800 2300 4950
+Wire Wire Line
+	2300 4350 2700 4350
+Wire Wire Line
+	1900 4350 2300 4350
+Connection ~ 2300 4350
+Wire Wire Line
+	2300 4350 2300 4500
+$Comp
+L Device:C C?
+U 1 1 617D2CB1
+P 2300 4650
+AR Path="/617D2CB1" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2CB1" Ref="C16"  Part="1" 
+F 0 "C16" H 2415 4696 50  0000 L CNN
+F 1 "1u" H 2415 4605 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 2338 4500 50  0001 C CNN
+F 3 "~" H 2300 4650 50  0001 C CNN
+F 4 "C52923" H 2300 4650 50  0001 C CNN "LCSC"
+	1    2300 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 4650 2400 4650
+Wire Wire Line
+	1400 4650 1600 4650
+Wire Wire Line
+	1900 4950 1150 4950
+Wire Wire Line
+	2300 4950 1900 4950
+Connection ~ 1900 4950
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2CBD
+P 1900 4650
+AR Path="/617D2CBD" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2CBD" Ref="D16"  Part="1" 
+F 0 "D16" H 2244 4696 50  0000 L CNN
+F 1 "WS2812B" H 2244 4605 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 1950 4350 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2000 4275 50  0001 L TNN
+F 4 "C965555" H 1900 4650 50  0001 C CNN "LCSC"
+	1    1900 4650
+	1    0    0    -1  
+$EndComp
+Connection ~ 1150 4950
+Wire Wire Line
+	1150 4000 1150 4950
+Wire Wire Line
+	1400 3250 5400 3250
+Wire Wire Line
+	5100 3400 5600 3400
+Connection ~ 5100 3400
+Wire Wire Line
+	5600 4000 5100 4000
+Connection ~ 5100 4000
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2CCB
+P 5100 3700
+AR Path="/617D2CCB" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2CCB" Ref="D15"  Part="1" 
+F 0 "D15" H 5444 3746 50  0000 L CNN
+F 1 "WS2812B" H 5444 3655 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 5150 3400 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 5200 3325 50  0001 L TNN
+F 4 "C965555" H 5100 3700 50  0001 C CNN "LCSC"
+	1    5100 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 4000 4700 4000
+Connection ~ 4700 4000
+Wire Wire Line
+	4700 3850 4700 4000
+Wire Wire Line
+	4700 3400 5100 3400
+Connection ~ 4700 3400
+Wire Wire Line
+	4700 3400 4700 3550
+$Comp
+L Device:C C?
+U 1 1 617D2CD8
+P 4700 3700
+AR Path="/617D2CD8" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2CD8" Ref="C14"  Part="1" 
+F 0 "C14" H 4815 3746 50  0000 L CNN
+F 1 "1u" H 4815 3655 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 4738 3550 50  0001 C CNN
+F 3 "~" H 4700 3700 50  0001 C CNN
+F 4 "C52923" H 4700 3700 50  0001 C CNN "LCSC"
+	1    4700 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 3700 4800 3700
+Wire Wire Line
+	4300 3400 4700 3400
+Connection ~ 4300 3400
+Wire Wire Line
+	4700 4000 4300 4000
+Connection ~ 4300 4000
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2CE4
+P 4300 3700
+AR Path="/617D2CE4" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2CE4" Ref="D14"  Part="1" 
+F 0 "D14" H 4644 3746 50  0000 L CNN
+F 1 "WS2812B" H 4644 3655 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 4350 3400 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 4400 3325 50  0001 L TNN
+F 4 "C965555" H 4300 3700 50  0001 C CNN "LCSC"
+	1    4300 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4300 4000 3900 4000
+Connection ~ 3900 4000
+Wire Wire Line
+	3900 3850 3900 4000
+Wire Wire Line
+	3900 3400 4300 3400
+Connection ~ 3900 3400
+Wire Wire Line
+	3900 3400 3900 3550
+$Comp
+L Device:C C?
+U 1 1 617D2CF1
+P 3900 3700
+AR Path="/617D2CF1" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2CF1" Ref="C13"  Part="1" 
+F 0 "C13" H 4015 3746 50  0000 L CNN
+F 1 "1u" H 4015 3655 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3938 3550 50  0001 C CNN
+F 3 "~" H 3900 3700 50  0001 C CNN
+F 4 "C52923" H 3900 3700 50  0001 C CNN "LCSC"
+	1    3900 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 3700 4000 3700
+Wire Wire Line
+	3500 3400 3900 3400
+Connection ~ 3500 3400
+Wire Wire Line
+	3900 4000 3500 4000
+Connection ~ 3500 4000
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2CFD
+P 3500 3700
+AR Path="/617D2CFD" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2CFD" Ref="D13"  Part="1" 
+F 0 "D13" H 3844 3746 50  0000 L CNN
+F 1 "WS2812B" H 3844 3655 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 3550 3400 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 3600 3325 50  0001 L TNN
+F 4 "C965555" H 3500 3700 50  0001 C CNN "LCSC"
+	1    3500 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3500 4000 3100 4000
+Connection ~ 3100 4000
+Wire Wire Line
+	3100 3850 3100 4000
+Wire Wire Line
+	3100 3400 3500 3400
+Connection ~ 3100 3400
+Wire Wire Line
+	3100 3400 3100 3550
+$Comp
+L Device:C C?
+U 1 1 617D2D0A
+P 3100 3700
+AR Path="/617D2D0A" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D0A" Ref="C12"  Part="1" 
+F 0 "C12" H 3215 3746 50  0000 L CNN
+F 1 "1u" H 3215 3655 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3138 3550 50  0001 C CNN
+F 3 "~" H 3100 3700 50  0001 C CNN
+F 4 "C52923" H 3100 3700 50  0001 C CNN "LCSC"
+	1    3100 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 3700 3200 3700
+Wire Wire Line
+	2700 3400 3100 3400
+Connection ~ 2700 3400
+Wire Wire Line
+	3100 4000 2700 4000
+Connection ~ 2700 4000
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D16
+P 2700 3700
+AR Path="/617D2D16" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D16" Ref="D12"  Part="1" 
+F 0 "D12" H 3044 3746 50  0000 L CNN
+F 1 "WS2812B" H 3044 3655 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 2750 3400 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2800 3325 50  0001 L TNN
+F 4 "C965555" H 2700 3700 50  0001 C CNN "LCSC"
+	1    2700 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 4000 2300 4000
+Connection ~ 2300 4000
+Wire Wire Line
+	2300 3850 2300 4000
+Wire Wire Line
+	2300 3400 2700 3400
+Wire Wire Line
+	1900 3400 2300 3400
+Connection ~ 2300 3400
+Wire Wire Line
+	2300 3400 2300 3550
+$Comp
+L Device:C C?
+U 1 1 617D2D24
+P 2300 3700
+AR Path="/617D2D24" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D24" Ref="C11"  Part="1" 
+F 0 "C11" H 2415 3746 50  0000 L CNN
+F 1 "1u" H 2415 3655 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 2338 3550 50  0001 C CNN
+F 3 "~" H 2300 3700 50  0001 C CNN
+F 4 "C52923" H 2300 3700 50  0001 C CNN "LCSC"
+	1    2300 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 3700 2400 3700
+Wire Wire Line
+	1400 3700 1600 3700
+Wire Wire Line
+	1900 4000 1150 4000
+Wire Wire Line
+	2300 4000 1900 4000
+Connection ~ 1900 4000
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D30
+P 1900 3700
+AR Path="/617D2D30" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D30" Ref="D11"  Part="1" 
+F 0 "D11" H 2244 3746 50  0000 L CNN
+F 1 "WS2812B" H 2244 3655 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 1950 3400 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2000 3325 50  0001 L TNN
+F 4 "C965555" H 1900 3700 50  0001 C CNN "LCSC"
+	1    1900 3700
+	1    0    0    -1  
+$EndComp
+Connection ~ 1150 4000
+Wire Wire Line
+	1150 3050 1150 4000
+Wire Wire Line
+	5100 2450 5600 2450
+Connection ~ 5100 2450
+Wire Wire Line
+	5600 3050 5100 3050
+Connection ~ 5100 3050
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D3D
+P 5100 2750
+AR Path="/617D2D3D" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D3D" Ref="D10"  Part="1" 
+F 0 "D10" H 5444 2796 50  0000 L CNN
+F 1 "WS2812B" H 5444 2705 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 5150 2450 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 5200 2375 50  0001 L TNN
+F 4 "C965555" H 5100 2750 50  0001 C CNN "LCSC"
+	1    5100 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 3050 4700 3050
+Connection ~ 4700 3050
+Wire Wire Line
+	4700 2900 4700 3050
+Wire Wire Line
+	4700 2450 5100 2450
+Connection ~ 4700 2450
+Wire Wire Line
+	4700 2450 4700 2600
+$Comp
+L Device:C C?
+U 1 1 617D2D4A
+P 4700 2750
+AR Path="/617D2D4A" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D4A" Ref="C9"  Part="1" 
+F 0 "C9" H 4815 2796 50  0000 L CNN
+F 1 "1u" H 4815 2705 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 4738 2600 50  0001 C CNN
+F 3 "~" H 4700 2750 50  0001 C CNN
+F 4 "C52923" H 4700 2750 50  0001 C CNN "LCSC"
+	1    4700 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 2750 4800 2750
+Wire Wire Line
+	4300 2450 4700 2450
+Connection ~ 4300 2450
+Wire Wire Line
+	4700 3050 4300 3050
+Connection ~ 4300 3050
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D56
+P 4300 2750
+AR Path="/617D2D56" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D56" Ref="D9"  Part="1" 
+F 0 "D9" H 4644 2796 50  0000 L CNN
+F 1 "WS2812B" H 4644 2705 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 4350 2450 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 4400 2375 50  0001 L TNN
+F 4 "C965555" H 4300 2750 50  0001 C CNN "LCSC"
+	1    4300 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4300 3050 3900 3050
+Connection ~ 3900 3050
+Wire Wire Line
+	3900 2900 3900 3050
+Wire Wire Line
+	3900 2450 4300 2450
+Connection ~ 3900 2450
+Wire Wire Line
+	3900 2450 3900 2600
+$Comp
+L Device:C C?
+U 1 1 617D2D63
+P 3900 2750
+AR Path="/617D2D63" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D63" Ref="C8"  Part="1" 
+F 0 "C8" H 4015 2796 50  0000 L CNN
+F 1 "1u" H 4015 2705 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3938 2600 50  0001 C CNN
+F 3 "~" H 3900 2750 50  0001 C CNN
+F 4 "C52923" H 3900 2750 50  0001 C CNN "LCSC"
+	1    3900 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3800 2750 4000 2750
+Wire Wire Line
+	3500 2450 3900 2450
+Connection ~ 3500 2450
+Wire Wire Line
+	3900 3050 3500 3050
+Connection ~ 3500 3050
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D6F
+P 3500 2750
+AR Path="/617D2D6F" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D6F" Ref="D8"  Part="1" 
+F 0 "D8" H 3844 2796 50  0000 L CNN
+F 1 "WS2812B" H 3844 2705 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 3550 2450 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 3600 2375 50  0001 L TNN
+F 4 "C965555" H 3500 2750 50  0001 C CNN "LCSC"
+	1    3500 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3500 3050 3100 3050
+Connection ~ 3100 3050
+Wire Wire Line
+	3100 2900 3100 3050
+Wire Wire Line
+	3100 2450 3500 2450
+Connection ~ 3100 2450
+Wire Wire Line
+	3100 2450 3100 2600
+$Comp
+L Device:C C?
+U 1 1 617D2D7C
+P 3100 2750
+AR Path="/617D2D7C" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D7C" Ref="C7"  Part="1" 
+F 0 "C7" H 3215 2796 50  0000 L CNN
+F 1 "1u" H 3215 2705 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 3138 2600 50  0001 C CNN
+F 3 "~" H 3100 2750 50  0001 C CNN
+F 4 "C52923" H 3100 2750 50  0001 C CNN "LCSC"
+	1    3100 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3000 2750 3200 2750
+Wire Wire Line
+	2700 2450 3100 2450
+Connection ~ 2700 2450
+Wire Wire Line
+	3100 3050 2700 3050
+Connection ~ 2700 3050
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2D88
+P 2700 2750
+AR Path="/617D2D88" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2D88" Ref="D7"  Part="1" 
+F 0 "D7" H 3044 2796 50  0000 L CNN
+F 1 "WS2812B" H 3044 2705 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 2750 2450 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2800 2375 50  0001 L TNN
+F 4 "C965555" H 2700 2750 50  0001 C CNN "LCSC"
+	1    2700 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 3050 2300 3050
+Connection ~ 2300 3050
+Wire Wire Line
+	2300 2900 2300 3050
+Wire Wire Line
+	2300 2450 2700 2450
+Wire Wire Line
+	1900 2450 2300 2450
+Connection ~ 2300 2450
+Wire Wire Line
+	2300 2450 2300 2600
+$Comp
+L Device:C C?
+U 1 1 617D2D96
+P 2300 2750
+AR Path="/617D2D96" Ref="C?"  Part="1" 
+AR Path="/631EE57A/617D2D96" Ref="C6"  Part="1" 
+F 0 "C6" H 2415 2796 50  0000 L CNN
+F 1 "1u" H 2415 2705 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0402_NoSilk" H 2338 2600 50  0001 C CNN
+F 3 "~" H 2300 2750 50  0001 C CNN
+F 4 "C52923" H 2300 2750 50  0001 C CNN "LCSC"
+	1    2300 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 2750 2400 2750
+Text GLabel 1150 2750 0    50   Input ~ 0
+led_din
+$Comp
+L power:GND #PWR?
+U 1 1 617D2E05
+P 1150 6100
+AR Path="/617D2E05" Ref="#PWR?"  Part="1" 
+AR Path="/631EE57A/617D2E05" Ref="#PWR0102"  Part="1" 
+F 0 "#PWR0102" H 1150 5850 50  0001 C CNN
+F 1 "GND" H 1155 5927 50  0000 C CNN
+F 2 "" H 1150 6100 50  0001 C CNN
+F 3 "" H 1150 6100 50  0001 C CNN
+	1    1150 6100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1400 3250 1400 3700
+Wire Wire Line
+	5400 2750 5400 3250
+Wire Wire Line
+	1400 4150 1400 4650
+Wire Wire Line
+	5400 4150 1400 4150
+Wire Wire Line
+	5400 3700 5400 4150
+Wire Wire Line
+	1400 5150 1400 5600
+Wire Wire Line
+	5400 5150 1400 5150
+Wire Wire Line
+	5400 4650 5400 5150
+Wire Wire Line
+	2300 3050 1900 3050
+Wire Wire Line
+	1900 3050 1150 3050
+Connection ~ 1900 3050
+$Comp
+L customLibrary:WS2812B-2020 D?
+U 1 1 617D2E1B
+P 1900 2750
+AR Path="/617D2E1B" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E1B" Ref="D6"  Part="1" 
+F 0 "D6" H 2244 2796 50  0000 L CNN
+F 1 "WS2812B" H 2244 2705 50  0000 L CNN
+F 2 "RandomJunk:ws2812b-2020-lightpipe" H 1950 2450 50  0001 L TNN
+F 3 "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" H 2000 2375 50  0001 L TNN
+F 4 "C965555" H 1900 2750 50  0001 C CNN "LCSC"
+	1    1900 2750
+	1    0    0    -1  
+$EndComp
+Text GLabel 1700 10450 0    50   Input ~ 0
+key_row5
+Text GLabel 1700 9750 0    50   Input ~ 0
+key_row4
+Text GLabel 1700 9050 0    50   Input ~ 0
+key_row3
+Text GLabel 1700 8350 0    50   Input ~ 0
+key_row2
+Text GLabel 5150 6850 1    50   Input ~ 0
+key_col5
+Text GLabel 4500 6850 1    50   Input ~ 0
+key_col4
+Text GLabel 3750 6850 1    50   Input ~ 0
+key_col3
+Text GLabel 3100 6850 1    50   Input ~ 0
+key_col2
+Text GLabel 2350 6850 1    50   Input ~ 0
+key_col1
 $Comp
 L Device:D D?
-U 1 1 6334347B
-P 4200 2200
-AR Path="/6334347B" Ref="D?"  Part="1" 
-AR Path="/631EE57A/6334347B" Ref="D?"  Part="1" 
-F 0 "D?" V 4246 2121 50  0000 R CNN
-F 1 "D" V 4155 2121 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 4200 2200 50  0001 C CNN
-F 3 "~" H 4200 2200 50  0001 C CNN
-F 4 "c2128" H 4200 2200 50  0001 C CNN "LCSC"
-	1    4200 2200
+U 1 1 617D2E36
+P 4750 10300
+AR Path="/617D2E36" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E36" Ref="D50"  Part="1" 
+F 0 "D50" V 4796 10221 50  0000 R CNN
+F 1 "D" V 4705 10221 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4750 10300 50  0001 C CNN
+F 3 "~" H 4750 10300 50  0001 C CNN
+F 4 "c2128" H 4750 10300 50  0001 C CNN "LCSC"
+	1    4750 10300
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	4600 1600 4600 1950
+	4750 10450 4100 10450
+Connection ~ 4100 10450
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343483
-P 2350 2100
-AR Path="/63343483" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343483" Ref="SW?"  Part="1" 
-F 0 "SW?" H 2350 2490 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2350 2399 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2400 2100 50  0001 C CNN
-F 3 "" H 2400 2100 50  0001 C CNN
-F 4 "C480275" H 2350 2100 50  0001 C CNN "LCSC"
-	1    2350 2100
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 6334348A
-P 3000 2100
-AR Path="/6334348A" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/6334348A" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3000 2490 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3000 2399 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3050 2100 50  0001 C CNN
-F 3 "" H 3050 2100 50  0001 C CNN
-F 4 "C480275" H 3000 2100 50  0001 C CNN "LCSC"
-	1    3000 2100
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343491
-P 3750 2100
-AR Path="/63343491" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343491" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3750 2490 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3750 2399 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3800 2100 50  0001 C CNN
-F 3 "" H 3800 2100 50  0001 C CNN
-F 4 "C480275" H 3750 2100 50  0001 C CNN "LCSC"
-	1    3750 2100
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343498
-P 4400 2100
-AR Path="/63343498" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343498" Ref="SW?"  Part="1" 
-F 0 "SW?" H 4400 2490 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 4400 2399 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4450 2100 50  0001 C CNN
-F 3 "" H 4450 2100 50  0001 C CNN
-F 4 "C480275" H 4400 2100 50  0001 C CNN "LCSC"
-	1    4400 2100
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E3F
+P 4100 10300
+AR Path="/617D2E3F" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E3F" Ref="D49"  Part="1" 
+F 0 "D49" H 4100 10516 50  0000 C CNN
+F 1 "D" H 4100 10425 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4100 10300 50  0001 C CNN
+F 3 "~" H 4100 10300 50  0001 C CNN
+F 4 "c2128" H 4100 10300 50  0001 C CNN "LCSC"
+	1    4100 10300
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1800 2050 1800 2700
-Wire Wire Line
-	2550 2050 2550 2700
-Wire Wire Line
-	3200 2050 3200 2700
-Wire Wire Line
-	3950 2050 3950 2700
-Wire Wire Line
-	4600 2050 4600 2700
+	4100 10450 3350 10450
+Connection ~ 3350 10450
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434A4
-P 1600 2850
-AR Path="/633434A4" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434A4" Ref="SW?"  Part="1" 
-F 0 "SW?" H 1600 3240 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 1600 3149 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 1650 2850 50  0001 C CNN
-F 3 "" H 1650 2850 50  0001 C CNN
-F 4 "C480275" H 1600 2850 50  0001 C CNN "LCSC"
-	1    1600 2850
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E48
+P 3350 10300
+AR Path="/617D2E48" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E48" Ref="D48"  Part="1" 
+F 0 "D48" V 3396 10221 50  0000 R CNN
+F 1 "D" V 3305 10221 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3350 10300 50  0001 C CNN
+F 3 "~" H 3350 10300 50  0001 C CNN
+F 4 "c2128" H 3350 10300 50  0001 C CNN "LCSC"
+	1    3350 10300
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1800 2800 1800 3400
+	3350 10450 2700 10450
+Connection ~ 2700 10450
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434AC
-P 2350 2850
-AR Path="/633434AC" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434AC" Ref="SW?"  Part="1" 
-F 0 "SW?" H 2350 3240 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2350 3149 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2400 2850 50  0001 C CNN
-F 3 "" H 2400 2850 50  0001 C CNN
-F 4 "C480275" H 2350 2850 50  0001 C CNN "LCSC"
-	1    2350 2850
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E51
+P 2700 10300
+AR Path="/617D2E51" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E51" Ref="D47"  Part="1" 
+F 0 "D47" H 2700 10516 50  0000 C CNN
+F 1 "D" H 2700 10425 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 2700 10300 50  0001 C CNN
+F 3 "~" H 2700 10300 50  0001 C CNN
+F 4 "c2128" H 2700 10300 50  0001 C CNN "LCSC"
+	1    2700 10300
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	2550 2800 2550 3400
+	2700 10450 1950 10450
+Wire Wire Line
+	1950 10450 1700 10450
+Connection ~ 1950 10450
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434B4
-P 3000 2850
-AR Path="/633434B4" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434B4" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3000 3240 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3000 3149 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3050 2850 50  0001 C CNN
-F 3 "" H 3050 2850 50  0001 C CNN
-F 4 "C480275" H 3000 2850 50  0001 C CNN "LCSC"
-	1    3000 2850
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E5B
+P 1950 10300
+AR Path="/617D2E5B" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E5B" Ref="D46"  Part="1" 
+F 0 "D46" V 1996 10221 50  0000 R CNN
+F 1 "D" V 1905 10221 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 10300 50  0001 C CNN
+F 3 "~" H 1950 10300 50  0001 C CNN
+F 4 "c2128" H 1950 10300 50  0001 C CNN "LCSC"
+	1    1950 10300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:D D?
+U 1 1 617D2E62
+P 4750 9600
+AR Path="/617D2E62" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E62" Ref="D45"  Part="1" 
+F 0 "D45" V 4796 9521 50  0000 R CNN
+F 1 "D" V 4705 9521 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4750 9600 50  0001 C CNN
+F 3 "~" H 4750 9600 50  0001 C CNN
+F 4 "c2128" H 4750 9600 50  0001 C CNN "LCSC"
+	1    4750 9600
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3200 2800 3200 3400
+	4750 9750 4100 9750
+Connection ~ 4100 9750
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434BC
-P 3750 2850
-AR Path="/633434BC" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434BC" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3750 3240 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3750 3149 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3800 2850 50  0001 C CNN
-F 3 "" H 3800 2850 50  0001 C CNN
-F 4 "C480275" H 3750 2850 50  0001 C CNN "LCSC"
-	1    3750 2850
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E6B
+P 4100 9600
+AR Path="/617D2E6B" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E6B" Ref="D44"  Part="1" 
+F 0 "D44" H 4100 9816 50  0000 C CNN
+F 1 "D" H 4100 9725 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4100 9600 50  0001 C CNN
+F 3 "~" H 4100 9600 50  0001 C CNN
+F 4 "c2128" H 4100 9600 50  0001 C CNN "LCSC"
+	1    4100 9600
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3950 2800 3950 3400
+	4100 9750 3350 9750
+Connection ~ 3350 9750
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434C4
-P 4400 2850
-AR Path="/633434C4" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434C4" Ref="SW?"  Part="1" 
-F 0 "SW?" H 4400 3240 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 4400 3149 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4450 2850 50  0001 C CNN
-F 3 "" H 4450 2850 50  0001 C CNN
-F 4 "C480275" H 4400 2850 50  0001 C CNN "LCSC"
-	1    4400 2850
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434CB
-P 1600 3550
-AR Path="/633434CB" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434CB" Ref="SW?"  Part="1" 
-F 0 "SW?" H 1600 3940 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 1600 3849 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 1650 3550 50  0001 C CNN
-F 3 "" H 1650 3550 50  0001 C CNN
-F 4 "C480275" H 1600 3550 50  0001 C CNN "LCSC"
-	1    1600 3550
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E74
+P 3350 9600
+AR Path="/617D2E74" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E74" Ref="D43"  Part="1" 
+F 0 "D43" V 3396 9521 50  0000 R CNN
+F 1 "D" V 3305 9521 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3350 9600 50  0001 C CNN
+F 3 "~" H 3350 9600 50  0001 C CNN
+F 4 "c2128" H 3350 9600 50  0001 C CNN "LCSC"
+	1    3350 9600
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1800 3500 1800 4100
+	3350 9750 2700 9750
+Connection ~ 2700 9750
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434D3
-P 2350 3550
-AR Path="/633434D3" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434D3" Ref="SW?"  Part="1" 
-F 0 "SW?" H 2350 3940 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2350 3849 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2400 3550 50  0001 C CNN
-F 3 "" H 2400 3550 50  0001 C CNN
-F 4 "C480275" H 2350 3550 50  0001 C CNN "LCSC"
-	1    2350 3550
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E7D
+P 2700 9600
+AR Path="/617D2E7D" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E7D" Ref="D42"  Part="1" 
+F 0 "D42" H 2700 9816 50  0000 C CNN
+F 1 "D" H 2700 9725 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 2700 9600 50  0001 C CNN
+F 3 "~" H 2700 9600 50  0001 C CNN
+F 4 "c2128" H 2700 9600 50  0001 C CNN "LCSC"
+	1    2700 9600
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	2550 3500 2550 4100
+	2700 9750 1950 9750
+Wire Wire Line
+	1950 9750 1700 9750
+Connection ~ 1950 9750
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434DB
-P 3000 3550
-AR Path="/633434DB" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434DB" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3000 3940 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3000 3849 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3050 3550 50  0001 C CNN
-F 3 "" H 3050 3550 50  0001 C CNN
-F 4 "C480275" H 3000 3550 50  0001 C CNN "LCSC"
-	1    3000 3550
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E87
+P 1950 9600
+AR Path="/617D2E87" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E87" Ref="D41"  Part="1" 
+F 0 "D41" V 1996 9521 50  0000 R CNN
+F 1 "D" V 1905 9521 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 9600 50  0001 C CNN
+F 3 "~" H 1950 9600 50  0001 C CNN
+F 4 "c2128" H 1950 9600 50  0001 C CNN "LCSC"
+	1    1950 9600
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:D D?
+U 1 1 617D2E8E
+P 4750 8900
+AR Path="/617D2E8E" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E8E" Ref="D40"  Part="1" 
+F 0 "D40" V 4796 8821 50  0000 R CNN
+F 1 "D" V 4705 8821 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4750 8900 50  0001 C CNN
+F 3 "~" H 4750 8900 50  0001 C CNN
+F 4 "c2128" H 4750 8900 50  0001 C CNN "LCSC"
+	1    4750 8900
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3200 3500 3200 4100
+	4750 9050 4100 9050
+Connection ~ 4100 9050
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434E3
-P 3750 3550
-AR Path="/633434E3" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434E3" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3750 3940 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3750 3849 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3800 3550 50  0001 C CNN
-F 3 "" H 3800 3550 50  0001 C CNN
-F 4 "C480275" H 3750 3550 50  0001 C CNN "LCSC"
-	1    3750 3550
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2E97
+P 4100 8900
+AR Path="/617D2E97" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2E97" Ref="D39"  Part="1" 
+F 0 "D39" H 4100 9116 50  0000 C CNN
+F 1 "D" H 4100 9025 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4100 8900 50  0001 C CNN
+F 3 "~" H 4100 8900 50  0001 C CNN
+F 4 "c2128" H 4100 8900 50  0001 C CNN "LCSC"
+	1    4100 8900
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3950 3500 3950 4100
-Wire Wire Line
-	4600 2800 4600 3400
+	4100 9050 3350 9050
+Connection ~ 3350 9050
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434EC
-P 4400 3550
-AR Path="/633434EC" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434EC" Ref="SW?"  Part="1" 
-F 0 "SW?" H 4400 3940 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 4400 3849 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4450 3550 50  0001 C CNN
-F 3 "" H 4450 3550 50  0001 C CNN
-F 4 "C480275" H 4400 3550 50  0001 C CNN "LCSC"
-	1    4400 3550
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2EA0
+P 3350 8900
+AR Path="/617D2EA0" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EA0" Ref="D38"  Part="1" 
+F 0 "D38" V 3396 8821 50  0000 R CNN
+F 1 "D" V 3305 8821 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3350 8900 50  0001 C CNN
+F 3 "~" H 3350 8900 50  0001 C CNN
+F 4 "c2128" H 3350 8900 50  0001 C CNN "LCSC"
+	1    3350 8900
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	4600 3500 4600 4100
+	3350 9050 2700 9050
+Connection ~ 2700 9050
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434F4
-P 1600 4250
-AR Path="/633434F4" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434F4" Ref="SW?"  Part="1" 
-F 0 "SW?" H 1600 4640 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 1600 4549 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 1650 4250 50  0001 C CNN
-F 3 "" H 1650 4250 50  0001 C CNN
-F 4 "C480275" H 1600 4250 50  0001 C CNN "LCSC"
-	1    1600 4250
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2EA9
+P 2700 8900
+AR Path="/617D2EA9" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EA9" Ref="D37"  Part="1" 
+F 0 "D37" H 2700 9116 50  0000 C CNN
+F 1 "D" H 2700 9025 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 2700 8900 50  0001 C CNN
+F 3 "~" H 2700 8900 50  0001 C CNN
+F 4 "c2128" H 2700 8900 50  0001 C CNN "LCSC"
+	1    2700 8900
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1800 4200 1800 4800
+	2700 9050 1950 9050
+Wire Wire Line
+	1950 9050 1700 9050
+Connection ~ 1950 9050
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 633434FC
-P 2350 4250
-AR Path="/633434FC" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/633434FC" Ref="SW?"  Part="1" 
-F 0 "SW?" H 2350 4640 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2350 4549 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2400 4250 50  0001 C CNN
-F 3 "" H 2400 4250 50  0001 C CNN
-F 4 "C480275" H 2350 4250 50  0001 C CNN "LCSC"
-	1    2350 4250
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2EB3
+P 1950 8900
+AR Path="/617D2EB3" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EB3" Ref="D36"  Part="1" 
+F 0 "D36" V 1996 8821 50  0000 R CNN
+F 1 "D" V 1905 8821 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 8900 50  0001 C CNN
+F 3 "~" H 1950 8900 50  0001 C CNN
+F 4 "c2128" H 1950 8900 50  0001 C CNN "LCSC"
+	1    1950 8900
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:D D?
+U 1 1 617D2EBA
+P 4750 8200
+AR Path="/617D2EBA" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EBA" Ref="D35"  Part="1" 
+F 0 "D35" V 4796 8121 50  0000 R CNN
+F 1 "D" V 4705 8121 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4750 8200 50  0001 C CNN
+F 3 "~" H 4750 8200 50  0001 C CNN
+F 4 "c2128" H 4750 8200 50  0001 C CNN "LCSC"
+	1    4750 8200
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	2550 4200 2550 4800
+	4750 8350 4100 8350
+Connection ~ 4100 8350
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343504
-P 3000 4250
-AR Path="/63343504" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343504" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3000 4640 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3000 4549 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3050 4250 50  0001 C CNN
-F 3 "" H 3050 4250 50  0001 C CNN
-F 4 "C480275" H 3000 4250 50  0001 C CNN "LCSC"
-	1    3000 4250
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2EC3
+P 4100 8200
+AR Path="/617D2EC3" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EC3" Ref="D34"  Part="1" 
+F 0 "D34" H 4100 8416 50  0000 C CNN
+F 1 "D" H 4100 8325 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4100 8200 50  0001 C CNN
+F 3 "~" H 4100 8200 50  0001 C CNN
+F 4 "c2128" H 4100 8200 50  0001 C CNN "LCSC"
+	1    4100 8200
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3200 4200 3200 4800
+	4100 8350 3350 8350
+Connection ~ 3350 8350
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 6334350C
-P 3750 4250
-AR Path="/6334350C" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/6334350C" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3750 4640 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3750 4549 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3800 4250 50  0001 C CNN
-F 3 "" H 3800 4250 50  0001 C CNN
-F 4 "C480275" H 3750 4250 50  0001 C CNN "LCSC"
-	1    3750 4250
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2ECC
+P 3350 8200
+AR Path="/617D2ECC" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2ECC" Ref="D33"  Part="1" 
+F 0 "D33" V 3396 8121 50  0000 R CNN
+F 1 "D" V 3305 8121 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3350 8200 50  0001 C CNN
+F 3 "~" H 3350 8200 50  0001 C CNN
+F 4 "c2128" H 3350 8200 50  0001 C CNN "LCSC"
+	1    3350 8200
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	3950 4200 3950 4800
+	3350 8350 2700 8350
+Connection ~ 2700 8350
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343514
-P 4400 4250
-AR Path="/63343514" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343514" Ref="SW?"  Part="1" 
-F 0 "SW?" H 4400 4640 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 4400 4549 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4450 4250 50  0001 C CNN
-F 3 "" H 4450 4250 50  0001 C CNN
-F 4 "C480275" H 4400 4250 50  0001 C CNN "LCSC"
-	1    4400 4250
-	1    0    0    -1  
+L Device:D D?
+U 1 1 617D2ED5
+P 2700 8200
+AR Path="/617D2ED5" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2ED5" Ref="D32"  Part="1" 
+F 0 "D32" H 2700 8416 50  0000 C CNN
+F 1 "D" H 2700 8325 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 2700 8200 50  0001 C CNN
+F 3 "~" H 2700 8200 50  0001 C CNN
+F 4 "c2128" H 2700 8200 50  0001 C CNN "LCSC"
+	1    2700 8200
+	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	4600 4200 4600 4800
+	2700 8350 1950 8350
+Wire Wire Line
+	1950 8350 1700 8350
+Connection ~ 1950 8350
 $Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 6334351C
-P 1600 4950
-AR Path="/6334351C" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/6334351C" Ref="SW?"  Part="1" 
-F 0 "SW?" H 1600 5340 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 1600 5249 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 1650 4950 50  0001 C CNN
-F 3 "" H 1650 4950 50  0001 C CNN
-F 4 "C480275" H 1600 4950 50  0001 C CNN "LCSC"
-	1    1600 4950
+L Device:D D?
+U 1 1 617D2EDF
+P 1950 8200
+AR Path="/617D2EDF" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EDF" Ref="D31"  Part="1" 
+F 0 "D31" V 1996 8121 50  0000 R CNN
+F 1 "D" V 1905 8121 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 8200 50  0001 C CNN
+F 3 "~" H 1950 8200 50  0001 C CNN
+F 4 "c2128" H 1950 8200 50  0001 C CNN "LCSC"
+	1    1950 8200
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4750 7600 4100 7600
+Connection ~ 4100 7600
+$Comp
+L Device:D D?
+U 1 1 617D2EE8
+P 4100 7450
+AR Path="/617D2EE8" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EE8" Ref="D29"  Part="1" 
+F 0 "D29" H 4100 7666 50  0000 C CNN
+F 1 "D" H 4100 7575 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 4100 7450 50  0001 C CNN
+F 3 "~" H 4100 7450 50  0001 C CNN
+F 4 "c2128" H 4100 7450 50  0001 C CNN "LCSC"
+	1    4100 7450
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 7600 3350 7600
+Connection ~ 3350 7600
+$Comp
+L Device:D D?
+U 1 1 617D2EF1
+P 3350 7450
+AR Path="/617D2EF1" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EF1" Ref="D28"  Part="1" 
+F 0 "D28" V 3396 7371 50  0000 R CNN
+F 1 "D" V 3305 7371 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 3350 7450 50  0001 C CNN
+F 3 "~" H 3350 7450 50  0001 C CNN
+F 4 "c2128" H 3350 7450 50  0001 C CNN "LCSC"
+	1    3350 7450
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	3350 7600 2700 7600
+Connection ~ 2700 7600
+$Comp
+L Device:D D?
+U 1 1 617D2EFA
+P 2700 7450
+AR Path="/617D2EFA" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2EFA" Ref="D27"  Part="1" 
+F 0 "D27" H 2700 7666 50  0000 C CNN
+F 1 "D" H 2700 7575 50  0000 C CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 2700 7450 50  0001 C CNN
+F 3 "~" H 2700 7450 50  0001 C CNN
+F 4 "c2128" H 2700 7450 50  0001 C CNN "LCSC"
+	1    2700 7450
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	1950 7600 1700 7600
+Wire Wire Line
+	2700 7600 1950 7600
+Connection ~ 1950 7600
+$Comp
+L Device:D D?
+U 1 1 617D2F04
+P 1950 7450
+AR Path="/617D2F04" Ref="D?"  Part="1" 
+AR Path="/631EE57A/617D2F04" Ref="D26"  Part="1" 
+F 0 "D26" V 1996 7371 50  0000 R CNN
+F 1 "D" V 1905 7371 50  0000 R CNN
+F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 7450 50  0001 C CNN
+F 3 "~" H 1950 7450 50  0001 C CNN
+F 4 "c2128" H 1950 7450 50  0001 C CNN "LCSC"
+	1    1950 7450
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	1150 2750 1600 2750
+$Comp
+L power:+3.3V #PWR0101
+U 1 1 618064C4
+P 5900 2450
+F 0 "#PWR0101" H 5900 2300 50  0001 C CNN
+F 1 "+3.3V" H 5915 2623 50  0000 C CNN
+F 2 "" H 5900 2450 50  0001 C CNN
+F 3 "" H 5900 2450 50  0001 C CNN
+	1    5900 2450
 	1    0    0    -1  
 $EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343523
-P 2350 4950
-AR Path="/63343523" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343523" Ref="SW?"  Part="1" 
-F 0 "SW?" H 2350 5340 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2350 5249 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2400 4950 50  0001 C CNN
-F 3 "" H 2400 4950 50  0001 C CNN
-F 4 "C480275" H 2350 4950 50  0001 C CNN "LCSC"
-	1    2350 4950
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 6334352A
-P 3000 4950
-AR Path="/6334352A" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/6334352A" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3000 5340 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3000 5249 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3050 4950 50  0001 C CNN
-F 3 "" H 3050 4950 50  0001 C CNN
-F 4 "C480275" H 3000 4950 50  0001 C CNN "LCSC"
-	1    3000 4950
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343531
-P 3750 4950
-AR Path="/63343531" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343531" Ref="SW?"  Part="1" 
-F 0 "SW?" H 3750 5340 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 3750 5249 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 3800 4950 50  0001 C CNN
-F 3 "" H 3800 4950 50  0001 C CNN
-F 4 "C480275" H 3750 4950 50  0001 C CNN "LCSC"
-	1    3750 4950
-	1    0    0    -1  
-$EndComp
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 63343538
-P 4400 4950
-AR Path="/63343538" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/63343538" Ref="SW?"  Part="1" 
-F 0 "SW?" H 4400 5340 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 4400 5249 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 4450 4950 50  0001 C CNN
-F 3 "" H 4450 4950 50  0001 C CNN
-F 4 "C480275" H 4400 4950 50  0001 C CNN "LCSC"
-	1    4400 4950
-	1    0    0    -1  
-$EndComp
-Connection ~ 6450 2700
-Connection ~ 7250 1150
-Connection ~ 7250 1750
-Connection ~ 7250 2100
-Connection ~ 7250 2700
-Connection ~ 7250 3050
-Connection ~ 7250 3650
-Connection ~ 7250 4000
-Connection ~ 7250 4600
-Connection ~ 7250 4950
-Connection ~ 7250 5550
-Connection ~ 8050 1150
-Connection ~ 8050 1750
-Connection ~ 8050 2100
-Connection ~ 8050 2700
-Connection ~ 8050 3050
-Connection ~ 8050 3650
-Connection ~ 8050 4000
-Connection ~ 8050 4600
-Connection ~ 8050 4950
-Connection ~ 8050 5550
-Connection ~ 8850 1150
-Connection ~ 8850 1750
-Connection ~ 8850 2100
-Connection ~ 8850 2700
-Connection ~ 8850 3050
-Connection ~ 8850 3650
-Connection ~ 8850 4000
-Connection ~ 8850 4600
-Connection ~ 8850 4950
-Connection ~ 8850 5550
+Connection ~ 5900 2450
 $EndSCHEMATC
