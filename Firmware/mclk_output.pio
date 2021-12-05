@@ -1,0 +1,22 @@
+;
+; this appears to be totally unnecessary
+;
+; 
+;
+
+.program mclk_output
+loop:
+    set pins, 1  ; Drive pin high
+    set pins, 0  ; Drive pin low
+    jmp loop
+
+
+% c-sdk {
+static inline void mclk_output_program_init(PIO pio, uint sm, uint offset, uint pin) {
+   pio_gpio_init(pio, pin);
+   pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+   pio_sm_config c = mclk_output_program_get_default_config(offset);
+   sm_config_set_set_pins(&c, pin, 1);
+   pio_sm_init(pio, sm, offset, &c);
+}
+%}
