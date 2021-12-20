@@ -149,6 +149,7 @@ void tlvDriverInit()
     write(1, 0x47, 0x32);
     
     /**/
+    // line in
     // disable micbias
     write(1, 0x33, 0);
     
@@ -165,25 +166,29 @@ void tlvDriverInit()
     write(1, 0x3b, 0x0c);
     write(1, 0x3c, 0x0c);
     
-    /*
-    write(1, 0x34, 0x80);
-    write(1, 0x36, 0x80);
-    write(1, 0x37, 0x80);
-    write(1, 0x39, 0x80);
-    write(1, 0x3b, 0x0c);
-    write(1, 0x3c, 0x0c);
-    */
+
+    /*   
+// mic in
+ // micbias disable, because we are using power directly from the 3v3 rail (for now)
+ // eventually we would want to use the mic bias to power, but we need a smaller resistance on the micbias line.
+
+    write(1, 0x33, 0x00);
+    write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
+    write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
+    write(1, 0x3b, 0x30); // Left MICPGA Volume Control 
+    write(1, 0x3c, 0x30);
+ */
     // analog bypass & dac routed to headphones
-    
-    // write(1, 0x0c, 0x0a);
-    // write(1, 0x0d, 0x0a);
+    write(1, 0x0c, 0x0a);
+    write(1, 0x0d, 0x0a);
 
     // dac & mixer to headphones
     write(1, 0x0c, 0x0a);
     write(1, 0x0d, 0x0a);
+    
     // route dac only to headphones
-    write(1, 0x0c, 0x08);
-    write(1, 0x0d, 0x08);
+    //write(1, 0x0c, 0x08);
+    //write(1, 0x0d, 0x08);
 
     
     // Set the ADC PTM Mode to PTM_R1

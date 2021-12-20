@@ -41,13 +41,14 @@ pico_enable_stdio_uart(tdm 1)
 pico_enable_stdio_usb(tdm 1)
 
 # Add the standard library to the build
-target_link_libraries(tdm pico_stdlib pico_multicore)
+target_link_libraries(tdm pico_stdlib pico_multicore hardware_sleep)
 
 # Add any user requested libraries
 target_link_libraries(tdm
         hardware_i2c
         hardware_pio
         hardware_adc
+        hardware_flash
         pico_audio_i2s
         )
 

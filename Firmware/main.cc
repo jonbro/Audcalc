@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/sleep.h"
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "hardware/pio.h"
 #include "hardware/adc.h"
+#include "hardware/flash.h"
 #include "pico/multicore.h"
 
 #include <math.h>
@@ -60,7 +62,44 @@ uint32_t output_buf[SAMPLES_PER_BUFFER*3];
 uint32_t silence_buf[256];
 bool flipFlop = false;
 int dmacount = 0;
+extern uint32_t __flash_binary_end;
+
+// pick starting position
+#define flashOffset 0x9F000
+const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + flashOffset);
+#define sampleLength 24
+void erase_flash()
+{
+    printf("about to erase\n");
+    printf("program end %i\n", __flash_binary_end-XIP_BASE);
+    uint32_t ints = save_and_disable_interrupts();
+    flash_range_erase(flashOffset, FLASH_SECTOR_SIZE*sampleLength);
+    restore_interrupts(ints);
+}
+bool input_mode = false;
+int input_position = 0;
+uint8_t data[FLASH_SECTOR_SIZE*sampleLength];
+int16_t* audioData = (int16_t*)data;
+
 void dma_input_handler() {
+    // if we are in write mode, then copy into the flash memory
+    if(input_mode)
+    {
+        int16_t* chan = (int16_t*)(capture_buf);
+        for (size_t i = 0; i < 128; i++)
+        {
+            audioData[i+input_position] = chan[i*2];
+        }
+        input_position+=128;
+        if(input_position >= FLASH_SECTOR_SIZE*(sampleLength/2))
+        {
+            uint32_t ints = save_and_disable_interrupts();
+            flash_range_program(flashOffset, data, FLASH_SECTOR_SIZE*sampleLength);
+            restore_interrupts(ints);
+            input_mode = false;
+        }
+        /**/
+    }
     dma_hw->ints0 = 1u << dma_chan_input;
     dma_channel_set_write_addr(dma_chan_input, capture_buf, true);
 }
@@ -90,6 +129,8 @@ void dma_output_handler() {
     dma_channel_set_read_addr(dma_chan_output, output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER, true);
     needsNewAudioBuffer++;
 }
+
+int flashReadPos = 0;
 void fillNextAudioBuffer()
 {
     ouput_buf_offset = (ouput_buf_offset+1)%2;
@@ -98,7 +139,10 @@ void fillNextAudioBuffer()
 
     for(int v=0;v<5;v++)
     {
-        osc[v].set_parameters(gbox->GetInstrumentParamA(v)<<7, gbox->GetInstrumentParamB(v)<<7);
+        int16_t pa = gbox->GetInstrumentParamA(v);
+        int16_t pb = gbox->GetInstrumentParamB(v);
+
+        osc[v].set_parameters(pa<<7,pb<<7);
         osc[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
         int32_t temp;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -152,7 +196,12 @@ void fillNextAudioBuffer()
         q15_t verbOut[2] = {0,0};
         //Reverb_process(&reverb, workBuffer2[i], verbOut);
         // mix verb with final
-        q15_t dry = workBuffer2[i];//mult_q15(workBuffer2[i], 0x6fff);
+        int16_t* flash_audio = (int16_t*)(flash_target_contents);
+        //q15_t dry = ;
+        q15_t dry = mult_q15(flash_audio[flashReadPos],0x5fff);
+        dry = add_q15(dry, mult_q15(workBuffer2[i], 0x6fff));
+        flashReadPos = (flashReadPos+1)%(FLASH_SECTOR_SIZE*sampleLength/2);
+
         chan[0] = dry;
         chan[1] = dry;
         //chan[0] = add_q15(dry, mult_q15(verbOut[0], 0x3fff));
@@ -195,15 +244,55 @@ void draw_screen()
         }
     }
 }
+
+// in progress, trying to make the pico sleep and wake up again.
+void sleep()
+{
+    // set all columns high
+    for (size_t i = 0; i < 5; i++)
+    {
+        gpio_init(col_pin_base+i);
+        gpio_set_dir(col_pin_base+i, GPIO_OUT);
+        gpio_disable_pulls(col_pin_base+i);
+        gpio_init(row_pin_base+i);
+        gpio_set_dir(row_pin_base+i, GPIO_IN);
+        gpio_pull_down(row_pin_base+i);
+        // the mask here are the gpio pins for the colums
+        gpio_put(col_pin_base+i, true);
+        sleep_us(3);
+    }
+    // setup dormant mode
+    printf("Switching to XOSC\n");
+    uart_default_tx_wait_blocking();
+    // UART will be reconfigured by sleep_run_from_xosc
+    sleep_run_from_xosc();
+    printf("Running from XOSC\n");
+    uart_default_tx_wait_blocking();
+
+    printf("XOSC going dormant\n");
+    uart_default_tx_wait_blocking();
+
+    // Go to sleep until we see a high edge on GPIO 10
+    sleep_goto_dormant_until_level_high(row_pin_base);
+}
 int main()
 {
+    stdio_init_all();
+    erase_flash();
+    PIO wspio = pio0;
+    int wssm = pio_claim_unused_sm(wspio, true);
+    uint wsoffset = pio_add_program(wspio, &ws2812_program);
+    // ws tx = 4
+    ws2812_program_init(wspio, wssm, wsoffset, 22, 800000, false);
+    put_pixel(urgb_u32(5, 3, 20));
+
     decayAmount[0] = decayAmount[1] = 0;
     decayPerStep[0] = 20;
     decayPerStep[1] = 3;
     decayPerStep[2] = 1;
     Reverb_init(&reverb);
-    set_sys_clock_khz(250000, true); 
-    stdio_init_all();
+    //set_sys_clock_khz(250000, true); 
+
     for(int i=0;i<5;i++)
     {
         osc[i].Init();
@@ -323,12 +412,6 @@ int main()
     sleep_ms(1000);
 
 
-    PIO wspio = pio0;
-    int wssm = pio_claim_unused_sm(wspio, true);
-    uint wsoffset = pio_add_program(wspio, &ws2812_program);
-
-    // ws tx = 4
-    ws2812_program_init(wspio, wssm, wsoffset, 4, 800000, false);
 
     int step = 0;
     uint32_t keyState = 0;
@@ -382,6 +465,12 @@ int main()
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
                 gbox->OnKeyUpdate(i, s>0);
+                if(!input_mode && i==20 && s>0)
+                {
+                    erase_flash();
+                    input_position = 0;
+                    input_mode = true;
+                }
             }
         }
         lastKeyState = keyState;
@@ -391,20 +480,20 @@ int main()
             adc_select_input(0);
             uint16_t adc_val = adc_read();
             adc_select_input(1);
+            // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
-            for (size_t i = 0; i < 25; i++)
+            for (size_t i = 0; i < 20; i++)
             {
-                put_pixel(color[i]);
+                put_pixel(color[i+5]);
             }
-            /**/
             while(multicore_fifo_rvalid())
             {
                 multicore_fifo_pop_blocking();
-                gbox->UpdateDisplay(&disp);                
+                gbox->UpdateDisplay(&disp);
                 multicore_fifo_push_blocking(SCREEN_FLIP_READY);
             }
+
             needsScreenupdate = false;
-            
         }
         while(needsNewAudioBuffer>0)
         {

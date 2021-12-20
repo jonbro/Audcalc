@@ -21,10 +21,10 @@ void GrooveBox::UpdateAfterTrigger(uint step)
         int key = x+(y+1)*5;
         if(step == i)
         {
-            color[key] = urgb_u32(25, 3, 8);
+            color[key] = urgb_u32(250, 30, 80);
         }
         else
-            color[key] = trigger[currentVoice][i]?urgb_u32(5, 3, 20):urgb_u32(0,0,0);
+            color[key] = trigger[currentVoice][i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
     }
 }
 
@@ -49,25 +49,10 @@ GrooveBox::GrooveBox(uint32_t *_color)
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
-    //ssd1306_draw_string(p, 16, 0, 1, "v");
-//    ssd1306_draw_char(p, 32, 24, 1, 'v');
     char str[10];
-    sprintf(str, "v:%d p:0", currentVoice+1);
-    //ssd1306_draw_char(p, 32, 24, 1, 'v');
+    int16_t a = instrumentParamA[0];
+    sprintf(str, "a:%d",a<<7);
     ssd1306_draw_string(p, 32, 24, 1, str);
-
-    for(int x=0;x<4;x++)
-    {
-        for(int y=0;y<4;y++)
-        {
-            ssd1306_draw_empty_square(p, x*8, y*8, 8, 8);
-            if(trigger[currentVoice][x+y*4])
-            {
-                ssd1306_draw_square(p, x*8+1, y*8+1, 6, 6);
-            }
-        }
-
-    }
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
