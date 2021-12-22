@@ -67,14 +67,16 @@ extern uint32_t __flash_binary_end;
 // pick starting position
 #define flashOffset 0x9F000
 const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + flashOffset);
-#define sampleLength 24
+#define sampleLength 4
 void erase_flash()
 {
     printf("about to erase\n");
     printf("program end %i\n", __flash_binary_end-XIP_BASE);
+    multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     flash_range_erase(flashOffset, FLASH_SECTOR_SIZE*sampleLength);
     restore_interrupts(ints);
+    multicore_lockout_end_blocking();
 }
 bool input_mode = false;
 int input_position = 0;
@@ -93,9 +95,11 @@ void dma_input_handler() {
         input_position+=128;
         if(input_position >= FLASH_SECTOR_SIZE*(sampleLength/2))
         {
+            multicore_lockout_start_blocking();
             uint32_t ints = save_and_disable_interrupts();
             flash_range_program(flashOffset, data, FLASH_SECTOR_SIZE*sampleLength);
             restore_interrupts(ints);
+            multicore_lockout_end_blocking();
             input_mode = false;
         }
         /**/
@@ -120,7 +124,7 @@ int decayPerStep[3];
 
 int16_t decayAmount[3];
 int ouput_buf_offset = 0;
-Reverb reverb;
+//Reverb reverb;
 //WarbleDelay delay;
 int needsNewAudioBuffer = 0;
 
@@ -141,7 +145,11 @@ void fillNextAudioBuffer()
     {
         int16_t pa = gbox->GetInstrumentParamA(v);
         int16_t pb = gbox->GetInstrumentParamB(v);
-
+        memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
+        if(v==4)
+        {
+            osc[v].set_shape(MACRO_OSC_SHAPE_SQUARE_SUB);
+        }
         osc[v].set_parameters(pa<<7,pb<<7);
         osc[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
         int32_t temp;
@@ -199,7 +207,7 @@ void fillNextAudioBuffer()
         int16_t* flash_audio = (int16_t*)(flash_target_contents);
         //q15_t dry = ;
         q15_t dry = mult_q15(flash_audio[flashReadPos],0x5fff);
-        dry = add_q15(dry, mult_q15(workBuffer2[i], 0x6fff));
+        dry = add_q15(dry, mult_q15(workBuffer2[i], 0x7fff));
         flashReadPos = (flashReadPos+1)%(FLASH_SECTOR_SIZE*sampleLength/2);
 
         chan[0] = dry;
@@ -224,28 +232,28 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     needsScreenupdate = true;
     return true;
 }
-#define SCREEN_FLIP_READY 123
-
+bool screen_flip_ready = false;
 ssd1306_t disp;
 int drawY = 0;
 void draw_screen()
 {
+    // this needs to be called here, because the multicore launch relies on
+    // the fifo being functional
+    multicore_lockout_victim_init();
     disp.external_vcc=false;
     ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
     ssd1306_clear(&disp);
-    multicore_fifo_push_blocking(SCREEN_FLIP_READY);
     while(1)
     {
-        if(multicore_fifo_rvalid())
+        if(screen_flip_ready)
         {
-            multicore_fifo_pop_blocking();
+            screen_flip_ready = false;
             ssd1306_show(&disp);
-            multicore_fifo_push_blocking(SCREEN_FLIP_READY);
         }
     }
 }
 
-// in progress, trying to make the pico sleep and wake up again.
+// in progress, trying to make the pico sleep and wakeup again.
 void sleep()
 {
     // set all columns high
@@ -266,17 +274,20 @@ void sleep()
     uart_default_tx_wait_blocking();
     // UART will be reconfigured by sleep_run_from_xosc
     sleep_run_from_xosc();
-    printf("Running from XOSC\n");
-    uart_default_tx_wait_blocking();
+    // printf("Running from XOSC\n");
+    // uart_default_tx_wait_blocking();
 
-    printf("XOSC going dormant\n");
-    uart_default_tx_wait_blocking();
+    // printf("XOSC going dormant\n");
+    // uart_default_tx_wait_blocking();
 
-    // Go to sleep until we see a high edge on GPIO 10
+    // Go to sleep until we see a high edge on GPIO 11
     sleep_goto_dormant_until_level_high(row_pin_base);
 }
 int main()
 {
+    // calling this up front to setup the multicore locks
+    // we need in advance of doing operations on flash
+    multicore_launch_core1(draw_screen);
     stdio_init_all();
     erase_flash();
     PIO wspio = pio0;
@@ -288,9 +299,9 @@ int main()
 
     decayAmount[0] = decayAmount[1] = 0;
     decayPerStep[0] = 20;
-    decayPerStep[1] = 3;
+    decayPerStep[1] = 1;
     decayPerStep[2] = 1;
-    Reverb_init(&reverb);
+    //Reverb_init(&reverb);
     //set_sys_clock_khz(250000, true); 
 
     for(int i=0;i<5;i++)
@@ -302,8 +313,8 @@ int main()
     osc[1].set_shape(MACRO_OSC_SHAPE_SNARE);
     osc[2].set_shape(MACRO_OSC_SHAPE_CYMBAL);
     osc[3].set_shape(MACRO_OSC_SHAPE_SAW_SWARM);
-    osc[4].set_shape(MACRO_OSC_SHAPE_VOSIM);
-    
+    osc[4].set_shape(MACRO_OSC_SHAPE_SINE_TRIANGLE);
+
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
@@ -435,8 +446,6 @@ int main()
     adc_gpio_init(27);
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
-
-    multicore_launch_core1(draw_screen);
     while(true)
     {
         // read keys
@@ -464,7 +473,11 @@ int main()
             uint32_t s = keyState & (1ul<<i);
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
-                gbox->OnKeyUpdate(i, s>0);
+                gbox->OnKeyUpdate(i, s>0); 
+                if(!input_mode && i==21 && s>0)
+                {
+                    sleep();
+                }
                 if(!input_mode && i==20 && s>0)
                 {
                     erase_flash();
@@ -486,13 +499,13 @@ int main()
             {
                 put_pixel(color[i+5]);
             }
-            while(multicore_fifo_rvalid())
+            if(!screen_flip_ready)
             {
-                multicore_fifo_pop_blocking();
+                multicore_lockout_start_blocking();
                 gbox->UpdateDisplay(&disp);
-                multicore_fifo_push_blocking(SCREEN_FLIP_READY);
+                screen_flip_ready = true;
+                multicore_lockout_end_blocking();
             }
-
             needsScreenupdate = false;
         }
         while(needsNewAudioBuffer>0)
