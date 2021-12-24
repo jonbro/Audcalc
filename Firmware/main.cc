@@ -8,6 +8,8 @@
 #include "hardware/adc.h"
 #include "hardware/flash.h"
 #include "pico/multicore.h"
+#include "hardware/structs/scb.h"
+#include "hardware/rosc.h"
 
 #include <math.h>
 
@@ -72,11 +74,11 @@ void erase_flash()
 {
     printf("about to erase\n");
     printf("program end %i\n", __flash_binary_end-XIP_BASE);
-    multicore_lockout_start_blocking();
+    multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
     flash_range_erase(flashOffset, FLASH_SECTOR_SIZE*sampleLength);
     restore_interrupts(ints);
-    multicore_lockout_end_blocking();
+    multicore_lockout_end_timeout_us(500);
 }
 bool input_mode = false;
 int input_position = 0;
@@ -85,6 +87,7 @@ int16_t* audioData = (int16_t*)data;
 
 void dma_input_handler() {
     // if we are in write mode, then copy into the flash memory
+    /*
     if(input_mode)
     {
         int16_t* chan = (int16_t*)(capture_buf);
@@ -102,8 +105,8 @@ void dma_input_handler() {
             multicore_lockout_end_blocking();
             input_mode = false;
         }
-        /**/
     }
+    */
     dma_hw->ints0 = 1u << dma_chan_input;
     dma_channel_set_write_addr(dma_chan_input, capture_buf, true);
 }
@@ -206,9 +209,9 @@ void fillNextAudioBuffer()
         // mix verb with final
         int16_t* flash_audio = (int16_t*)(flash_target_contents);
         //q15_t dry = ;
-        q15_t dry = mult_q15(flash_audio[flashReadPos],0x5fff);
-        dry = add_q15(dry, mult_q15(workBuffer2[i], 0x7fff));
-        flashReadPos = (flashReadPos+1)%(FLASH_SECTOR_SIZE*sampleLength/2);
+        //q15_t dry = mult_q15(flash_audio[flashReadPos],0x5fff);
+        q15_t dry = workBuffer2[i];//add_q15(dry, mult_q15(workBuffer2[i], 0x7fff));
+        //flashReadPos = (flashReadPos+1)%(FLASH_SECTOR_SIZE*sampleLength/2);
 
         chan[0] = dry;
         chan[1] = dry;
@@ -232,6 +235,7 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     needsScreenupdate = true;
     return true;
 }
+
 bool screen_flip_ready = false;
 ssd1306_t disp;
 int drawY = 0;
@@ -253,9 +257,26 @@ void draw_screen()
     }
 }
 
-// in progress, trying to make the pico sleep and wakeup again.
+// see https://ghubcoder.github.io/posts/awaking-the-pico/ to explain why we need this recovery code
+void recover_from_sleep(uint scb_orig, uint clock0_orig, uint clock1_orig){
+
+    //Re-enable ring Oscillator control
+    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
+
+    //reset procs back to default
+    scb_hw->scr = scb_orig;
+    clocks_hw->sleep_en0 = clock0_orig;
+    clocks_hw->sleep_en1 = clock1_orig;
+
+    //reset clocks
+    clocks_init();
+    stdio_init_all();
+    return;
+}
+
 void sleep()
 {
+    // TODO: copy all critical state to flash and shut down ram prior to sleep
     // set all columns high
     for (size_t i = 0; i < 5; i++)
     {
@@ -269,27 +290,110 @@ void sleep()
         gpio_put(col_pin_base+i, true);
         sleep_us(3);
     }
-    // setup dormant mode
-    printf("Switching to XOSC\n");
+    uint scb_orig = scb_hw->scr;
+    uint clock0_orig = clocks_hw->sleep_en0;
+    uint clock1_orig = clocks_hw->sleep_en1;
     uart_default_tx_wait_blocking();
-    // UART will be reconfigured by sleep_run_from_xosc
+    multicore_reset_core1();
+    uint32_t ints = save_and_disable_interrupts();
+
     sleep_run_from_xosc();
-    // printf("Running from XOSC\n");
-    // uart_default_tx_wait_blocking();
-
-    // printf("XOSC going dormant\n");
-    // uart_default_tx_wait_blocking();
-
-    // Go to sleep until we see a high edge on GPIO 11
     sleep_goto_dormant_until_level_high(row_pin_base);
+    recover_from_sleep(scb_orig, clock0_orig, clock1_orig);
+    restore_interrupts(ints);
+    //multicore_launch_core1(draw_screen);
 }
+void configure_audio_driver()
+{
+        /**/
+    PIO pio = pio1;
+    uint offset = pio_add_program(pio, &input_output_copy_i2s_program);
+    printf("loaded program at offset: %i\n", offset);
+    sm = pio_claim_unused_sm(pio, true);
+    printf("claimed sm: %i\n", sm); //I2S_DATA_PIN
+    int sample_freq = 44100;
+    printf("setting pio freq %d\n", (int) sample_freq);
+    uint32_t system_clock_frequency = clock_get_hz(clk_sys);
+    assert(system_clock_frequency < 0x40000000);
+
+    // we want this to run at 3*32*sample_freq
+    // I really don't understand how this works! because when there is one less operation, the number here is 4, rather than 3...
+    // I did the math by hand, and it seems to line up tho :0
+    // had to add a wait instruction in the pio - I don't love it, but whatcha gonna do... fix it correctly !?!??!
+    uint32_t divider = system_clock_frequency * 2 / sample_freq; // avoid arithmetic overflow
+    // uint32_t divider = system_clock_frequency/(sample_freq*3*32);
+    printf("System clock at %u, I2S clock divider 0x%x/256\n", (uint) system_clock_frequency, (uint)divider);
+    assert(divider < 0x1000000);
+    input_output_copy_i2s_program_init(pio, sm, offset, I2S_DATA_PIN, I2S_DATA_PIN+1, I2S_BCLK_PIN);
+    pio_sm_set_enabled(pio, sm, true);
+    pio_sm_set_clkdiv_int_frac(pio, sm, divider >> 8u, divider & 0xffu);
+
+    // just use a dma to pull the data out. Whee!
+    dma_chan_input = dma_claim_unused_channel(true);
+    dma_channel_config c = dma_channel_get_default_config(dma_chan_input);
+    channel_config_set_read_increment(&c,false);
+    // increment on write
+    channel_config_set_write_increment(&c,true);
+    channel_config_set_dreq(&c,pio_get_dreq(pio,sm,false));
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
+
+    dma_channel_configure(
+        dma_chan_input,
+        &c,
+        capture_buf, // Destination pointer
+        &pio->rxf[sm], // Source pointer
+        128, // Number of transfers
+        true// Start immediately
+    );
+    // Tell the DMA to raise IRQ line 0 when the channel finishes a block
+    dma_channel_set_irq0_enabled(dma_chan_input, true);
+
+    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
+    irq_set_exclusive_handler(DMA_IRQ_0, dma_input_handler);
+    irq_set_enabled(DMA_IRQ_0, true);
+    // need another dma channel for output
+    dma_chan_output = dma_claim_unused_channel(true);
+    dma_channel_config cc = dma_channel_get_default_config(dma_chan_output);
+    // increment on read, but not on write
+    channel_config_set_read_increment(&cc,true);
+    channel_config_set_write_increment(&cc,false);
+    channel_config_set_dreq(&cc,pio_get_dreq(pio,sm,true));
+    channel_config_set_transfer_data_size(&cc, DMA_SIZE_32);
+    dma_channel_configure(
+        dma_chan_output,
+        &cc,
+        &pio->txf[sm], // Destination pointer
+        silence_buf, // Source pointer
+        128, // Number of transfers
+        true// Start immediately
+    );
+    dma_channel_set_irq1_enabled(dma_chan_output, true);
+    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
+    irq_set_exclusive_handler(DMA_IRQ_1, dma_output_handler);
+    irq_set_enabled(DMA_IRQ_1, true);
+}
+
+int main2()
+{
+    stdio_init_all();
+    multicore_launch_core1(draw_screen);
+    sleep_ms(100);
+    multicore_lockout_start_timeout_us(500);
+    multicore_lockout_end_timeout_us(500);
+    return 0;
+}
+
 int main()
 {
-    // calling this up front to setup the multicore locks
-    // we need in advance of doing operations on flash
-    multicore_launch_core1(draw_screen);
     stdio_init_all();
-    erase_flash();
+    multicore_launch_core1(draw_screen);
+    multicore_lockout_start_timeout_us(500);
+    multicore_lockout_end_timeout_us(500);
+
+    adc_init();
+    adc_gpio_init(26);
+    adc_gpio_init(27);
+
     PIO wspio = pio0;
     int wssm = pio_claim_unused_sm(wspio, true);
     uint wsoffset = pio_add_program(wspio, &ws2812_program);
@@ -327,10 +431,10 @@ int main()
         chan[1] = 0;
     }
 
+    configure_audio_driver();
+
     // I2C Initialisation. Using it at 100Khz.
     i2c_init(I2C_PORT, 400*1000);
-
-    //struct audio_buffer_pool *ap = init_audio();
         
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
@@ -342,85 +446,17 @@ int main()
 
     // hardware reset
     gpio_put(TLV_RESET_PIN, 1);
-    sleep_ms(250);
+    sleep_ms(10);
     gpio_put(TLV_RESET_PIN, 0);
-    sleep_ms(250);
+    sleep_ms(10);
     gpio_put(TLV_RESET_PIN, 1);
-    sleep_ms(250);
-
-
-    /**/
-    PIO pio = pio1;
-    uint offset = pio_add_program(pio, &input_output_copy_i2s_program);
-    printf("loaded program at offset: %i\n", offset);
-    sm = pio_claim_unused_sm(pio, true);
-    printf("claimed sm: %i\n", sm); //I2S_DATA_PIN
-    int sample_freq = 44100;
-    printf("setting pio freq %d\n", (int) sample_freq);
-    uint32_t system_clock_frequency = clock_get_hz(clk_sys);
-    assert(system_clock_frequency < 0x40000000);
-    // we want this to run at 3*32*sample_freq
-    // I really don't understand how this works! because when there is one less operation, the number here is 4, rather than 3...
-    // I did the math by hand, and it seems to line up tho :0
-    // had to add a wait instruction in the pio - I don't love it, but whatcha gonna do... fix it correctly !?!??!
-    uint32_t divider = system_clock_frequency * 2 / sample_freq; // avoid arithmetic overflow
-    // uint32_t divider = system_clock_frequency/(sample_freq*3*32);
-    printf("System clock at %u, I2S clock divider 0x%x/256\n", (uint) system_clock_frequency, (uint)divider);
-    assert(divider < 0x1000000);
-    input_output_copy_i2s_program_init(pio, sm, offset, I2S_DATA_PIN, I2S_DATA_PIN+1, I2S_BCLK_PIN);
-    pio_sm_set_enabled(pio, sm, true);
-    pio_sm_set_clkdiv_int_frac(pio, sm, divider >> 8u, divider & 0xffu);
-
-    // just use a dma to pull the data out. Whee!
-    dma_chan_input = dma_claim_unused_channel(true);
-    dma_channel_config c = dma_channel_get_default_config(dma_chan_input);
-    channel_config_set_read_increment(&c,false);
-    // increment on write
-    channel_config_set_write_increment(&c,true);
-    channel_config_set_dreq(&c,pio_get_dreq(pio,sm,false));
-    channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
-
-    dma_channel_configure(
-        dma_chan_input,
-        &c,
-        capture_buf, // Destination pointer
-        &pio->rxf[sm], // Source pointer
-        128, // Number of transfers
-        true// Start immediately
-    );
-    // Tell the DMA to raise IRQ line 0 when the channel finishes a block
-    dma_channel_set_irq0_enabled(dma_chan_input, true);
-
-    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-    irq_set_exclusive_handler(DMA_IRQ_0, dma_input_handler);
-    irq_set_enabled(DMA_IRQ_0, true);
-
-    // need another dma channel for output
-    dma_chan_output = dma_claim_unused_channel(true);
-    dma_channel_config cc = dma_channel_get_default_config(dma_chan_output);
-    // increment on read, but not on write
-    channel_config_set_read_increment(&cc,true);
-    channel_config_set_write_increment(&cc,false);
-    channel_config_set_dreq(&cc,pio_get_dreq(pio,sm,true));
-    channel_config_set_transfer_data_size(&cc, DMA_SIZE_32);
-    dma_channel_configure(
-        dma_chan_output,
-        &cc,
-        &pio->txf[sm], // Destination pointer
-        silence_buf, // Source pointer
-        128, // Number of transfers
-        true// Start immediately
-    );
-    dma_channel_set_irq1_enabled(dma_chan_output, true);
-    // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-    irq_set_exclusive_handler(DMA_IRQ_1, dma_output_handler);
-    irq_set_enabled(DMA_IRQ_1, true);
+    sleep_ms(10);
 
     tlvDriverInit();
 
 
     // Waitfor 1 sec for softsteppingto takeeffect
-    sleep_ms(1000);
+    //sleep_ms(1000);
 
 
 
@@ -440,12 +476,11 @@ int main()
     }
     struct repeating_timer timer;
     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
-    adc_init();
-
-    adc_gpio_init(26);
-    adc_gpio_init(27);
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
+
+    
+
     while(true)
     {
         // read keys
@@ -476,14 +511,15 @@ int main()
                 gbox->OnKeyUpdate(i, s>0); 
                 if(!input_mode && i==21 && s>0)
                 {
-                    sleep();
+                    // this isn't working. maybe replace with some hardware solution :(
+                    //sleep();
                 }
                 if(!input_mode && i==20 && s>0)
                 {
                     erase_flash();
                     input_position = 0;
                     input_mode = true;
-                }
+                } 
             }
         }
         lastKeyState = keyState;
@@ -501,10 +537,10 @@ int main()
             }
             if(!screen_flip_ready)
             {
-                multicore_lockout_start_blocking();
+                multicore_lockout_start_timeout_us(500);
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
-                multicore_lockout_end_blocking();
+                multicore_lockout_end_timeout_us(500);
             }
             needsScreenupdate = false;
         }

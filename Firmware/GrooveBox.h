@@ -27,8 +27,8 @@ class GrooveBox {
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
  private:
-   uint8_t instrumentParamA[5];
-   uint8_t instrumentParamB[5];
+   uint8_t instrumentParamA[8];
+   uint8_t instrumentParamB[8];
    int needsNoteTrigger = -1;
    int drawY = 0;
    int lastNotePlayed = 0;

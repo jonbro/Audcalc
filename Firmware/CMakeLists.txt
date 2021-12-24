@@ -38,7 +38,7 @@ pico_set_program_name(tdm "tdm")
 pico_set_program_version(tdm "0.1")
 
 pico_enable_stdio_uart(tdm 1)
-pico_enable_stdio_usb(tdm 1)
+pico_enable_stdio_usb(tdm 0)
 
 # Add the standard library to the build
 target_link_libraries(tdm pico_stdlib pico_multicore hardware_sleep)
