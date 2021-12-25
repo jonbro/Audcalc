@@ -3,9 +3,11 @@
 
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "Instrument.h"
 extern "C" {
-#include "ssd1306.h"
+  #include "ssd1306.h"
 }
+#include "q15.h"
 class Pattern
 {
    public:
@@ -22,8 +24,10 @@ class GrooveBox {
    void OnAdcUpdate(uint8_t a, uint8_t b);
    bool IsPlaying();
    int GetNote();
+   void Render(int16_t* buffer,size_t size);
    uint8_t GetInstrumentParamA(int voice);
    uint8_t GetInstrumentParamB(int voice);
+   Instrument instruments[8];
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
  private:

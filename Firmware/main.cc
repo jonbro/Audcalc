@@ -21,8 +21,8 @@
 extern "C" {
 #include "tlv320driver.h"
 #include "ssd1306.h"
-#include "reverb.h"
 }
+#include "reverb.h"
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 using namespace braids;
@@ -113,22 +113,12 @@ void dma_input_handler() {
 bool hi = false;
 int16_t out_count = 0;
 int flipflopout = 0;
-uint16_t halffourfourty = 654;
-MacroOscillator osc[5];
-static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
-int16_t workBuffer[SAMPLES_PER_BUFFER];
-int16_t workBuffer2[SAMPLES_PER_BUFFER];
+
 int triCount = 0;
 int note = 60;
 GrooveBox *gbox;
-int samplesPerStep = 44100/8;
-int nextTrigger = 0;
-int decayPerStep[3];
 
-int16_t decayAmount[3];
 int ouput_buf_offset = 0;
-//Reverb reverb;
-//WarbleDelay delay;
 int needsNewAudioBuffer = 0;
 
 void dma_output_handler() {
@@ -142,84 +132,10 @@ void fillNextAudioBuffer()
 {
     ouput_buf_offset = (ouput_buf_offset+1)%2;
     uint32_t *output = output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER;
-    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-
-    for(int v=0;v<5;v++)
-    {
-        int16_t pa = gbox->GetInstrumentParamA(v);
-        int16_t pb = gbox->GetInstrumentParamB(v);
-        memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
-        if(v==4)
-        {
-            osc[v].set_shape(MACRO_OSC_SHAPE_SQUARE_SUB);
-        }
-        osc[v].set_parameters(pa<<7,pb<<7);
-        osc[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
-        int32_t temp;
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            temp = workBuffer[i];
-            /**/
-            if(v==2 || v==3 || v==4)
-            {
-                temp *= decayAmount[v-2];
-                temp = (temp >> 16);
-                decayAmount[v-2] -= decayPerStep[v-2];
-                if(decayAmount[v-2] < 0) decayAmount[v-2] = 0;
-            }
-            temp *= 0x6fff;
-            workBuffer2[i] += (temp >> 16); 
-        }
-    }
-
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    {
-        int requestedNote = gbox->GetNote();
-        if(requestedNote >= 0)
-        {
-            int ri = gbox->currentVoice;
-            osc[ri].Strike();
-            osc[ri].set_pitch((requestedNote-12 << 7));
-            if(ri==2 || ri==3 || ri==4)
-                decayAmount[ri-2] = 0x7fff;
-        }
-        if(gbox->IsPlaying())
-        {
-            if(--nextTrigger < 0)
-            {
-                for(int i=0;i<5;i++)
-                {
-                    int requestedNote = gbox->GetTrigger(i, gbox->CurrentStep);
-                    if(requestedNote >= 0)
-                    {
-                        osc[i].set_pitch((requestedNote-12 << 7));
-                        osc[i].Strike();
-                        if(i==2 || i==3 || i==4)
-                            decayAmount[i-2] = 0x7fff;
-                    }
-                }
-                gbox->UpdateAfterTrigger(gbox->CurrentStep);
-                gbox->CurrentStep = (++gbox->CurrentStep)%16;
-                nextTrigger = samplesPerStep;
-            }
-        }
-        int16_t* chan = (int16_t*)(output+i);
-        q15_t verbOut[2] = {0,0};
-        //Reverb_process(&reverb, workBuffer2[i], verbOut);
-        // mix verb with final
-        int16_t* flash_audio = (int16_t*)(flash_target_contents);
-        //q15_t dry = ;
-        //q15_t dry = mult_q15(flash_audio[flashReadPos],0x5fff);
-        q15_t dry = workBuffer2[i];//add_q15(dry, mult_q15(workBuffer2[i], 0x7fff));
-        //flashReadPos = (flashReadPos+1)%(FLASH_SECTOR_SIZE*sampleLength/2);
-
-        chan[0] = dry;
-        chan[1] = dry;
-        //chan[0] = add_q15(dry, mult_q15(verbOut[0], 0x3fff));
-        //chan[1] = add_q15(dry, mult_q15(verbOut[1], 0x3fff));
-    }
+    gbox->Render((int16_t*)(output), SAMPLES_PER_BUFFER);
     needsNewAudioBuffer--;
 }
+
 static inline void put_pixel(uint32_t pixel_grb) {
     pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
 }
@@ -382,14 +298,16 @@ int main2()
     multicore_lockout_end_timeout_us(500);
     return 0;
 }
-
+uint8_t adc1_prev;
+uint8_t adc2_prev;
 int main()
 {
     stdio_init_all();
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
-
+    set_sys_clock_khz(250000, true); 
+    
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
@@ -401,23 +319,7 @@ int main()
     ws2812_program_init(wspio, wssm, wsoffset, 22, 800000, false);
     put_pixel(urgb_u32(5, 3, 20));
 
-    decayAmount[0] = decayAmount[1] = 0;
-    decayPerStep[0] = 20;
-    decayPerStep[1] = 1;
-    decayPerStep[2] = 1;
-    //Reverb_init(&reverb);
-    //set_sys_clock_khz(250000, true); 
 
-    for(int i=0;i<5;i++)
-    {
-        osc[i].Init();
-        osc[i].set_pitch((note-12 << 7));
-    }
-    osc[0].set_shape(MACRO_OSC_SHAPE_KICK);
-    osc[1].set_shape(MACRO_OSC_SHAPE_SNARE);
-    osc[2].set_shape(MACRO_OSC_SHAPE_CYMBAL);
-    osc[3].set_shape(MACRO_OSC_SHAPE_SAW_SWARM);
-    osc[4].set_shape(MACRO_OSC_SHAPE_SINE_TRIANGLE);
 
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
@@ -478,9 +380,6 @@ int main()
     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
-
-    
-
     while(true)
     {
         // read keys

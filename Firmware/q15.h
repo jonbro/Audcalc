@@ -66,26 +66,30 @@ __STATIC_INLINE int32_t __SSAT(int32_t val, uint32_t sat)
 #define Q7_ABSMIN    ((q7_t)0)
 
 
-q15_t add_q15(q15_t srcA, q15_t srcB)
+inline q15_t add_q15(q15_t srcA, q15_t srcB)
 {
 	return (q15_t)__SSAT(((q31_t)srcA + srcB), 16);
 }
-q15_t mult_q15(q15_t srcA, q15_t srcB)
+inline q15_t mult_q15(q15_t srcA, q15_t srcB)
 {
     q31_t mul = (q31_t)((q15_t)(srcA) * (q15_t)(srcB));
     return (q15_t)__SSAT(mul >> 15, 16);
 }
-q15_t sub_q15(q15_t srcA, q15_t srcB)
+inline q15_t sub_q15(q15_t srcA, q15_t srcB)
 {
     return (q15_t)__SSAT(((q31_t)srcA - srcB), 16);
 }
-q15_t f32_to_q15(float in)
+inline q15_t f32_to_q15(float in)
 {
     return (q15_t)(in * 32767.0f);
 }
-float q15_to_f32(q15_t in)
+inline float q15_to_f32(q15_t in)
 {
     return ((float)in / 32767.0f);
+}
+inline q15_t lerp_q15(q15_t a, q15_t b, q15_t amt)
+{
+    return add_q15(a, mult_q15(sub_q15(a,b), amt));
 }
 
 // https://www.nullhardware.com/blog/fixed-point-sine-and-cosine-for-embedded-systems/
@@ -96,7 +100,7 @@ Implements the 5-order polynomial approximation to sin(x).
 maxval * num * 1/44100
 The result is accurate to within +- 1 count. ie: +/-2.44e-4.
 */
-q15_t sin_q15(q15_t i)
+inline q15_t sin_q15(q15_t i)
 {
     /* Convert (signed) input to a value between 0 and 8192. (8192 is pi/2, which is the region of the curve fit). */
     /* ------------------------------------------------------------------- */

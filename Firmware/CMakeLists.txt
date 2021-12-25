@@ -22,6 +22,7 @@ pico_sdk_init()
 add_executable(tdm
         main.cc
         GrooveBox.cc
+        Instrument.cc
         tlv320driver.c
         ssd1306.c
         reverb.c
