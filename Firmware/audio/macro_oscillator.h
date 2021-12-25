@@ -74,6 +74,15 @@ class MacroOscillator {
     parameter_[0] = parameter_1;
     parameter_[1] = parameter_2;
   }
+
+  inline void set_parameter_1(int16_t parameter) {
+    parameter_[0] = parameter;
+  }
+
+  inline void set_parameter_2(int16_t parameter) {
+    parameter_[1] = parameter;
+  }
+  
   
   inline void Strike() {
     digital_oscillator_.Strike();

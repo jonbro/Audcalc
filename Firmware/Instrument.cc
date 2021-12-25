@@ -27,15 +27,15 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     {
         uint32_t mult = 0;
         uint32_t phase = 0;
-        if(currentSegment == ENV_SEGMENT_ATTACK && envPhase > attackTime)
+        if(currentSegment == ENV_SEGMENT_ATTACK && envPhase >= attackTime)
         {
             currentSegment = ENV_SEGMENT_HOLD;
         }
-        if(currentSegment == ENV_SEGMENT_HOLD && envPhase > attackTime+holdTime)
+        if(currentSegment == ENV_SEGMENT_HOLD && envPhase >= attackTime+holdTime)
         {
             currentSegment = ENV_SEGMENT_DECAY;
         }
-        if(currentSegment == ENV_SEGMENT_DECAY && envPhase > attackTime+holdTime+decayTime)
+        if(currentSegment == ENV_SEGMENT_DECAY && envPhase >= attackTime+holdTime+decayTime)
         {
             currentSegment = ENV_SEGMENT_COMPLETE;
         }
