@@ -625,9 +625,10 @@ L Device:R R3
 U 1 1 61F4A4EB
 P 4900 2700
 F 0 "R3" H 4970 2746 50  0000 L CNN
-F 1 "DNF" H 4970 2655 50  0000 L CNN
+F 1 "10k" H 4970 2655 50  0000 L CNN
 F 2 "Resistors_SMD:R_0402_NoSilk" V 4830 2700 50  0001 C CNN
 F 3 "~" H 4900 2700 50  0001 C CNN
+F 4 "C25744" H 4900 2700 50  0001 C CNN "LCSC"
 	1    4900 2700
 	1    0    0    -1  
 $EndComp
@@ -775,42 +776,40 @@ Wire Wire Line
 $Comp
 L Device:LED D51
 U 1 1 61FD1144
-P 10200 5400
-F 0 "D51" H 10193 5616 50  0000 C CNN
-F 1 "LED" H 10193 5525 50  0000 C CNN
-F 2 "LEDs:LED_0603" H 10200 5400 50  0001 C CNN
-F 3 "~" H 10200 5400 50  0001 C CNN
-F 4 "c2286" H 10200 5400 50  0001 C CNN "LCSC"
-	1    10200 5400
+P 10500 5900
+F 0 "D51" H 10493 6116 50  0000 C CNN
+F 1 "LED" H 10493 6025 50  0000 C CNN
+F 2 "LEDs:LED_0603" H 10500 5900 50  0001 C CNN
+F 3 "~" H 10500 5900 50  0001 C CNN
+F 4 "c2286" H 10500 5900 50  0001 C CNN "LCSC"
+	1    10500 5900
 	-1   0    0    1   
 $EndComp
 $Comp
 L Device:R_US R8
 U 1 1 61FD114B
-P 10500 5400
-F 0 "R8" V 10295 5400 50  0000 C CNN
-F 1 "1k" V 10386 5400 50  0000 C CNN
-F 2 "Resistors_SMD:R_0402_NoSilk" V 10540 5390 50  0001 C CNN
-F 3 "~" H 10500 5400 50  0001 C CNN
-F 4 "C11702" H 10500 5400 50  0001 C CNN "LCSC"
-	1    10500 5400
+P 10800 5900
+F 0 "R8" V 10595 5900 50  0000 C CNN
+F 1 "1k" V 10686 5900 50  0000 C CNN
+F 2 "Resistors_SMD:R_0402_NoSilk" V 10840 5890 50  0001 C CNN
+F 3 "~" H 10800 5900 50  0001 C CNN
+F 4 "C11702" H 10800 5900 50  0001 C CNN "LCSC"
+	1    10800 5900
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	9850 5400 10050 5400
 $Comp
 L power:GND #PWR019
 U 1 1 6204155A
-P 10800 5400
-F 0 "#PWR019" H 10800 5150 50  0001 C CNN
-F 1 "GND" H 10805 5227 50  0000 C CNN
-F 2 "" H 10800 5400 50  0001 C CNN
-F 3 "" H 10800 5400 50  0001 C CNN
-	1    10800 5400
+P 11100 5900
+F 0 "#PWR019" H 11100 5650 50  0001 C CNN
+F 1 "GND" H 11105 5727 50  0000 C CNN
+F 2 "" H 11100 5900 50  0001 C CNN
+F 3 "" H 11100 5900 50  0001 C CNN
+	1    11100 5900
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
-	10650 5400 10800 5400
+	10950 5900 11100 5900
 Wire Wire Line
 	9250 900  9250 1150
 Connection ~ 5850 1450
@@ -895,7 +894,7 @@ Wire Wire Line
 Wire Wire Line
 	3200 6450 3600 6450
 $Sheet
-S 1450 6200 1750 1050
+S 1450 6200 1750 1150
 U 62E6C628
 F0 "AudioMidi" 50
 F1 "audioMidi.sch" 50
@@ -909,6 +908,7 @@ F8 "dout" I L 1450 6900 50
 F9 "codec_reset" I L 1450 7050 50 
 F10 "scl" I R 3200 6600 50 
 F11 "sda" I R 3200 6750 50 
+F12 "line_in_detect" I L 1450 7200 50 
 $EndSheet
 $Sheet
 S 1500 2500 900  350 
@@ -953,12 +953,15 @@ S 1500 3100 900  350
 U 63637E58
 F0 "Screen" 50
 F1 "Screen.sch" 50
+F2 "screen_reset" I L 1500 3250 50 
 $EndSheet
 $Sheet
 S 1500 3700 900  400 
 U 6366865E
 F0 "Power" 50
 F1 "Power.sch" 50
+F2 "latch_power" I L 1500 3800 50 
+F3 "gpio_input" I L 1500 3900 50 
 $EndSheet
 $Comp
 L Connector:USB_C_Receptacle_USB2.0 J2
@@ -1183,4 +1186,30 @@ Connection ~ 7200 2150
 Connection ~ 6850 2150
 Wire Wire Line
 	6850 2150 7200 2150
+Text GLabel 1400 3800 0    50   Input ~ 0
+latch_power
+Text GLabel 1400 3900 0    50   Input ~ 0
+power_gpio
+Text GLabel 1400 3250 0    50   Input ~ 0
+screen_reset
+Text GLabel 9850 5300 2    50   Input ~ 0
+power_gpio
+Text GLabel 9850 5800 2    50   Input ~ 0
+screen_reset
+Wire Wire Line
+	1400 3250 1500 3250
+Wire Wire Line
+	1400 3800 1500 3800
+Wire Wire Line
+	1400 3900 1500 3900
+Text GLabel 1300 7200 0    50   Input ~ 0
+line_in_detect
+Wire Wire Line
+	1300 7200 1450 7200
+Text GLabel 9850 5400 2    50   Input ~ 0
+line_in_detect
+Text GLabel 9850 5200 2    50   Input ~ 0
+latch_power
+Wire Wire Line
+	9850 5900 10350 5900
 $EndSCHEMATC

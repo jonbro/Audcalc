@@ -335,8 +335,6 @@ Wire Wire Line
 	3750 7300 3750 7950
 Wire Wire Line
 	3100 7300 3100 7950
-Wire Wire Line
-	2350 7300 2350 7950
 $Comp
 L customLibrary:spst_4_pin_internal SW?
 U 1 1 617D2B77
@@ -417,22 +415,6 @@ Wire Wire Line
 	3100 6850 3100 7200
 Text GLabel 1700 7600 0    50   Input ~ 0
 key_row1
-Wire Wire Line
-	2350 6850 2350 7200
-$Comp
-L customLibrary:spst_4_pin_internal SW?
-U 1 1 617D2BA0
-P 2150 7350
-AR Path="/617D2BA0" Ref="SW?"  Part="1" 
-AR Path="/631EE57A/617D2BA0" Ref="SW1"  Part="1" 
-F 0 "SW1" H 2125 7740 50  0000 C CNN
-F 1 "spst_4_pin_internal" H 2125 7649 50  0000 C CNN
-F 2 "RandomJunk:ts1102_smallerpads_buttonhole" H 2150 7350 50  0001 C CNN
-F 3 "" H 2150 7350 50  0001 C CNN
-F 4 "C480275" H 2150 7350 50  0001 C CNN "LCSC"
-	1    2150 7350
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	5550 5450 5550 5300
 Wire Wire Line
@@ -1798,25 +1780,6 @@ F 4 "c2128" H 2700 7450 50  0001 C CNN "LCSC"
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1950 7600 1700 7600
-Wire Wire Line
-	2700 7600 1950 7600
-Connection ~ 1950 7600
-$Comp
-L Device:D D?
-U 1 1 617D2F04
-P 1950 7450
-AR Path="/617D2F04" Ref="D?"  Part="1" 
-AR Path="/631EE57A/617D2F04" Ref="D26"  Part="1" 
-F 0 "D26" V 1996 7371 50  0000 R CNN
-F 1 "D" V 1905 7371 50  0000 R CNN
-F 2 "RandomJunk:D_SOD-323F_less_silk" H 1950 7450 50  0001 C CNN
-F 3 "~" H 1950 7450 50  0001 C CNN
-F 4 "c2128" H 1950 7450 50  0001 C CNN "LCSC"
-	1    1950 7450
-	0    -1   -1   0   
-$EndComp
-Wire Wire Line
 	1150 2750 1600 2750
 $Comp
 L power:+3.3V #PWR0101
@@ -1830,4 +1793,8 @@ F 3 "" H 5900 2450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 5900 2450
+Wire Wire Line
+	1700 7600 2700 7600
+Wire Wire Line
+	2350 6850 2350 7950
 $EndSCHEMATC
