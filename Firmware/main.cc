@@ -173,52 +173,7 @@ void draw_screen()
     }
 }
 
-// see https://ghubcoder.github.io/posts/awaking-the-pico/ to explain why we need this recovery code
-void recover_from_sleep(uint scb_orig, uint clock0_orig, uint clock1_orig){
 
-    //Re-enable ring Oscillator control
-    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
-
-    //reset procs back to default
-    scb_hw->scr = scb_orig;
-    clocks_hw->sleep_en0 = clock0_orig;
-    clocks_hw->sleep_en1 = clock1_orig;
-
-    //reset clocks
-    clocks_init();
-    stdio_init_all();
-    return;
-}
-
-void sleep()
-{
-    // TODO: copy all critical state to flash and shut down ram prior to sleep
-    // set all columns high
-    for (size_t i = 0; i < 5; i++)
-    {
-        gpio_init(col_pin_base+i);
-        gpio_set_dir(col_pin_base+i, GPIO_OUT);
-        gpio_disable_pulls(col_pin_base+i);
-        gpio_init(row_pin_base+i);
-        gpio_set_dir(row_pin_base+i, GPIO_IN);
-        gpio_pull_down(row_pin_base+i);
-        // the mask here are the gpio pins for the colums
-        gpio_put(col_pin_base+i, true);
-        sleep_us(3);
-    }
-    uint scb_orig = scb_hw->scr;
-    uint clock0_orig = clocks_hw->sleep_en0;
-    uint clock1_orig = clocks_hw->sleep_en1;
-    uart_default_tx_wait_blocking();
-    multicore_reset_core1();
-    uint32_t ints = save_and_disable_interrupts();
-
-    sleep_run_from_xosc();
-    sleep_goto_dormant_until_level_high(row_pin_base);
-    recover_from_sleep(scb_orig, clock0_orig, clock1_orig);
-    restore_interrupts(ints);
-    //multicore_launch_core1(draw_screen);
-}
 void configure_audio_driver()
 {
         /**/
@@ -288,25 +243,90 @@ void configure_audio_driver()
     irq_set_exclusive_handler(DMA_IRQ_1, dma_output_handler);
     irq_set_enabled(DMA_IRQ_1, true);
 }
+// see https://ghubcoder.github.io/posts/awaking-the-pico/ to explain why we need this recovery code
+void recover_from_sleep(uint scb_orig, uint clock0_orig, uint clock1_orig){
+
+    //Re-enable ring Oscillator control
+    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
+
+    //reset procs back to default
+    scb_hw->scr = scb_orig;
+    clocks_hw->sleep_en0 = clock0_orig;
+    clocks_hw->sleep_en1 = clock1_orig;
+
+    //reset clocks
+    clocks_init();
+    stdio_init_all();
+    return;
+}
+
+void sleep()
+{
+    // TODO: copy all critical state to flash and shut down ram prior to sleep
+    // set all columns high
+    for (size_t i = 0; i < 5; i++)
+    {
+        gpio_init(col_pin_base+i);
+        gpio_set_dir(col_pin_base+i, GPIO_OUT);
+        gpio_disable_pulls(col_pin_base+i);
+        gpio_init(row_pin_base+i);
+        gpio_set_dir(row_pin_base+i, GPIO_IN);
+        gpio_pull_down(row_pin_base+i);
+        // the mask here are the gpio pins for the colums
+        gpio_put(col_pin_base+i, true);
+        sleep_us(3);
+    }
+    uint scb_orig = scb_hw->scr;
+    uint clock0_orig = clocks_hw->sleep_en0;
+    uint clock1_orig = clocks_hw->sleep_en1;
+
+    multicore_reset_core1();
+    ssd1306_poweroff(&disp);
+    gpio_put(TLV_RESET_PIN, 0);
+    sleep_ms(10);
+
+    uart_default_tx_wait_blocking();
+    gpio_put(25, false);
+    sleep_run_from_xosc();
+    sleep_goto_dormant_until_level_high(row_pin_base);
+    recover_from_sleep(scb_orig, clock0_orig, clock1_orig); 
+    ssd1306_poweron(&disp);
+    multicore_launch_core1(draw_screen);
+    gpio_put(TLV_RESET_PIN, 1);
+    sleep_ms(10);
+    tlvDriverInit();
+
+    gpio_put(25, true);
+}
 
 int main2()
 {
     stdio_init_all();
-    multicore_launch_core1(draw_screen);
-    sleep_ms(100);
-    multicore_lockout_start_timeout_us(500);
-    multicore_lockout_end_timeout_us(500);
-    return 0;
+    gpio_init(25);
+    gpio_set_dir(25, GPIO_OUT);
+    gpio_init(0);
+    gpio_set_dir(0, GPIO_OUT);
+    gpio_put(0, true);
+    int count = 0;
+    while(1)
+    {
+        gpio_put(25, true);    
+        sleep_ms(250);
+        gpio_put(25, false);
+        sleep_ms(250);
+        if(count++ > 6)
+            gpio_put(0, false);
+    }
 }
 uint8_t adc1_prev;
 uint8_t adc2_prev;
 int main()
 {
+    set_sys_clock_khz(200000, true); 
     stdio_init_all();
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
-    set_sys_clock_khz(250000, true); 
     
     adc_init();
     adc_gpio_init(26);
@@ -318,8 +338,6 @@ int main()
     // ws tx = 4
     ws2812_program_init(wspio, wssm, wsoffset, 22, 800000, false);
     put_pixel(urgb_u32(5, 3, 20));
-
-
 
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
@@ -356,12 +374,6 @@ int main()
 
     tlvDriverInit();
 
-
-    // Waitfor 1 sec for softsteppingto takeeffect
-    //sleep_ms(1000);
-
-
-
     int step = 0;
     uint32_t keyState = 0;
     uint32_t lastKeyState = 0;
@@ -380,8 +392,12 @@ int main()
     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
+    int16_t touchCounter = 0x7fff;
+    int16_t headphoneCheck = 60;
     while(true)
     {
+        gpio_put(col_pin_base, true);
+        /**/
         // read keys
         for (size_t i = 0; i < 5; i++)
         {
@@ -401,18 +417,16 @@ int main()
                 }
             }
         }
+        
         // act on keychanges
         for (size_t i = 0; i < 25; i++)
         {
             uint32_t s = keyState & (1ul<<i);
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
+                touchCounter = 0x7fff;
+                touchCounter = 0x1f4;
                 gbox->OnKeyUpdate(i, s>0); 
-                if(!input_mode && i==21 && s>0)
-                {
-                    // this isn't working. maybe replace with some hardware solution :(
-                    //sleep();
-                }
                 if(!input_mode && i==20 && s>0)
                 {
                     erase_flash();
@@ -424,7 +438,18 @@ int main()
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
-
+            headphoneCheck--;
+            if(headphoneCheck <= 0)
+            {
+                readRegister(0, 0x43);
+                headphoneCheck = 60;
+            }
+            // touchCounter--;
+            // if(touchCounter <= 0)
+            // {
+            //     sleep();
+            //     touchCounter = 0x1f4;
+            // }
             adc_select_input(0);
             uint16_t adc_val = adc_read();
             adc_select_input(1);

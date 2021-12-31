@@ -6,9 +6,8 @@ void Instrument::Init()
     currentSegment = ENV_SEGMENT_COMPLETE;
     osc.set_pitch(0);
     osc.set_shape(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
-    //osc.set_shape(MACRO_OSC_SHAPE_KICK);
-    env = 0;
     envPhase = 0;
+    svf.Init();
 }
 
 // Values are defined in number of samples
@@ -39,27 +38,29 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             currentSegment = ENV_SEGMENT_COMPLETE;
         }
-        q15_t tenv = 0;
+        q15_t env = 0;
         switch(currentSegment)
         {
             case ENV_SEGMENT_ATTACK:
-                tenv = ((uint32_t)envPhase << 15) / attackTime;
+                env = ((uint32_t)envPhase << 15) / attackTime;
                 break;
             case ENV_SEGMENT_HOLD:
-                tenv = 0x7fff;
+                env = 0x7fff;
             break;
             case ENV_SEGMENT_DECAY:
                 phase = envPhase-attackTime-holdTime;
-                tenv = ((uint32_t)phase << 15) / decayTime;
-                tenv = sub_q15(0x7fff,tenv);
+                env = ((uint32_t)phase << 15) / decayTime;
+                env = sub_q15(0x7fff,env);
             break;
             case ENV_SEGMENT_COMPLETE:
-                tenv = 0;
+                env = 0;
                 break;
         }
         envPhase++;
-        env = tenv;//lerp_q15(tenv, env, 0x7aaa);
+        svf.set_resonance(0x1fff);
+        svf.set_frequency(env>>1);
         buffer[i] = mult_q15(buffer[i], env);
+        buffer[i] = svf.Process(buffer[i]);
     }
 }
 

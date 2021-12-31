@@ -2,6 +2,7 @@
 
 #include "audio/macro_oscillator.h"
 #include "q15.h"
+#include "audio/svf.h"
 
 using namespace braids;
 enum InstrumentParameter {
@@ -32,5 +33,5 @@ class Instrument
         uint32_t envPhase;
         EnvelopeSegment currentSegment;
         uint32_t attackTime, holdTime, decayTime;
-        q15_t env;
+        Svf svf;
 };

@@ -34,8 +34,18 @@ bool writeRegister(uint8_t reg, uint8_t val)
         sleep_us(80);
     }
 }
-bool readRegister(uint8_t reg)
+bool readRegister(uint8_t page, uint8_t reg)
 {
+    if(currentPage != page)
+    {
+        if(!writeRegister(0, page))
+        {
+            printf("failed to go to page %i\n", page);
+            return false;
+        }
+        currentPage = page;
+    }
+
 	int attempt=0;
 	while (1) {
 		attempt++;
@@ -167,17 +177,18 @@ void tlvDriverInit()
     write(1, 0x3c, 0x0c);
     
 
-    /*   
+    /*
 // mic in
+    write(1, 0x33, 0x68); // micbias enable, 2.5v
+    
  // micbias disable, because we are using power directly from the 3v3 rail (for now)
  // eventually we would want to use the mic bias to power, but we need a smaller resistance on the micbias line.
-
-    write(1, 0x33, 0x00);
+    //write(1, 0x33, 0x00);
     write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
     write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
-    write(1, 0x3b, 0x30); // Left MICPGA Volume Control 
-    write(1, 0x3c, 0x30);
- */
+    write(1, 0x3b, 0x38); // Left MICPGA Volume Control 
+    write(1, 0x3c, 0x38);
+    */
     // analog bypass & dac routed to headphones
     write(1, 0x0c, 0x0a);
     write(1, 0x0d, 0x0a);
@@ -213,4 +224,7 @@ void tlvDriverInit()
     // power up ADC
     write(0, 0x51, 0xc0);
     write(0, 0x52, 0x00);
+
+    // enable headphone detection
+    write(0, 0x43, 0x80);
 }

@@ -122,13 +122,19 @@ int GrooveBox::GetNote()
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
-    char str[10];
-    int16_t a = instrumentParamA[currentVoice];
-    sprintf(str, "A%i",a);
-    ssd1306_draw_string(p, 16, 24, 1, str);
-    int16_t b = instrumentParamB[currentVoice];
-    sprintf(str, "B%i",b);
-    ssd1306_draw_string(p, 48, 24, 1, str);
+    char str[32];
+    if(soundSelectMode)
+    {
+        sprintf(str, "SOUND SELECT: %i", currentVoice);
+        ssd1306_draw_string(p, 8, 8, 1, str);
+    } else {
+        int16_t a = instrumentParamA[currentVoice];
+        sprintf(str, "A%i",a);
+        ssd1306_draw_string(p, 16, 24, 1, str);
+        int16_t b = instrumentParamB[currentVoice];
+        sprintf(str, "B%i",b);
+        ssd1306_draw_string(p, 48, 24, 1, str);
+    }
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
