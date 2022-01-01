@@ -10,23 +10,35 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 }
 GrooveBox::GrooveBox(uint32_t *_color)
 {
-    for(int i=0;i<8;i++)
+    // osc[0].Init();
+    // osc[0].set_pitch(64 << 7);
+    // osc[0].set_shape(MACRO_OSC_SHAPE_MORPH);
+    // osc[0].set_parameters(0x4fff, 0x4fff);
+    // osc[1].Init();
+    // osc[1].set_pitch(52 << 7);
+    // osc[1].set_shape(MACRO_OSC_SHAPE_MORPH);
+    // osc[1].set_parameters(0x4fff, 0x4fff);
+    /**/
+    midi.Init();
+    for(int i=0;i<4;i++)
     {
-        instruments[i].Init();
+        instruments[i].Init(&midi);
     }
-    instruments[0].SetOscillator(MACRO_OSC_SHAPE_KICK);
-    instruments[0].SetAHD(10, 20000, 0);
-    instruments[1].SetOscillator(MACRO_OSC_SHAPE_SNARE);
-    instruments[1].SetAHD(10, 20000, 0);
-    instruments[2].SetOscillator(MACRO_OSC_SHAPE_CYMBAL);
-    instruments[2].SetAHD(10, 100, 1000);
-    instruments[3].SetOscillator(MACRO_OSC_SHAPE_CSAW);
-    instruments[3].SetAHD(10, 1000, 8000);
-    instruments[4].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
-    instruments[4].SetAHD(4000, 1000, 20000);
+    instruments[0].SetType(INSTRUMENT_DRUMS);
+    instruments[0].SetAHD(4000, 1000, 20000);
+
+    instruments[1].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
+    instruments[1].SetOscillator(MACRO_OSC_SHAPE_MORPH);
+    instruments[1].SetAHD(4000, 1000, 20000);
+    
+    instruments[2].SetOscillator(MACRO_OSC_SHAPE_MORPH);
+    instruments[2].SetAHD(400, 1000, 20000);
+    
+    instruments[3].SetType(INSTRUMENT_MIDI);
     memset(trigger, 0, 16*16);
     memset(notes, 0, 16*16);
     color = _color;
+    
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
@@ -35,46 +47,76 @@ static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int samplesPerStep = 44100/8;
 int nextTrigger = 0;
 
-void GrooveBox::Render(int16_t* buffer, size_t size)
+// simple render
+/*
+void GrooveBox::SimpleRender(int16_t* buffer, size_t size)
 {
     memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-
-    for(int v=0;v<6;v++)
+    int16_t pa = GetInstrumentParamA(0);
+    int16_t pb = GetInstrumentParamB(0);
+    for(int v=0;v<2;v++)
     {
-        int16_t pa = GetInstrumentParamA(v);
-        int16_t pb = GetInstrumentParamB(v);
         memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
         memset(workBuffer, 0, SAMPLES_PER_BUFFER);
-        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_MODULATION, pa);
-        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_TIMBRE, pb);
-        instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
-        // mix in the instrument
+        osc[v].set_parameters(pa<<7, pb<<7);
+        osc[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            q15_t instrument = mult_q15(workBuffer[i], 0x5fff);
+            q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
             workBuffer2[i] = add_q15(workBuffer2[i], instrument);
         }
     }
 
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
+        int16_t* chan = (buffer+i*2);
+        chan[0] = workBuffer2[i];
+        chan[1] = workBuffer2[i];
+    }
+}
+*/
+
+void GrooveBox::Render(int16_t* buffer, size_t size)
+{
+    memset(buffer, 0, size);
+    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+
+    for(int v=0;v<4;v++)
+    {
+        int16_t pa = GetInstrumentParamA(v);
+        int16_t pb = GetInstrumentParamB(v);
+        memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
+        memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_MODULATION, pa);
+        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_TIMBRE, pb);
+        //instruments[v].osc.set_parameters(pa<<7, pb<<7);
+        instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
+        // mix in the instrument
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
+            workBuffer2[i] = add_q15(workBuffer2[i], instrument);
+        }
+    }
+
+    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    {
+        // this can all be done outside this loop?
         int requestedNote = GetNote();
         if(requestedNote >= 0)
         {
-            instruments[currentVoice].Strike();
-            instruments[currentVoice].SetPitch((requestedNote << 7));
+            instruments[currentVoice].NoteOn(requestedNote);
         }
         if(IsPlaying())
         {
             if(--nextTrigger < 0)
             {
-                for(int v=0;v<6;v++)
+                for(int v=0;v<4;v++)
                 {
                     int requestedNote = GetTrigger(v, CurrentStep);
                     if(requestedNote >= 0)
                     {
-                        instruments[v].SetPitch((requestedNote << 7));
-                        instruments[v].Strike();
+                        instruments[v].NoteOn(requestedNote);
                     }
                 }
                 UpdateAfterTrigger(CurrentStep);
@@ -82,6 +124,7 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
                 nextTrigger = samplesPerStep;
             }
         }
+        
         int16_t* chan = (buffer+i*2);
         chan[0] = workBuffer2[i];
         chan[1] = workBuffer2[i];
@@ -89,7 +132,16 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
-    return trigger[voice][step]?notes[voice][step]+48:-1;
+    if(trigger[voice][step])
+        return notes[voice][step];
+    else
+        return -1;
+}
+int GrooveBox::GetNote()
+{
+    int res = needsNoteTrigger;
+    needsNoteTrigger = -1;
+    return res;
 }
 void GrooveBox::UpdateAfterTrigger(uint step)
 {
@@ -110,14 +162,6 @@ void GrooveBox::UpdateAfterTrigger(uint step)
 bool GrooveBox::IsPlaying()
 {
     return playing;
-}
-int GrooveBox::GetNote()
-{
-    int res = needsNoteTrigger;
-    if(res >= 0)
-        res += 48;
-    needsNoteTrigger = -1;
-    return res;
 }
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {

@@ -1,13 +1,13 @@
 #include "Instrument.h"
 
-void Instrument::Init()
+void Instrument::Init(Midi *_midi)
 {
     osc.Init();
     currentSegment = ENV_SEGMENT_COMPLETE;
-    osc.set_pitch(0);
-    osc.set_shape(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
+    osc.set_pitch(54<<7);
     envPhase = 0;
     svf.Init();
+    midi = _midi;
 }
 
 // Values are defined in number of samples
@@ -21,6 +21,18 @@ void Instrument::SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTi
 #define SAMPLES_PER_BUFFER 128
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
+    if(instrumentType == INSTRUMENT_MIDI)
+    {
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            noteOffSchedule--;
+            if(noteOffSchedule == 0)
+            {
+                //midi->NoteOff();
+            }
+        }
+        return;
+    }
     osc.Render(sync, buffer, size);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -57,10 +69,19 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 break;
         }
         envPhase++;
-        svf.set_resonance(0x1fff);
-        svf.set_frequency(env>>1);
-        buffer[i] = mult_q15(buffer[i], env);
-        buffer[i] = svf.Process(buffer[i]);
+        if(i==0)
+        {
+            svf.set_resonance(0);
+            svf.set_frequency(env>>1);
+        }
+        if(enable_filter)
+        {
+            buffer[i] = svf.Process(buffer[i]);
+        }
+        if(enable_env)
+        {
+            buffer[i] = mult_q15(buffer[i], env);
+        }
     }
 }
 
@@ -69,17 +90,72 @@ void Instrument::SetOscillator(uint8_t oscillator)
     osc.set_shape((MacroOscillatorShape)oscillator);
 }
 
-void Instrument::Strike()
+const int keyToMidi[16] = {
+    81, 83, 84, 86,
+    74, 76, 77, 79,
+    67, 69, 71, 72,
+    60, 62, 64, 65
+};
+
+void Instrument::NoteOn(int16_t key)
 {
-    osc.Strike();
-    envPhase = 0;
-    currentSegment = ENV_SEGMENT_ATTACK;
+    int note = keyToMidi[key];
+    if(instrumentType == INSTRUMENT_MACRO)
+    {
+        enable_env = true;
+        osc.set_pitch(note<<7);
+        osc.Strike();
+        envPhase = 0;
+        currentSegment = ENV_SEGMENT_ATTACK;
+    }
+    else if(instrumentType == INSTRUMENT_DRUMS)
+    {
+        osc.Strike();
+        currentSegment = ENV_SEGMENT_ATTACK;
+        envPhase = 0;
+        enable_env = false;
+        enable_filter = false;
+        switch(key)
+        {
+            case 0:
+                SetOscillator(MACRO_OSC_SHAPE_KICK);
+                osc.set_pitch(35<<7);
+                break;
+            case 1:
+                SetOscillator(MACRO_OSC_SHAPE_KICK);
+                osc.set_pitch(48<<7);
+                break;
+            case 2:
+                SetOscillator(MACRO_OSC_SHAPE_SNARE);
+                osc.set_pitch(55<<7);
+                break;
+            case 3:
+                SetOscillator(MACRO_OSC_SHAPE_SNARE);
+                osc.set_pitch(75<<7);
+                break;
+            case 4:
+                SetOscillator(MACRO_OSC_SHAPE_CYMBAL);
+                enable_env = true;
+                SetAHD(10, 10, 4000);
+                osc.set_pitch(65<<7);
+                break;
+            case 5:
+                SetOscillator(MACRO_OSC_SHAPE_CYMBAL);
+                enable_env = true;
+                SetAHD(10, 2000, 8000);
+                osc.set_pitch(63<<7);
+                break;
+        }
+    }
+    else
+    {
+        if(lastNoteOnPitch >= 0)
+            midi->NoteOff(lastNoteOnPitch);
+        midi->NoteOn(note);
+    } 
+    lastNoteOnPitch = note;
 }
 
-void Instrument::SetPitch(int16_t pitch)
-{
-    osc.set_pitch(pitch);
-}
 
 void Instrument::SetParameter(InstrumentParameter param, int8_t val)
 {

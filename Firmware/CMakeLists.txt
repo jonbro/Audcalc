@@ -23,6 +23,7 @@ add_executable(tdm
         main.cc
         GrooveBox.cc
         Instrument.cc
+        Midi.cc
         tlv320driver.c
         ssd1306.c
         reverb.c
