@@ -397,7 +397,6 @@ int main()
     while(true)
     {
         gpio_put(col_pin_base, true);
-        /**/
         // read keys
         for (size_t i = 0; i < 5; i++)
         {
@@ -438,12 +437,6 @@ int main()
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
-            headphoneCheck--;
-            if(headphoneCheck <= 0)
-            {
-                readRegister(0, 0x43);
-                headphoneCheck = 60;
-            }
             // touchCounter--;
             // if(touchCounter <= 0)
             // {

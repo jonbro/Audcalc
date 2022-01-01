@@ -27,3 +27,10 @@ fp-info-cache
 
 Firmware/build
 Firmware/openocd_picoprobe
+Hardware/gerber
+Hardware/tdm_*
+Enclosure/backplate_gerbers
+Enclosure/frontplate_gerbers
+Enclosure/temp
+
+*.pdb

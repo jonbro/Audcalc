@@ -54,7 +54,7 @@ using namespace stmlib;
 
 
 const size_t kNumBlocks = 4;
-const size_t kBlockSize = 24;
+const size_t kBlockSize = 128;
 
 MacroOscillator osc;
 Envelope envelope;
