@@ -10,15 +10,6 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 }
 GrooveBox::GrooveBox(uint32_t *_color)
 {
-    // osc[0].Init();
-    // osc[0].set_pitch(64 << 7);
-    // osc[0].set_shape(MACRO_OSC_SHAPE_MORPH);
-    // osc[0].set_parameters(0x4fff, 0x4fff);
-    // osc[1].Init();
-    // osc[1].set_pitch(52 << 7);
-    // osc[1].set_shape(MACRO_OSC_SHAPE_MORPH);
-    // osc[1].set_parameters(0x4fff, 0x4fff);
-    /**/
     midi.Init();
     for(int i=0;i<4;i++)
     {
@@ -29,14 +20,16 @@ GrooveBox::GrooveBox(uint32_t *_color)
 
     instruments[1].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
     instruments[1].SetOscillator(MACRO_OSC_SHAPE_MORPH);
+
     instruments[1].SetAHD(4000, 1000, 20000);
     
     instruments[2].SetOscillator(MACRO_OSC_SHAPE_MORPH);
     instruments[2].SetAHD(400, 1000, 20000);
     
     instruments[3].SetType(INSTRUMENT_MIDI);
-    memset(trigger, 0, 16*16);
-    memset(notes, 0, 16*16);
+
+    memset(trigger, 0, 16*16*16);
+    memset(notes, 0, 16*16*16);
     color = _color;
     
 }
@@ -89,7 +82,6 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
         memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
         instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_MODULATION, pa);
         instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_TIMBRE, pb);
-        //instruments[v].osc.set_parameters(pa<<7, pb<<7);
         instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
         // mix in the instrument
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -121,6 +113,10 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
                 }
                 UpdateAfterTrigger(CurrentStep);
                 CurrentStep = (++CurrentStep)%16;
+                if(CurrentStep==0)
+                {
+                    chainStep = (++chainStep)%patternChainLength;
+                }
                 nextTrigger = samplesPerStep;
             }
         }
@@ -132,8 +128,8 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
-    if(trigger[voice][step])
-        return notes[voice][step];
+    if(trigger[patternChain[chainStep]][voice][step])
+        return notes[patternChain[chainStep]][voice][step];
     else
         return -1;
 }
@@ -155,7 +151,7 @@ void GrooveBox::UpdateAfterTrigger(uint step)
             color[key] = urgb_u32(250, 30, 80);
         }
         else
-            color[key] = trigger[currentVoice][i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
+            color[key] = trigger[patternChain[chainStep]][currentVoice][i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
     }
 }
 
@@ -170,6 +166,11 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     if(soundSelectMode)
     {
         sprintf(str, "SOUND SELECT: %i", currentVoice);
+        ssd1306_draw_string(p, 8, 8, 1, str);
+    }
+    else if(patternSelectMode)
+    {
+        sprintf(str, "PATTERN SELECT: %i", currentVoice);
         ssd1306_draw_string(p, 8, 8, 1, str);
     } else {
         int16_t a = instrumentParamA[currentVoice];
@@ -206,24 +207,55 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             currentVoice = sequenceStep;
         }
+        else if(patternSelectMode)
+        {
+            if(holdingWrite)
+            {
+                // copy pattern
+                int currentPattern = patternChain[chainStep];
+                
+                for (size_t voice = 0; voice < 16; voice++)
+                {
+                    for (size_t step = 0; step < 16; step++)
+                    {
+                        notes[sequenceStep][voice][step] = notes[currentPattern][voice][step];
+                        trigger[sequenceStep][voice][step] = trigger[currentPattern][voice][step];
+                    }
+                }
+            }
+            else
+            {
+                // immediately insert the next pattern, and reset the chain length to 1
+                if(!nextPatternSelected)
+                {
+                    patternChainLength = 0;
+                    nextPatternSelected = true;
+                    chainStep = 0;
+                }
+                if(patternChainLength<15)
+                {
+                    patternChain[patternChainLength++] = sequenceStep;
+                }
+            }
+        }
         else if(!writing)
         {
             lastNotePlayed = needsNoteTrigger = sequenceStep;
         }
         else if(liveWrite)
         {
-            bool setTrig = trigger[currentVoice][CurrentStep] = true;
-            notes[currentVoice][CurrentStep] = sequenceStep;
+            bool setTrig = trigger[patternChain[chainStep]][currentVoice][CurrentStep] = true;
+            notes[patternChain[chainStep]][currentVoice][CurrentStep] = sequenceStep;
             color[x+y*5] = urgb_u32(5, 3, 20);
         }
         else
         {
-            bool setTrig = trigger[currentVoice][sequenceStep] = !trigger[currentVoice][sequenceStep];
+            bool setTrig = trigger[patternChain[chainStep]][currentVoice][sequenceStep] = !trigger[patternChain[chainStep]][currentVoice][sequenceStep];
             if(setTrig)
             {
-                notes[currentVoice][sequenceStep] = lastNotePlayed;
+                notes[patternChain[chainStep]][currentVoice][sequenceStep] = lastNotePlayed;
             }
-            color[x+y*5] = trigger[currentVoice][sequenceStep]?urgb_u32(5, 3, 20):urgb_u32(0,0,0);
+            color[x+y*5] = trigger[patternChain[chainStep]][currentVoice][sequenceStep]?urgb_u32(5, 3, 20):urgb_u32(0,0,0);
         }
     }
     // play
@@ -280,5 +312,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(x==0 && y==0)
     {
         soundSelectMode = pressed;
+    }
+    // pattern select
+    if(x==1 && y==0)
+    {
+        patternSelectMode = pressed;
+        if(pressed)
+        {
+            nextPatternSelected = false;
+        }
     }
 }

@@ -35,6 +35,8 @@ class Instrument
         void SetType(InstrumentType type)
         {
           instrumentType = type;
+          if(type == INSTRUMENT_DRUMS)
+            osc.set_shape(MACRO_OSC_SHAPE_KICK);
         }
         MacroOscillator osc;
     private:

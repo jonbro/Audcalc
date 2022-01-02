@@ -150,8 +150,8 @@ void Instrument::NoteOn(int16_t key)
     else
     {
         if(lastNoteOnPitch >= 0)
-            midi->NoteOff(lastNoteOnPitch);
-        midi->NoteOn(note);
+            midi->NoteOff(lastNoteOnPitch-24);
+        midi->NoteOn(note-24);
     } 
     lastNoteOnPitch = note;
 }

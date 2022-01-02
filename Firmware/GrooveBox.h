@@ -12,8 +12,8 @@ extern "C" {
 class Pattern
 {
    public:
-      uint8_t notes[16][16];
-      bool trigger[16][16];
+      uint8_t notes[16][16][16];
+      bool trigger[16][16][16];
 };
 class GrooveBox {
  public:
@@ -38,17 +38,25 @@ class GrooveBox {
    int needsNoteTrigger = -1;
    int drawY = 0;
    int lastNotePlayed = 0;
+   
+   int patternChain[16] = {0};
+   int patternChainLength = 1;
+   int chainStep = 0;
+   bool nextPatternSelected = false;
+
    bool playing = false;
    bool writing = false;
    bool holdingWrite = false;
    bool liveWrite = false;
    bool soundSelectMode = false;
+   bool patternSelectMode = false;
+
    uint32_t *color;
    Pattern patterns[16];
    Pattern *Editing;
    Pattern *Playing;
-   uint8_t notes[16][16];
-   bool trigger[16][16];
+   uint8_t notes[16][16][16];
+   bool trigger[16][16][16];
    Midi midi;
 };
 #endif // GROOVEBOX_H_
