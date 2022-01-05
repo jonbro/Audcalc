@@ -8,7 +8,31 @@ void Instrument::Init(Midi *_midi)
     envPhase = 0;
     svf.Init();
     midi = _midi;
+    fullSampleLength = AudioSampleAmen_165[0] & 0xffffff;
+    sample = (int16_t*)&AudioSampleAmen_165[1];
+    sampleOffset = 0;
+    // hard code the sample lengths
+    for(int i=0;i<16;i++)
+    {
+        sampleLength[i] = fullSampleLength/16;
+        sampleStart[i] = sampleLength[i]*i;
+    }
 }
+
+const char *macroparams[16] = { 
+    "TIMB", "FILT", "VlPn", "?"
+    "?", "?", "?", "?"
+    "?", "?", "?", "?"
+    "?", "?", "FLTO", "TYPE"
+};
+
+const char *sampleparams[16] = { 
+    "I/O", "FILT", "VlPn", "?"
+    "?", "?", "?", "?"
+    "?", "?", "?", "?"
+    "?", "?", "FLTO", "TYPE"
+};
+
 
 // Values are defined in number of samples
 void Instrument::SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime)
@@ -29,6 +53,25 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             if(noteOffSchedule == 0)
             {
                 //midi->NoteOff();
+            }
+        }
+        return;
+    } 
+    if(instrumentType == INSTRUMENT_SAMPLE)
+    {
+        if(playingSlice >= 0)
+        {
+            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            {
+                // this doesn't run in stereo, so just copy every other sample here
+                buffer[i] = sample[sampleOffset+sampleStart[playingSlice]];
+                sampleOffset++;
+                if(sampleOffset > sampleLength[playingSlice] || sampleOffset > fullSampleLength)
+                {
+                    sampleOffset = 0;
+                    playingSlice = -1;
+                }
+                buffer[i] = mult_q15(buffer[i], volume);
             }
         }
         return;
@@ -69,19 +112,12 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 break;
         }
         envPhase++;
-        if(i==0)
-        {
-            svf.set_resonance(0);
-            svf.set_frequency(env>>1);
-        }
-        if(enable_filter)
-        {
-            buffer[i] = svf.Process(buffer[i]);
-        }
+        buffer[i] = svf.Process(buffer[i]);
         if(enable_env)
         {
             buffer[i] = mult_q15(buffer[i], env);
         }
+        mult_q15(buffer[i], volume);
     }
 }
 
@@ -97,9 +133,19 @@ const int keyToMidi[16] = {
     60, 62, 64, 65
 };
 
-void Instrument::NoteOn(int16_t key)
+void Instrument::NoteOn(int16_t key, bool livePlay)
 {
+    // used for editing values for specific keys
+    if(livePlay)
+    {
+        lastPressedKey = key;
+    }
     int note = keyToMidi[key];
+    if(instrumentType == INSTRUMENT_SAMPLE)
+    {
+        playingSlice = key;
+        sampleOffset = 0;
+    }
     if(instrumentType == INSTRUMENT_MACRO)
     {
         enable_env = true;
@@ -156,19 +202,130 @@ void Instrument::NoteOn(int16_t key)
     lastNoteOnPitch = note;
 }
 
-
-void Instrument::SetParameter(InstrumentParameter param, int8_t val)
+// parameters are opaque to the groovebox
+// just use the key id for the parameter, then set internally
+// parameter values are doubled so we just get one at a time (0-31)
+void Instrument::SetParameter(uint8_t param, uint8_t val)
 {
-    int16_t bVal = val;
-    switch (param)
+    if(instrumentType == INSTRUMENT_SAMPLE)
     {
-        case INSTRUMENT_PARAM_MACRO_TIMBRE:
-            osc.set_parameter_1(bVal << 7);
+        switch (param)
+        {
+        // sample in point
+        case 0:
+            sampleStart[lastPressedKey] = val<<7;
             break;
-        case INSTRUMENT_PARAM_MACRO_MODULATION:
-            osc.set_parameter_2(bVal << 7);
+
+        // sample out point
+        case 1:
+            sampleLength[lastPressedKey] = val<<7;
             break;
+        
+        // 2 vol / pan
+        case 4:
+            volume = val<<7;
+            break;
+        case 5:
+            break;
+            
+
         default:
-        break;
+            break;
+        }
+    }
+    else if(instrumentType == INSTRUMENT_MACRO)
+    {
+        switch (param)
+        {
+            // 0 timb
+            case 0:
+                timbre = val;
+                osc.set_parameter_1(val << 7);
+                break;
+            case 1:
+                color = val;
+                osc.set_parameter_2(val << 7);
+                break;
+            
+            // 1 filt
+            case 2:
+                svf.set_frequency(val << 7);
+                cutoff = val;
+                break;
+            case 3:
+                svf.set_resonance(val << 7);
+                resonance = val;
+                break;
+            // 2 vol / pan
+
+            case 4:
+                volume = val<<7;
+                break;
+            case 5:
+                break;
+            
+            
+            case 30:
+                shape = (MacroOscillatorShape)((((uint16_t)val)*46) >> 8);
+                osc.set_shape(shape);
+                break;
+            default:
+            break;
+        }
+    }
+}
+
+void Instrument::GetParamString(uint8_t param, char *str)
+{
+    uint8_t vala = 0;
+    uint8_t valb = 0;
+    
+    if(instrumentType == INSTRUMENT_SAMPLE)
+    {
+        switch (param)
+        {
+        // sample in point
+        case 0:
+            vala = sampleStart[lastPressedKey] >> 7;
+            valb = sampleLength[lastPressedKey] >> 7;
+            break;
+
+        // volume / pan
+        case 2:
+            vala = volume >> 7;
+            valb = 0x7f;
+            break;
+
+        default:
+            break;
+        }
+        sprintf(str, "%s %i %i", sampleparams[param], vala, valb);
+    }
+    else if(instrumentType == INSTRUMENT_MACRO)
+    {
+        switch (param)
+        {
+            // 0
+            case 0:
+                vala = timbre;
+                valb = color;
+                break;
+            case 1:
+                vala = cutoff;
+                valb = resonance;
+                break;
+            // volume / pan
+            case 2:
+                vala = volume >> 7;
+                valb = 0x7f;
+                break;
+            case 15:
+                sprintf(str, "TYPE MACRO %s", algo_values[shape]);
+                return;
+                break;
+            default:
+                break;
+        }
+        sprintf(str, "%s %i %i", macroparams[param], vala, valb);
     }
 }

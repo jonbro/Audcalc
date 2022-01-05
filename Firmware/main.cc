@@ -21,10 +21,12 @@
 extern "C" {
 #include "tlv320driver.h"
 #include "ssd1306.h"
+#include "usb_audio.h"
 }
 #include "reverb.h"
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
+
 using namespace braids;
 
 // I2C defines
@@ -133,6 +135,8 @@ void fillNextAudioBuffer()
     ouput_buf_offset = (ouput_buf_offset+1)%2;
     uint32_t *output = output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER;
     gbox->Render((int16_t*)(output), SAMPLES_PER_BUFFER);
+    usbaudio_addbuffer(output, SAMPLES_PER_BUFFER);
+
     needsNewAudioBuffer--;
 }
 
@@ -394,6 +398,8 @@ int main()
     adc_select_input(0);
     int16_t touchCounter = 0x7fff;
     int16_t headphoneCheck = 60;
+    usbaudio_init();
+
     while(true)
     {
         gpio_put(col_pin_base, true);
@@ -465,6 +471,7 @@ int main()
         {
             fillNextAudioBuffer();
         }
+        usbaudio_update();
     }
     return 0;
 }

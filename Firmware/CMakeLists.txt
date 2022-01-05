@@ -21,6 +21,8 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
         main.cc
+        usb_audio.c
+        usb_descriptors.c
         GrooveBox.cc
         Instrument.cc
         Midi.cc
@@ -32,6 +34,7 @@ add_executable(tdm
         audio/digital_oscillator.cc
         audio/resources.cc
         audio/random.cc
+        AudioSampleAmen_165.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
@@ -45,6 +48,8 @@ pico_enable_stdio_usb(tdm 0)
 # Add the standard library to the build
 target_link_libraries(tdm pico_stdlib pico_multicore hardware_sleep)
 
+target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+
 # Add any user requested libraries
 target_link_libraries(tdm
         hardware_i2c
@@ -52,6 +57,7 @@ target_link_libraries(tdm
         hardware_adc
         hardware_flash
         pico_audio_i2s
+        tinyusb_device tinyusb_board
         )
 
 target_compile_definitions(tdm PRIVATE

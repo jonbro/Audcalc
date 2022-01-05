@@ -29,7 +29,6 @@ class GrooveBox {
    uint8_t GetInstrumentParamA(int voice);
    uint8_t GetInstrumentParamB(int voice);
    Instrument instruments[4];
-   //MacroOscillator osc[2];
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
  private:
@@ -50,7 +49,8 @@ class GrooveBox {
    bool liveWrite = false;
    bool soundSelectMode = false;
    bool patternSelectMode = false;
-
+   bool paramSelectMode = false;
+   uint8_t param = 0;
    uint32_t *color;
    Pattern patterns[16];
    Pattern *Editing;
@@ -58,5 +58,9 @@ class GrooveBox {
    uint8_t notes[16][16][16];
    bool trigger[16][16][16];
    Midi midi;
+   uint32_t bpm = 105;
+   uint16_t nextTrigger = 0;
+   uint8_t lastAdcValA = 0;
+   uint8_t lastAdcValB = 0;
 };
 #endif // GROOVEBOX_H_

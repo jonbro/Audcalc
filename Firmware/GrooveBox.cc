@@ -8,66 +8,37 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
             ((uint32_t) (g) << 16) |
             (uint32_t) (b);
 }
+
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     midi.Init();
     for(int i=0;i<4;i++)
     {
         instruments[i].Init(&midi);
+        instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
+        instruments[i].SetAHD(4000, 1000, 20000);
+
     }
-    instruments[0].SetType(INSTRUMENT_DRUMS);
-    instruments[0].SetAHD(4000, 1000, 20000);
+    // instruments[0].SetType(INSTRUMENT_DRUMS);
 
-    instruments[1].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
-    instruments[1].SetOscillator(MACRO_OSC_SHAPE_MORPH);
+    // instruments[1].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
+    // instruments[1].SetOscillator(MACRO_OSC_SHAPE_MORPH);
 
-    instruments[1].SetAHD(4000, 1000, 20000);
+    // instruments[1].SetAHD(4000, 1000, 20000);
     
-    instruments[2].SetOscillator(MACRO_OSC_SHAPE_MORPH);
-    instruments[2].SetAHD(400, 1000, 20000);
+    // instruments[2].SetOscillator(MACRO_OSC_SHAPE_MORPH);
+    // instruments[2].SetAHD(400, 1000, 20000);
     
-    instruments[3].SetType(INSTRUMENT_MIDI);
+    // instruments[3].SetType(INSTRUMENT_SAMPLE);
 
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
     color = _color;
-    
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
 int16_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
-int samplesPerStep = 44100/8;
-int nextTrigger = 0;
-
-// simple render
-/*
-void GrooveBox::SimpleRender(int16_t* buffer, size_t size)
-{
-    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-    int16_t pa = GetInstrumentParamA(0);
-    int16_t pb = GetInstrumentParamB(0);
-    for(int v=0;v<2;v++)
-    {
-        memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
-        memset(workBuffer, 0, SAMPLES_PER_BUFFER);
-        osc[v].set_parameters(pa<<7, pb<<7);
-        osc[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
-            workBuffer2[i] = add_q15(workBuffer2[i], instrument);
-        }
-    }
-
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    {
-        int16_t* chan = (buffer+i*2);
-        chan[0] = workBuffer2[i];
-        chan[1] = workBuffer2[i];
-    }
-}
-*/
 
 void GrooveBox::Render(int16_t* buffer, size_t size)
 {
@@ -76,12 +47,8 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
 
     for(int v=0;v<4;v++)
     {
-        int16_t pa = GetInstrumentParamA(v);
-        int16_t pb = GetInstrumentParamB(v);
         memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
         memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_MODULATION, pa);
-        instruments[v].SetParameter(INSTRUMENT_PARAM_MACRO_TIMBRE, pb);
         instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
         // mix in the instrument
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -97,18 +64,18 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
         int requestedNote = GetNote();
         if(requestedNote >= 0)
         {
-            instruments[currentVoice].NoteOn(requestedNote);
+            instruments[currentVoice].NoteOn(requestedNote, true);
         }
         if(IsPlaying())
         {
-            if(--nextTrigger < 0)
+            if(nextTrigger-- == 0)
             {
                 for(int v=0;v<4;v++)
                 {
                     int requestedNote = GetTrigger(v, CurrentStep);
                     if(requestedNote >= 0)
                     {
-                        instruments[v].NoteOn(requestedNote);
+                        instruments[v].NoteOn(requestedNote, false);
                     }
                 }
                 UpdateAfterTrigger(CurrentStep);
@@ -117,10 +84,9 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
                 {
                     chainStep = (++chainStep)%patternChainLength;
                 }
-                nextTrigger = samplesPerStep;
+                nextTrigger = 60u*44100u/bpm/4;
             }
         }
-        
         int16_t* chan = (buffer+i*2);
         chan[0] = workBuffer2[i];
         chan[1] = workBuffer2[i];
@@ -163,6 +129,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
     char str[32];
+
+    instruments[currentVoice].GetParamString(param, str);
+    ssd1306_draw_string(p, 0, 24, 1, str);
+
     if(soundSelectMode)
     {
         sprintf(str, "SOUND SELECT: %i", currentVoice);
@@ -172,27 +142,24 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         sprintf(str, "PATTERN SELECT: %i", currentVoice);
         ssd1306_draw_string(p, 8, 8, 1, str);
-    } else {
-        int16_t a = instrumentParamA[currentVoice];
-        sprintf(str, "A%i",a);
-        ssd1306_draw_string(p, 16, 24, 1, str);
-        int16_t b = instrumentParamB[currentVoice];
-        sprintf(str, "B%i",b);
-        ssd1306_draw_string(p, 48, 24, 1, str);
+    }
+    else if(paramSelectMode)
+    {
+        ssd1306_draw_string(p, 8, 8, 1, "PARAM SELECT");
     }
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
-    instrumentParamA[currentVoice] = a;
-    instrumentParamB[currentVoice] = b;
-}
-uint8_t GrooveBox::GetInstrumentParamA(int voice)
-{
-    return instrumentParamA[voice];
-}
-uint8_t GrooveBox::GetInstrumentParamB(int voice)
-{
-    return instrumentParamB[voice];
+    if(abs((int16_t)lastAdcValA-(int16_t)a) > 2)
+    {
+        instruments[currentVoice].SetParameter(param*2, a);
+        lastAdcValA = a;
+    }
+    if(abs((int16_t)lastAdcValB-(int16_t)b) > 2)
+    {
+        instruments[currentVoice].SetParameter(param*2+1, b);
+        lastAdcValB = b;
+    }
 }
 
 void GrooveBox::OnKeyUpdate(uint key, bool pressed)
@@ -206,6 +173,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         if(soundSelectMode)
         {
             currentVoice = sequenceStep;
+        }
+        else if(paramSelectMode)
+        {
+            param = sequenceStep;
         }
         else if(patternSelectMode)
         {
@@ -255,7 +226,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             {
                 notes[patternChain[chainStep]][currentVoice][sequenceStep] = lastNotePlayed;
             }
-            color[x+y*5] = trigger[patternChain[chainStep]][currentVoice][sequenceStep]?urgb_u32(5, 3, 20):urgb_u32(0,0,0);
+            color[x+y*5] = trigger[patternChain[chainStep]][currentVoice][sequenceStep]?urgb_u32(255, 0, 0):urgb_u32(0,0,0);
         }
     }
     // play
@@ -308,11 +279,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             color[x+y*5] = writing?urgb_u32(20, 10, 12):urgb_u32(0,0,0);
         }
     }
+    
     // sound select mode
     if(x==0 && y==0)
     {
         soundSelectMode = pressed;
     }
+
     // pattern select
     if(x==1 && y==0)
     {
@@ -321,5 +294,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             nextPatternSelected = false;
         }
+    }
+
+    // param select
+    if(x==2 && y==0)
+    {
+        paramSelectMode = pressed;
     }
 }
