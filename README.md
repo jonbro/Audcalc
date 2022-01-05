@@ -3,9 +3,9 @@
 a pocket sized groovebox.
 
 ![prototype v6](Images/twrtdm_card.jpg)
-*current prototype*
+*v5 prototype*
 
-- RP2040 (overclocked to 300mhz)
+- RP2040
 - 1/8in audio i/o
 - onboard mic
 - 104mm x 68mm x 14mm
