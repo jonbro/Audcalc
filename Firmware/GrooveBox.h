@@ -9,11 +9,13 @@ extern "C" {
 }
 #include "q15.h"
 #include "Midi.h"
+#include "Serializer.h"
+
 class Pattern
 {
    public:
-      uint8_t notes[16][16][16];
-      bool trigger[16][16][16];
+      uint8_t notes[16*16*16];
+      bool trigger[16*16*16];
 };
 class GrooveBox {
  public:
@@ -28,6 +30,8 @@ class GrooveBox {
    void Render(int16_t* buffer,size_t size);
    uint8_t GetInstrumentParamA(int voice);
    uint8_t GetInstrumentParamB(int voice);
+   void Serialize();
+   void Deserialize(); 
    Instrument instruments[4];
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
@@ -55,8 +59,8 @@ class GrooveBox {
    Pattern patterns[16];
    Pattern *Editing;
    Pattern *Playing;
-   uint8_t notes[16][16][16];
-   bool trigger[16][16][16];
+   uint8_t notes[16*16*16];
+   uint8_t trigger[16*16*16]; // could probably use the notes array above for this, just have a "off" value
    Midi midi;
    uint32_t bpm = 105;
    uint16_t nextTrigger = 0;

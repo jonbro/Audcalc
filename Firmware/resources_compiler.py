@@ -227,7 +227,7 @@ class ResourceLibrary(object):
   
   def GenerateHeader(self):
     root = self._root
-    f = file('resources.h', 'wb')
+    f = file(os.path.join('audio', 'resources.h'), 'wb')
     # Write header and header guard
     header_guard = root.target.replace(os.path.sep, '_').upper()
     header_guard = '%s_RESOURCES_H_' % header_guard
@@ -247,7 +247,7 @@ class ResourceLibrary(object):
     
   def GenerateCc(self):
     root = self._root
-    file_name = 'resources.cc'
+    file_name = os.path.join('audio', 'resources.cc')
     f = file(file_name, 'wb')
     f.write(self._root.header + '\n\n')
     f.write('#include "%s"\n' % file_name.replace('.cc', '.h'))

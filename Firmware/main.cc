@@ -21,7 +21,7 @@
 extern "C" {
 #include "tlv320driver.h"
 #include "ssd1306.h"
-#include "usb_audio.h"
+//#include "usb_audio.h"
 }
 #include "reverb.h"
 #include "GrooveBox.h"
@@ -68,47 +68,10 @@ bool flipFlop = false;
 int dmacount = 0;
 extern uint32_t __flash_binary_end;
 
-// pick starting position
-#define flashOffset 0x9F000
-const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + flashOffset);
-#define sampleLength 4
-void erase_flash()
-{
-    printf("about to erase\n");
-    printf("program end %i\n", __flash_binary_end-XIP_BASE);
-    multicore_lockout_start_timeout_us(500);
-    uint32_t ints = save_and_disable_interrupts();
-    flash_range_erase(flashOffset, FLASH_SECTOR_SIZE*sampleLength);
-    restore_interrupts(ints);
-    multicore_lockout_end_timeout_us(500);
-}
 bool input_mode = false;
 int input_position = 0;
-uint8_t data[FLASH_SECTOR_SIZE*sampleLength];
-int16_t* audioData = (int16_t*)data;
 
 void dma_input_handler() {
-    // if we are in write mode, then copy into the flash memory
-    /*
-    if(input_mode)
-    {
-        int16_t* chan = (int16_t*)(capture_buf);
-        for (size_t i = 0; i < 128; i++)
-        {
-            audioData[i+input_position] = chan[i*2];
-        }
-        input_position+=128;
-        if(input_position >= FLASH_SECTOR_SIZE*(sampleLength/2))
-        {
-            multicore_lockout_start_blocking();
-            uint32_t ints = save_and_disable_interrupts();
-            flash_range_program(flashOffset, data, FLASH_SECTOR_SIZE*sampleLength);
-            restore_interrupts(ints);
-            multicore_lockout_end_blocking();
-            input_mode = false;
-        }
-    }
-    */
     dma_hw->ints0 = 1u << dma_chan_input;
     dma_channel_set_write_addr(dma_chan_input, capture_buf, true);
 }
@@ -135,8 +98,6 @@ void fillNextAudioBuffer()
     ouput_buf_offset = (ouput_buf_offset+1)%2;
     uint32_t *output = output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER;
     gbox->Render((int16_t*)(output), SAMPLES_PER_BUFFER);
-    usbaudio_addbuffer(output, SAMPLES_PER_BUFFER);
-
     needsNewAudioBuffer--;
 }
 
@@ -156,6 +117,11 @@ bool repeating_timer_callback(struct repeating_timer *t) {
     return true;
 }
 
+bool usb_timer_callback(struct repeating_timer *t) {
+    //usbaudio_update();
+    return true;
+}
+
 bool screen_flip_ready = false;
 ssd1306_t disp;
 int drawY = 0;
@@ -171,9 +137,10 @@ void draw_screen()
     {
         if(screen_flip_ready)
         {
-            screen_flip_ready = false;
             ssd1306_show(&disp);
+            screen_flip_ready = false;
         }
+        tight_loop_contents();
     }
 }
 
@@ -306,27 +273,25 @@ void sleep()
 int main2()
 {
     stdio_init_all();
-    gpio_init(25);
-    gpio_set_dir(25, GPIO_OUT);
-    gpio_init(0);
-    gpio_set_dir(0, GPIO_OUT);
-    gpio_put(0, true);
-    int count = 0;
-    while(1)
+    multicore_launch_core1(draw_screen);
+    sleep_ms(30);
+    uint32_t color[25];
+    memset(color, 0, 25 * sizeof(uint32_t));
+    gbox = new GrooveBox(color);
+    gbox->Serialize();
+    while(true)
     {
-        gpio_put(25, true);    
-        sleep_ms(250);
-        gpio_put(25, false);
-        sleep_ms(250);
-        if(count++ > 6)
-            gpio_put(0, false);
+        tight_loop_contents();
     }
 }
 uint8_t adc1_prev;
 uint8_t adc2_prev;
+#define LINE_IN_DETECT 25
+#define HEADPHONE_DETECT 29
+
 int main()
 {
-    set_sys_clock_khz(200000, true); 
+    //set_sys_clock_khz(200000, true); 
     stdio_init_all();
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
@@ -335,6 +300,27 @@ int main()
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
+    bool rev8 = false;
+    if(rev8)
+    {
+        // power 
+        gpio_init(23);
+        gpio_set_dir(23, GPIO_OUT);
+        gpio_put(23, true);
+
+        // button one gpio.
+        gpio_init(24);
+        gpio_set_dir(24, GPIO_IN);
+        gpio_pull_down(24);
+
+        gpio_init(LINE_IN_DETECT);
+        gpio_set_dir(LINE_IN_DETECT, GPIO_IN);
+        gpio_pull_down(LINE_IN_DETECT);
+
+        gpio_init(HEADPHONE_DETECT);
+        gpio_set_dir(HEADPHONE_DETECT, GPIO_IN);
+        gpio_pull_down(HEADPHONE_DETECT);
+    }
 
     PIO wspio = pio0;
     int wssm = pio_claim_unused_sm(wspio, true);
@@ -394,12 +380,13 @@ int main()
     }
     struct repeating_timer timer;
     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
+    struct repeating_timer timer2;
+    //add_repeating_timer_us(-50,usb_timer_callback, NULL, &timer2);
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
     int16_t touchCounter = 0x7fff;
     int16_t headphoneCheck = 60;
-    usbaudio_init();
-
+   // usbaudio_init();
     while(true)
     {
         gpio_put(col_pin_base, true);
@@ -432,17 +419,37 @@ int main()
                 touchCounter = 0x7fff;
                 touchCounter = 0x1f4;
                 gbox->OnKeyUpdate(i, s>0); 
-                if(!input_mode && i==20 && s>0)
+                if(s>0)
                 {
-                    erase_flash();
-                    input_position = 0;
-                    input_mode = true;
+                    if(!screen_flip_ready)
+                    {
+                        if(i==21)
+                            gbox->Serialize();
+                        if(i==22)
+                            gbox->Deserialize();
+                    }
+                    printf("button %i pushed\n", i);
                 } 
             }
         }
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
+            // headphoneCheck--;
+            // if(headphoneCheck <= 0)
+            // {
+            //     headphoneCheck = 5;
+            //     uint8_t rxdata;
+            //     if(readRegister(0, 0x2e, &rxdata))5
+            //     {
+            //         printf("headphone register %x", rxdata);
+            //         //color[10] = (rxdata&0x10)?urgb_u32(rxdata, 30, 80):urgb_u32(0,0,0);
+            //     }
+            //         gpio_pull_down(HEADPHONE_DETECT);
+            //         color[10] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
+            //         gpio_disable_pulls(HEADPHONE_DETECT);
+
+            // }
             // touchCounter--;
             // if(touchCounter <= 0)
             // {
@@ -454,6 +461,7 @@ int main()
             adc_select_input(1);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
+            // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             for (size_t i = 0; i < 20; i++)
             {
                 put_pixel(color[i+5]);
@@ -471,7 +479,6 @@ int main()
         {
             fillNextAudioBuffer();
         }
-        usbaudio_update();
     }
     return 0;
 }

@@ -31,10 +31,10 @@ bool writeRegister(uint8_t reg, uint8_t val)
             printf("TLV320 write failed, %d tries\n", attempt);
             return false;
         }
-        sleep_us(80);
+        //sleep_us(80);
     }
 }
-bool readRegister(uint8_t page, uint8_t reg)
+bool readRegister(uint8_t page, uint8_t reg, uint8_t *rxdata)
 {
     if(currentPage != page)
     {
@@ -48,23 +48,18 @@ bool readRegister(uint8_t page, uint8_t reg)
 
 	int attempt=0;
 	while (1) {
-		attempt++;
-        
+		attempt++;        
         int ret = i2c_write_blocking(I2C_PORT, TLV_I2C_ADDR, &reg, 1, true);
-        sleep_ms(5);
 		if (ret == 1) {
             int ret;
-            uint8_t rxdata;
             attempt = 0;
-            ret = i2c_read_blocking(I2C_PORT, TLV_I2C_ADDR, &rxdata, 1, false);
+            ret = i2c_read_blocking(I2C_PORT, TLV_I2C_ADDR, rxdata, 1, false);
             if(ret == 1)
             {
-                printf("reg: %x val: %x\n", reg, rxdata);
                 return true;
             }
             else
             {
-                printf("failed read %i\n", ret);
                 return false;
             }
         }
@@ -72,7 +67,7 @@ bool readRegister(uint8_t page, uint8_t reg)
             printf("TLV320 read failed, %d tries\n", attempt);
             return false;
         }
-        sleep_us(80);
+        //sleep_us(80);
     }
 }
 bool write(uint8_t page, uint8_t reg, uint8_t val)
@@ -158,37 +153,33 @@ void tlvDriverInit()
     // Set MicPGA startup delay to 3.1ms
     write(1, 0x47, 0x32);
     
-    /**/
-    // line in
-    // disable micbias
-    write(1, 0x33, 0);
-    
-    // route IN1L to MicPGAL positive with 20k input impedance
-    write(1, 0x34, 0x80);
-    // route Commonmode to MicPGAL neg with 20k input impedance    
-    write(1, 0x36, 0x80);
-
-    // route IN1R to MicPGAR positive with 20k input impedance
-    write(1, 0x37, 0x80);
-    // route Commonmode to MicPGAR neg with 20k input impedance    
-    write(1, 0x39, 0x80);
-    // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
-    write(1, 0x3b, 0x0c);
-    write(1, 0x3c, 0x0c);
-    
-
-    /*
-// mic in
+    // micbias must always be on to avoid noise
     write(1, 0x33, 0x68); // micbias enable, 2.5v
+    bool setLineIn = true;
+    if(setLineIn)
+    {
+        // route IN1L to MicPGAL positive with 20k input impedance
+        write(1, 0x34, 0x80);
+        // route Commonmode to MicPGAL neg with 20k input impedance    
+        write(1, 0x36, 0x80);
+
+        // route IN1R to MicPGAR positive with 20k input impedance
+        write(1, 0x37, 0x80);
+        // route Commonmode to MicPGAR neg with 20k input impedance    
+        write(1, 0x39, 0x80);
+        // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
+        write(1, 0x3b, 0x0c);
+        write(1, 0x3c, 0x0c);
+    }
+    else
+    {
+        // mic in
+        write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
+        write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
+        write(1, 0x3b, 0x38); // Left MICPGA Volume Control 
+        write(1, 0x3c, 0x38);
+    }
     
- // micbias disable, because we are using power directly from the 3v3 rail (for now)
- // eventually we would want to use the mic bias to power, but we need a smaller resistance on the micbias line.
-    //write(1, 0x33, 0x00);
-    write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
-    write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
-    write(1, 0x3b, 0x38); // Left MICPGA Volume Control 
-    write(1, 0x3c, 0x38);
-    */
     // analog bypass & dac routed to headphones
     write(1, 0x0c, 0x0a);
     write(1, 0x0d, 0x0a);
@@ -217,7 +208,7 @@ void tlvDriverInit()
     write(0, 0x3f, 0xd6);
     // Unmutethe DAC digital volume control 
     write(0, 0x40, 0x00);
-    sleep_ms(200);
+    //sleep_ms(200);
     printf("powering up adc, lets go\n");
     sleep_ms(200);
     printf("powering up adc, now\n");

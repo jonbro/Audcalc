@@ -38,7 +38,7 @@ excursion = 65536 * 65536.0
 # Create table for pitch.
 a4_midi = 69
 a4_pitch = 440.0
-highest_octave = 128
+highest_octave = 128-12
 notes = numpy.arange(
     highest_octave * 128.0,
     (highest_octave + 12) * 128.0 + 16,
@@ -252,7 +252,7 @@ Envelope increments.
 ----------------------------------------------------------------------------"""
 
 sample_rate = 44100
-control_rate = sample_rate / 24.0
+control_rate = sample_rate / 128.0
 max_time = 12.0  # seconds
 min_time = 3.0 / control_rate  # seconds
 gamma = 0.175

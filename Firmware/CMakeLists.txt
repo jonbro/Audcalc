@@ -29,12 +29,13 @@ add_executable(tdm
         tlv320driver.c
         ssd1306.c
         reverb.c
+        Serializer.cc
         audio/macro_oscillator.cc
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
         audio/resources.cc
         audio/random.cc
-        AudioSampleAmen_165.cpp
+        #AudioSampleAmen_165.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)

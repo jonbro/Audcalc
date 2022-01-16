@@ -94,8 +94,8 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
-    if(trigger[patternChain[chainStep]][voice][step])
-        return notes[patternChain[chainStep]][voice][step];
+    if(trigger[patternChain[chainStep]*256+voice*16+step])
+        return notes[patternChain[chainStep]*256+voice*16+step];
     else
         return -1;
 }
@@ -117,7 +117,7 @@ void GrooveBox::UpdateAfterTrigger(uint step)
             color[key] = urgb_u32(250, 30, 80);
         }
         else
-            color[key] = trigger[patternChain[chainStep]][currentVoice][i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
+            color[key] = trigger[patternChain[chainStep]*256+currentVoice*16+i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
     }
 }
 
@@ -189,8 +189,8 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                 {
                     for (size_t step = 0; step < 16; step++)
                     {
-                        notes[sequenceStep][voice][step] = notes[currentPattern][voice][step];
-                        trigger[sequenceStep][voice][step] = trigger[currentPattern][voice][step];
+                        notes[sequenceStep*256+voice*16+step] = notes[currentPattern*256+voice*16+step];
+                        trigger[sequenceStep*256+voice*16+step] = trigger[currentPattern*256+voice*16+step];
                     }
                 }
             }
@@ -215,18 +215,18 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(liveWrite)
         {
-            bool setTrig = trigger[patternChain[chainStep]][currentVoice][CurrentStep] = true;
-            notes[patternChain[chainStep]][currentVoice][CurrentStep] = sequenceStep;
+            bool setTrig = trigger[patternChain[chainStep]*256+currentVoice*16+CurrentStep] = 1;
+            notes[patternChain[chainStep]*256+currentVoice*16+CurrentStep] = sequenceStep;
             color[x+y*5] = urgb_u32(5, 3, 20);
         }
         else
         {
-            bool setTrig = trigger[patternChain[chainStep]][currentVoice][sequenceStep] = !trigger[patternChain[chainStep]][currentVoice][sequenceStep];
+            bool setTrig = trigger[patternChain[chainStep]*256+currentVoice*16+sequenceStep] = !trigger[patternChain[chainStep]*256+currentVoice*16+sequenceStep];
             if(setTrig)
             {
-                notes[patternChain[chainStep]][currentVoice][sequenceStep] = lastNotePlayed;
+                notes[patternChain[chainStep]*256+currentVoice*16+sequenceStep] = lastNotePlayed;
             }
-            color[x+y*5] = trigger[patternChain[chainStep]][currentVoice][sequenceStep]?urgb_u32(255, 0, 0):urgb_u32(0,0,0);
+            color[x+y*5] = trigger[patternChain[chainStep]*256+currentVoice*16+sequenceStep]?urgb_u32(255, 0, 0):urgb_u32(0,0,0);
         }
     }
     // play
@@ -300,5 +300,39 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(x==2 && y==0)
     {
         paramSelectMode = pressed;
+    }
+}
+#define SAVE_SIZE 16*16*16
+
+void GrooveBox::Serialize()
+{
+    Serializer s;
+    s.Init();
+    uint8_t *n = notes;
+    uint8_t *t = trigger;
+
+    for(int i=0;i<SAVE_SIZE;i++)
+    {
+        s.AddData(*t);
+        s.AddData(*n);
+        n++;
+        t++;
+    }
+    s.Finish();
+}
+void GrooveBox::Deserialize()
+{
+    // should probably put this is some different class
+    Serializer s;
+    s.Init();
+    uint8_t *n = notes;
+    uint8_t *t = trigger;
+    for(int i=0;i<SAVE_SIZE;i++)
+    {
+        uint8_t tmp1, tmp2;
+        *t = tmp1 = s.GetNextValue(); 
+        *n = tmp2 = s.GetNextValue();
+        t++;
+        n++;
     }
 }

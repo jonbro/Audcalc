@@ -8,28 +8,30 @@ void Instrument::Init(Midi *_midi)
     envPhase = 0;
     svf.Init();
     midi = _midi;
-    fullSampleLength = AudioSampleAmen_165[0] & 0xffffff;
-    sample = (int16_t*)&AudioSampleAmen_165[1];
-    sampleOffset = 0;
+    //fullSampleLength = AudioSampleAmen_165[0] & 0xffffff;
+    //sample = (int16_t*)&AudioSampleAmen_165[1];
+    //sampleOffset = 0;
     // hard code the sample lengths
-    for(int i=0;i<16;i++)
-    {
-        sampleLength[i] = fullSampleLength/16;
-        sampleStart[i] = sampleLength[i]*i;
-    }
+    // for(int i=0;i<16;i++)
+    // {
+    //     sampleLength[i] = fullSampleLength/16;
+    //     sampleStart[i] = sampleLength[i]*i;
+    // }
+    env.Init();
+    env.Trigger(ADSR_ENV_SEGMENT_DEAD);
 }
 
 const char *macroparams[16] = { 
-    "TIMB", "FILT", "VlPn", "?"
-    "?", "?", "?", "?"
-    "?", "?", "?", "?"
+    "TIMB", "FILT", "VlPn", "?   ",
+    "ENV ", "?", "?", "?",
+    "?", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
 
 const char *sampleparams[16] = { 
-    "I/O", "FILT", "VlPn", "?"
-    "?", "?", "?", "?"
-    "?", "?", "?", "?"
+    "I/O", "FILT", "VlPn", "?",
+    "?", "?", "?", "?",
+    "?", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
 
@@ -40,6 +42,7 @@ void Instrument::SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTi
     this->attackTime = attackTime;
     this->holdTime = holdTime;
     this->decayTime = decayTime;
+    env.Update(0x2b, 0x7f);
 }
 
 #define SAMPLES_PER_BUFFER 128
@@ -59,64 +62,35 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     } 
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
-        if(playingSlice >= 0)
-        {
-            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-            {
-                // this doesn't run in stereo, so just copy every other sample here
-                buffer[i] = sample[sampleOffset+sampleStart[playingSlice]];
-                sampleOffset++;
-                if(sampleOffset > sampleLength[playingSlice] || sampleOffset > fullSampleLength)
-                {
-                    sampleOffset = 0;
-                    playingSlice = -1;
-                }
-                buffer[i] = mult_q15(buffer[i], volume);
-            }
-        }
+    //     if(playingSlice >= 0)
+    //     {
+    //         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    //         {
+    //             // this doesn't run in stereo, so just copy every other sample here
+    //             buffer[i] = sample[sampleOffset+sampleStart[playingSlice]];
+    //             sampleOffset++;
+    //             if(sampleOffset > sampleLength[playingSlice] || sampleOffset > fullSampleLength)
+    //             {
+    //                 sampleOffset = 0;
+    //                 playingSlice = -1;
+    //             }
+    //             buffer[i] = mult_q15(buffer[i], volume);
+    //         }
+    //     }
         return;
     }
     osc.Render(sync, buffer, size);
+    q15_t envval = env.Render() >> 1;
+
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         uint32_t mult = 0;
         uint32_t phase = 0;
-        if(currentSegment == ENV_SEGMENT_ATTACK && envPhase >= attackTime)
-        {
-            currentSegment = ENV_SEGMENT_HOLD;
-        }
-        if(currentSegment == ENV_SEGMENT_HOLD && envPhase >= attackTime+holdTime)
-        {
-            currentSegment = ENV_SEGMENT_DECAY;
-        }
-        if(currentSegment == ENV_SEGMENT_DECAY && envPhase >= attackTime+holdTime+decayTime)
-        {
-            currentSegment = ENV_SEGMENT_COMPLETE;
-        }
-        q15_t env = 0;
-        switch(currentSegment)
-        {
-            case ENV_SEGMENT_ATTACK:
-                env = ((uint32_t)envPhase << 15) / attackTime;
-                break;
-            case ENV_SEGMENT_HOLD:
-                env = 0x7fff;
-            break;
-            case ENV_SEGMENT_DECAY:
-                phase = envPhase-attackTime-holdTime;
-                env = ((uint32_t)phase << 15) / decayTime;
-                env = sub_q15(0x7fff,env);
-            break;
-            case ENV_SEGMENT_COMPLETE:
-                env = 0;
-                break;
-        }
-        envPhase++;
-        buffer[i] = svf.Process(buffer[i]);
         if(enable_env)
         {
-            buffer[i] = mult_q15(buffer[i], env);
+            buffer[i] = mult_q15(buffer[i], envval);
         }
+        buffer[i] = svf.Process(buffer[i]);
         mult_q15(buffer[i], volume);
     }
 }
@@ -151,8 +125,7 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
         enable_env = true;
         osc.set_pitch(note<<7);
         osc.Strike();
-        envPhase = 0;
-        currentSegment = ENV_SEGMENT_ATTACK;
+        env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
     else if(instrumentType == INSTRUMENT_DRUMS)
     {
@@ -256,14 +229,23 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 svf.set_resonance(val << 7);
                 resonance = val;
                 break;
+            
             // 2 vol / pan
-
             case 4:
                 volume = val<<7;
                 break;
             case 5:
                 break;
             
+            // 4 vol / pan
+            case 8:
+                this->attackTime = val;
+                env.Update(this->attackTime>>1, this->decayTime>>1);
+                break;
+            case 9:
+                this->decayTime = val;
+                env.Update(this->attackTime>>1, this->decayTime>>1);
+                break;
             
             case 30:
                 shape = (MacroOscillatorShape)((((uint16_t)val)*46) >> 8);
@@ -318,6 +300,10 @@ void Instrument::GetParamString(uint8_t param, char *str)
             case 2:
                 vala = volume >> 7;
                 valb = 0x7f;
+                break;
+            case 4:
+                vala = this->attackTime;
+                valb = this->decayTime;
                 break;
             case 15:
                 sprintf(str, "TYPE MACRO %s", algo_values[shape]);

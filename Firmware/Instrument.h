@@ -6,6 +6,7 @@
 #include "Midi.h"
 #include "AudioSampleAmen_165.h"
 #include "audio/settings.h"
+#include "ADSREnvelope.h"
 
 using namespace braids;
 enum InstrumentParameter {
@@ -47,7 +48,7 @@ class Instrument
         int8_t lastPressedKey = 0;
         uint32_t envPhase;
         EnvelopeSegment currentSegment;
-        uint32_t attackTime, holdTime, decayTime;
+        uint8_t attackTime, holdTime, decayTime;
         Svf svf;
         InstrumentType instrumentType = INSTRUMENT_MACRO;
         Midi *midi;
@@ -68,5 +69,6 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
         uint32_t fullSampleLength;
+        ADSREnvelope env;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
 };

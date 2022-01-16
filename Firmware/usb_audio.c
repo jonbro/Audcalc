@@ -349,17 +349,20 @@ bool tud_audio_get_req_entity_cb(uint8_t rhport, tusb_control_request_t const * 
 // keep some buffers here for audio as well
 // would be good if we can use just one set of buffers for everything?
 #define SAMPLES_PER_BUFFER 128
-uint32_t usbBuf[SAMPLES_PER_BUFFER*3];
+int16_t usbBuf[SAMPLES_PER_BUFFER*2];
 int writeOffset = 0;
-int readOffset = 0;
+int readOffset = -1;
 
 void usbaudio_addbuffer(uint32_t *samples, size_t size)
 {
   for(int i=0;i<size;i++)
   {
-    usbBuf[writeOffset++] = samples[i];
-    writeOffset = writeOffset%(SAMPLES_PER_BUFFER*3);
+    int16_t s = ((int16_t*)samples)[i*2];
+    usbBuf[writeOffset++] = s;
+    writeOffset = writeOffset%(SAMPLES_PER_BUFFER*2);
   }
+  if(readOffset<0)
+    readOffset = 0;
 }
 
 bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, uint8_t cur_alt_setting)
@@ -368,10 +371,23 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, u
   (void) itf;
   (void) ep_in;
   (void) cur_alt_setting;
+  if(readOffset <0)
+  {
+    for (size_t cnt = 0; cnt < CFG_TUD_AUDIO_EP_SZ_IN/2; cnt++)
+    {
+      test_buffer_audio[cnt] = 0x7fff;
+    }
+  }
+  else
+  {
+  for (size_t cnt = 0; cnt < CFG_TUD_AUDIO_EP_SZ_IN/2; cnt++)
+  {
+    test_buffer_audio[cnt] = (uint16_t)(usbBuf[readOffset++]);
+    readOffset = readOffset%(SAMPLES_PER_BUFFER*2);
+  }
 
-  tud_audio_write ((uint8_t *)usbBuf+readOffset, CFG_TUD_AUDIO_EP_SZ_IN); 
-  readOffset += CFG_TUD_AUDIO_EP_SZ_IN/4;
-  readOffset = readOffset%(SAMPLES_PER_BUFFER*3);
+  }
+  tud_audio_write((uint8_t *)test_buffer_audio, CFG_TUD_AUDIO_EP_SZ_IN); 
   return true;
 }
 
