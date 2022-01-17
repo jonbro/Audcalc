@@ -53,7 +53,7 @@ class Svf {
     resonance_ = 16384;
     dirty_ = true;
     punch_ = 0;
-    mode_ = SVF_MODE_BP;
+    mode_ = SVF_MODE_LP;
   }
   
   void set_frequency(int16_t frequency) {

@@ -22,7 +22,7 @@ void Instrument::Init(Midi *_midi)
 }
 
 const char *macroparams[16] = { 
-    "TIMB", "FILT", "VlPn", "?   ",
+    "Timb", "Filt", "VlPn", "Ptch",
     "ENV ", "?", "?", "?",
     "?", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
@@ -114,7 +114,7 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
     {
         lastPressedKey = key;
     }
-    int note = keyToMidi[key];
+    int note = keyToMidi[key]+12*octave;
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         playingSlice = key;
@@ -200,6 +200,11 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
             break;
         case 5:
             break;
+
+        // 2 octave
+        case 6:
+            octave = ((int8_t)(val/51))-2;
+            break;
             
 
         default:
@@ -222,11 +227,13 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
             
             // 1 filt
             case 2:
-                svf.set_frequency(val << 7);
+                // the range on these appear to be 0-127
+                svf.set_frequency((val>>1) << 7);
                 cutoff = val;
                 break;
             case 3:
-                svf.set_resonance(val << 7);
+                // the range on these appear to be 0-127
+                svf.set_resonance((val>>1) << 7);
                 resonance = val;
                 break;
             
@@ -236,7 +243,12 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 break;
             case 5:
                 break;
-            
+            // 3
+            case 6:
+                octave = ((int8_t)(val/51))-2;
+                break;
+                
+
             // 4 vol / pan
             case 8:
                 this->attackTime = val;
@@ -259,8 +271,8 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
 
 void Instrument::GetParamString(uint8_t param, char *str)
 {
-    uint8_t vala = 0;
-    uint8_t valb = 0;
+    int16_t vala = 0;
+    int16_t valb = 0;
     
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
@@ -299,6 +311,10 @@ void Instrument::GetParamString(uint8_t param, char *str)
             // volume / pan
             case 2:
                 vala = volume >> 7;
+                valb = 0x7f;
+                break;
+            case 3:
+                vala = octave;
                 valb = 0x7f;
                 break;
             case 4:

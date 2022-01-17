@@ -69,6 +69,7 @@ typedef struct {
     uint8_t *buffer;	/**< display buffer */
     size_t bufsize;		/**< buffer size */
 	int dma_chan_output;
+	bool string_invert;
 } ssd1306_t;
 
 /**
@@ -145,6 +146,8 @@ void ssd1306_clear(ssd1306_t *p);
 */
 void ssd1306_draw_pixel(ssd1306_t *p, uint32_t x, uint32_t y);
 
+void ssd1306_clear_pixel(ssd1306_t *p, uint32_t x, uint32_t y);
+
 /**
 	@brief draw pixel on buffer
 
@@ -166,6 +169,8 @@ void ssd1306_draw_line(ssd1306_t *p, int32_t x1, int32_t y1, int32_t x2, int32_t
 	@param[in] height : height of square
 */
 void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+
+void ssd1306_clear_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 /**
 	@brief draw empty square at given position with given size
@@ -223,5 +228,14 @@ void ssd1306_draw_string_with_font(ssd1306_t *p, uint32_t x, uint32_t y, uint32_
 	@param[in] s : text to draw
 */
 void ssd1306_draw_string(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t scale, const char *s);
+
+/**
+	@brief set string color
+
+	@param[in] p : instance of display
+	@param[in] invert : if strings should be inverted
+*/
+
+void ssd1306_set_string_color(ssd1306_t *p, bool invert);
 
 #endif

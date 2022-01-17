@@ -49,6 +49,7 @@ class Instrument
         uint32_t envPhase;
         EnvelopeSegment currentSegment;
         uint8_t attackTime, holdTime, decayTime;
+        int8_t octave = 0;
         Svf svf;
         InstrumentType instrumentType = INSTRUMENT_MACRO;
         Midi *midi;

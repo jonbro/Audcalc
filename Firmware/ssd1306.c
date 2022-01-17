@@ -57,7 +57,7 @@ bool ssd1306_init(ssd1306_t *p, uint16_t width, uint16_t height, uint8_t address
     p->height=height;
     p->pages=height/8;
     p->address=address;
-
+    p->string_invert=false;
     p->i2c_i=i2c_instance;
 
 
@@ -141,6 +141,13 @@ void ssd1306_draw_pixel(ssd1306_t *p, uint32_t x, uint32_t y) {
     p->buffer[x+p->width*(y>>3)]|=0x1<<(y&0x07); // y>>3==y/8 && y&0x7==y%8
 }
 
+void ssd1306_clear_pixel(ssd1306_t *p, uint32_t x, uint32_t y) {
+	if(x>=p->width || y>=p->height) return;
+    x = 127-x;
+    y = 31-y;
+    p->buffer[x+p->width*(y>>3)]&=~(0x1<<(y&0x07)); // y>>3==y/8 && y&0x7==y%8
+}
+
 void ssd1306_draw_line(ssd1306_t *p, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
     if(x1>x2) {
         uint32_t t=x1;
@@ -163,7 +170,12 @@ void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, u
 	for(uint32_t i=0;i<width;++i)
 		for(uint32_t j=0;j<height;++j)
 			ssd1306_draw_pixel(p, x+i, y+j);
+}
 
+void ssd1306_clear_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height){
+	for(uint32_t i=0;i<width;++i)
+		for(uint32_t j=0;j<height;++j)
+			ssd1306_clear_pixel(p, x+i, y+j);
 }
 
 void ssd1306_draw_empty_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height){
@@ -182,7 +194,7 @@ void ssd1306_draw_char_with_font(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t 
 
         for(int8_t j=0; j<font[0]; ++j, line>>=1) {
             if(line & 1 ==1)
-                ssd1306_draw_square(p, x+i*scale, y+j*scale, scale, scale);
+                p->string_invert?ssd1306_clear_square(p, x+i*scale, y+j*scale, scale, scale):ssd1306_draw_square(p, x+i*scale, y+j*scale, scale, scale);
         }
     }
 }
@@ -214,4 +226,8 @@ void ssd1306_show(ssd1306_t *p) {
     *(p->buffer-1)=0x40;
 
     fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
+}
+void ssd1306_set_string_color(ssd1306_t *p, bool invert)
+{
+    p->string_invert = invert;
 }

@@ -17,20 +17,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         instruments[i].Init(&midi);
         instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
         instruments[i].SetAHD(4000, 1000, 20000);
-
     }
-    // instruments[0].SetType(INSTRUMENT_DRUMS);
-
-    // instruments[1].SetOscillator(MACRO_OSC_SHAPE_WAVE_PARAPHONIC);
-    // instruments[1].SetOscillator(MACRO_OSC_SHAPE_MORPH);
-
-    // instruments[1].SetAHD(4000, 1000, 20000);
-    
-    // instruments[2].SetOscillator(MACRO_OSC_SHAPE_MORPH);
-    // instruments[2].SetAHD(400, 1000, 20000);
-    
-    // instruments[3].SetType(INSTRUMENT_SAMPLE);
-
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
     color = _color;
@@ -129,23 +116,42 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
     char str[32];
-
-    instruments[currentVoice].GetParamString(param, str);
-    ssd1306_draw_string(p, 0, 24, 1, str);
+    ssd1306_set_string_color(p, false);
 
     if(soundSelectMode)
     {
-        sprintf(str, "SOUND SELECT: %i", currentVoice);
-        ssd1306_draw_string(p, 8, 8, 1, str);
+        sprintf(str, "Snd: %i", currentVoice);
+        ssd1306_draw_string(p, 0, 8, 1, str);
     }
     else if(patternSelectMode)
     {
-        sprintf(str, "PATTERN SELECT: %i", currentVoice);
-        ssd1306_draw_string(p, 8, 8, 1, str);
+        sprintf(str, "Pat");
+        ssd1306_draw_string(p, 0, 8, 1, str);
+        if(patternChainLength>0)
+        {
+            for(int i=0;i<patternChainLength;i++)
+            {
+                int boxX = 24+(i%8)*12;
+                int boxY = 6+12*(i/8);
+                if(i==chainStep)
+                {
+                    ssd1306_draw_square(p, boxX, boxY+10, 15, 1);
+                }
+                int pDisp = patternChain[i]+1;
+                sprintf(str, "%i", pDisp);
+                int offset = pDisp < 10?3:0;
+                ssd1306_draw_string(p, boxX+2+offset, boxY+2, 1, str);
+            }
+        }
     }
     else if(paramSelectMode)
     {
-        ssd1306_draw_string(p, 8, 8, 1, "PARAM SELECT");
+        ssd1306_draw_string(p, 0, 8, 1, "Prm");
+    }
+    else
+    {
+        instruments[currentVoice].GetParamString(param, str);
+        ssd1306_draw_string(p, 0, 24, 1, str);
     }
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
