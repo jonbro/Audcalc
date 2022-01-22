@@ -107,7 +107,8 @@ void tlvDriverInit()
     // ndac &p powerup
     write(0, 0x0b, 0x80|0x05);
     // mdac & powerup
-    write(0, 0x0c, 0x80|0x03);
+    write(0, 0x0c, 0x80|0x03); // original settings
+    write(0, 0x0c, 0x80|0x02); // messing around
 
     // adc clocks should be driven by dac clocks, so no power necessary, but need to be set correctly
     // but you still need to set them correctly
@@ -123,6 +124,10 @@ void tlvDriverInit()
     // Select ADC PRB_R7
     write(0, 0x3d, 0x07);
 
+    // bitclock offset
+    // write(0, 0x1c, 0x2);
+    // bitclock polarity flip
+    // write(0, 0x1d, 0x08);
     // word length
     // processing block? default doesn't have the beep generator :(
     // printf("setup clocks\n");
@@ -189,15 +194,14 @@ void tlvDriverInit()
     write(1, 0x0d, 0x0a);
     
     // route dac only to headphones
-    //write(1, 0x0c, 0x08);
-    //write(1, 0x0d, 0x08);
+    // write(1, 0x0c, 0x08);
+    // write(1, 0x0d, 0x08);
 
     
     // Set the ADC PTM Mode to PTM_R1
     write(1, 0x3d, 0xff);
 
-    // Set the HPL gainto 0dBw 30
-    // set gain to whatever the heck this is?
+    // Set the HPL gain to 0dB
     write(1, 0x10, 0x00);
     write(1, 0x11, 0x00);
     
