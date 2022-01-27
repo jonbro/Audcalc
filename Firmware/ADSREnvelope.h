@@ -62,7 +62,7 @@ class ADSREnvelope {
   }
 
   inline uint16_t Render() {
-    uint32_t increment = increment_[segment_];
+    uint32_t increment = increment_[segment_]>>7;
     phase_ += increment;
     if (phase_ < increment) {
       value_ = Mix(a_, b_, 65535);

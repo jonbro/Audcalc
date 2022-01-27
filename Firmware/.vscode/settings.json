@@ -17,5 +17,8 @@
         }
     },
     "cmake.buildBeforeRun": true,
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cmake.configureArgs": [
+        "-D\"PICO_BOARD=vgaboard\""
+    ]
 }

@@ -26,6 +26,10 @@ extern "C" {
 #include "reverb.h"
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
+#define POCKETMOD_IMPLEMENTATION
+//#include "pocketmod.h"
+//#include "sundown.h"
+//#include "bananasplit.h"
 
 using namespace braids;
 
@@ -45,12 +49,22 @@ using namespace braids;
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
 #define SAMPLES_PER_BUFFER 128
-#define I2S_DATA_PIN 19
-#define I2S_BCLK_PIN 17
+#define USING_DEMO_BOARD 0
+// TDM board defines
+#if USING_DEMO_BOARD
+    #define I2S_DATA_PIN 26
+    #define I2S_BCLK_PIN 27
+#else
+    #define I2S_DATA_PIN 19
+    #define I2S_BCLK_PIN 17
+#endif
+// demo board defines
 
 #define BLINK_PIN_LED 25
 #define row_pin_base 11
 #define col_pin_base 6
+
+
 static float clip(float value)
 {
     value = value < -1.0f ? -1.0f : value;
@@ -91,12 +105,27 @@ void dma_output_handler() {
     dma_channel_set_read_addr(dma_chan_output, output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER, true);
     needsNewAudioBuffer++;
 }
+        //pocketmod_context pm_c;
 
 int flashReadPos = 0;
+// MacroOscillator osc;
+// int16_t renderBuf[SAMPLES_PER_BUFFER];
+// static uint8_t syncBuf[SAMPLES_PER_BUFFER];
+
 void fillNextAudioBuffer()
 {
     ouput_buf_offset = (ouput_buf_offset+1)%2;
     uint32_t *output = output_buf+ouput_buf_offset*SAMPLES_PER_BUFFER;
+    // pocketmod_render(&pm_c, renderTarget, SAMPLES_PER_BUFFER*2*4);
+
+    // memset(syncBuf, 0, SAMPLES_PER_BUFFER);
+    // memset(renderBuf, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    // osc.Render(syncBuf,renderBuf, SAMPLES_PER_BUFFER);
+    // for (size_t i = 0; i < SAMPLES_PER_BUFFER; i++)
+    // {
+    //     int16_t* chan = (((int16_t*)output)+i*2);
+    //     chan[1] = chan[0] =renderBuf[i];
+    // }
     gbox->Render((int16_t*)(output), SAMPLES_PER_BUFFER);
     needsNewAudioBuffer--;
 }
@@ -132,8 +161,11 @@ void draw_screen()
     multicore_lockout_victim_init();
     disp.external_vcc=false;
     ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
+    ssd1306_poweroff(&disp);
+    sleep_ms(3);
+    ssd1306_poweron(&disp);
     ssd1306_clear(&disp);
-    while(1)
+    while(true)
     {
         if(screen_flip_ready)
         {
@@ -158,10 +190,6 @@ void configure_audio_driver()
     uint32_t system_clock_frequency = clock_get_hz(clk_sys);
     assert(system_clock_frequency < 0x40000000);
 
-    // we want this to run at 3*32*sample_freq
-    // I really don't understand how this works! because when there is one less operation, the number here is 4, rather than 3...
-    // I did the math by hand, and it seems to line up tho :0
-    // had to add a wait instruction in the pio - I don't love it, but whatcha gonna do... fix it correctly !?!??!
     uint32_t divider = system_clock_frequency * 2 / sample_freq; // avoid arithmetic overflow
     // uint32_t divider = system_clock_frequency/(sample_freq*3*32);
     printf("System clock at %u, I2S clock divider 0x%x/256\n", (uint) system_clock_frequency, (uint)divider);
@@ -270,19 +298,48 @@ void sleep()
     gpio_put(25, true);
 }
 
+
 int main2()
 {
-    stdio_init_all();
-    multicore_launch_core1(draw_screen);
-    sleep_ms(30);
-    uint32_t color[25];
-    memset(color, 0, 25 * sizeof(uint32_t));
-    gbox = new GrooveBox(color);
-    gbox->Serialize();
-    while(true)
-    {
-        tight_loop_contents();
-    }
+    // stdio_init_all();
+    // configure_audio_driver();
+
+    // #if !USING_DEMO_BOARD
+    // {
+    //     // I2C Initialisation. Using it at 100Khz.
+    //     i2c_init(I2C_PORT, 400*1000);
+        
+    //     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    //     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    //     gpio_pull_up(I2C_SDA);
+    //     gpio_pull_up(I2C_SCL);
+
+    //     gpio_init(TLV_RESET_PIN);
+    //     gpio_set_dir(TLV_RESET_PIN, GPIO_OUT);
+
+    //     // hardware reset
+    //     gpio_put(TLV_RESET_PIN, 1);
+    //     sleep_ms(10);
+    //     gpio_put(TLV_RESET_PIN, 0);
+    //     sleep_ms(10);
+    //     gpio_put(TLV_RESET_PIN, 1);
+    //     sleep_ms(10);
+    //     tlvDriverInit();
+    // }
+    // #endif
+    // osc.Init();
+    // osc.set_shape(MACRO_OSC_SHAPE_WAVE_MAP);
+    // osc.set_parameters(0,0);
+    // osc.set_pitch(60<<7);
+    // while(true)
+    // {
+    //     sleep_us(2);
+    //     while(needsNewAudioBuffer>0)
+    //     {
+    //         fillNextAudioBuffer();
+    //     }
+    // }
+    return 0;
 }
 uint8_t adc1_prev;
 uint8_t adc2_prev;
@@ -291,8 +348,12 @@ uint8_t adc2_prev;
 
 int main()
 {
-    //set_sys_clock_khz(200000, true); 
+    //pocketmod_init(&pm_c, bananasplit, 19035*16, 44100);
+
+    //sleep_ms(4000);
+    set_sys_clock_khz(200000, true); 
     stdio_init_all();
+
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
@@ -300,6 +361,7 @@ int main()
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
+
     bool rev8 = false;
     if(rev8)
     {
@@ -311,15 +373,21 @@ int main()
         // button one gpio.
         gpio_init(24);
         gpio_set_dir(24, GPIO_IN);
-        gpio_pull_down(24);
+        gpio_pull_up(24);
 
-        gpio_init(LINE_IN_DETECT);
-        gpio_set_dir(LINE_IN_DETECT, GPIO_IN);
-        gpio_pull_down(LINE_IN_DETECT);
+        // gpio_init(28);
+        // gpio_set_dir(28, GPIO_OUT);
+        // gpio_pull_up(28);
+        // gpio_put(28, false);
+        // sleep_ms(2);
+        // gpio_put(28, true);
+        // gpio_init(LINE_IN_DETECT);
+        // gpio_set_dir(LINE_IN_DETECT, GPIO_IN);
+        // gpio_pull_down(LINE_IN_DETECT);
 
-        gpio_init(HEADPHONE_DETECT);
-        gpio_set_dir(HEADPHONE_DETECT, GPIO_IN);
-        gpio_pull_down(HEADPHONE_DETECT);
+        // gpio_init(HEADPHONE_DETECT);
+        // gpio_set_dir(HEADPHONE_DETECT, GPIO_IN);
+        // gpio_pull_down(HEADPHONE_DETECT);
     }
 
     PIO wspio = pio0;
@@ -438,6 +506,8 @@ int main()
             // headphoneCheck--;
             // if(headphoneCheck <= 0)
             // {
+            //     gpio_put(BLINK_PIN_LED, true);
+            // }
             //     headphoneCheck = 5;
             //     uint8_t rxdata;
             //     if(readRegister(0, 0x2e, &rxdata))5
@@ -445,9 +515,7 @@ int main()
             //         printf("headphone register %x", rxdata);
             //         //color[10] = (rxdata&0x10)?urgb_u32(rxdata, 30, 80):urgb_u32(0,0,0);
             //     }
-            //         gpio_pull_down(HEADPHONE_DETECT);
-            //         color[10] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-            //         gpio_disable_pulls(HEADPHONE_DETECT);
+                    //color[10] = gpio_get(24)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
 
             // }
             // touchCounter--;

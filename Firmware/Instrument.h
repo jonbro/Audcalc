@@ -4,7 +4,7 @@
 #include "q15.h"
 #include "audio/svf.h"
 #include "Midi.h"
-#include "AudioSampleAmen_165.h"
+#include "AudioSampleSine440.h"
 #include "audio/settings.h"
 #include "ADSREnvelope.h"
 
@@ -49,6 +49,7 @@ class Instrument
         uint32_t envPhase;
         EnvelopeSegment currentSegment;
         uint8_t attackTime, holdTime, decayTime;
+        int8_t envTimbre = 0, envColor = 0;
         int8_t octave = 0;
         Svf svf;
         InstrumentType instrumentType = INSTRUMENT_MACRO;

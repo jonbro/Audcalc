@@ -4,13 +4,16 @@ void Instrument::Init(Midi *_midi)
 {
     osc.Init();
     currentSegment = ENV_SEGMENT_COMPLETE;
-    osc.set_pitch(54<<7);
+    osc.set_pitch(60<<7);
+    osc.set_shape(MACRO_OSC_SHAPE_WAVE_MAP);
+    osc.set_parameters(0,0);
     envPhase = 0;
     svf.Init();
     midi = _midi;
-    //fullSampleLength = AudioSampleAmen_165[0] & 0xffffff;
-    //sample = (int16_t*)&AudioSampleAmen_165[1];
-    //sampleOffset = 0;
+    //SetType(INSTRUMENT_SAMPLE);
+    fullSampleLength = AudioSampleSine440[0] & 0xffffff;
+    sample = (int16_t*)&AudioSampleSine440[1];
+    sampleOffset = 0;
     // hard code the sample lengths
     // for(int i=0;i<16;i++)
     // {
@@ -23,7 +26,7 @@ void Instrument::Init(Midi *_midi)
 
 const char *macroparams[16] = { 
     "Timb", "Filt", "VlPn", "Ptch",
-    "ENV ", "?", "?", "?",
+    "Env", "EnvF", "EnvP", "EnvT",
     "?", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
@@ -62,36 +65,38 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     } 
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
-    //     if(playingSlice >= 0)
-    //     {
-    //         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    //         {
-    //             // this doesn't run in stereo, so just copy every other sample here
-    //             buffer[i] = sample[sampleOffset+sampleStart[playingSlice]];
-    //             sampleOffset++;
-    //             if(sampleOffset > sampleLength[playingSlice] || sampleOffset > fullSampleLength)
-    //             {
-    //                 sampleOffset = 0;
-    //                 playingSlice = -1;
-    //             }
-    //             buffer[i] = mult_q15(buffer[i], volume);
-    //         }
-    //     }
+        // if(playingSlice >= 0)
+        {
+            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            {
+                // this doesn't run in stereo, so just copy every other sample here
+                buffer[i] = sample[sampleOffset];
+                sampleOffset++;
+                if(sampleOffset > fullSampleLength)
+                {
+                    sampleOffset = 0;
+                }
+                buffer[i] = mult_q15(buffer[i], volume);
+            }
+        }
         return;
     }
     osc.Render(sync, buffer, size);
-    q15_t envval = env.Render() >> 1;
+    // osc.set_parameter_1(add_q15(timbre, mult_q15(envval, envTimbre)) << 7);
+    // osc.set_parameter_2(add_q15(color, mult_q15(envval, envColor)) << 7);
 
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
+        q15_t envval = env.Render() >> 1;
+
         uint32_t mult = 0;
         uint32_t phase = 0;
         if(enable_env)
         {
             buffer[i] = mult_q15(buffer[i], envval);
         }
-        buffer[i] = svf.Process(buffer[i]);
-        mult_q15(buffer[i], volume);
+        //buffer[i] = svf.Process(buffer[i]);
+         buffer[i] = mult_q15(buffer[i], volume);
     }
 }
 
@@ -205,8 +210,6 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
         case 6:
             octave = ((int8_t)(val/51))-2;
             break;
-            
-
         default:
             break;
         }
@@ -257,6 +260,14 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
             case 9:
                 this->decayTime = val;
                 env.Update(this->attackTime>>1, this->decayTime>>1);
+                break;
+
+            // 4 vol / pan
+            case 10:
+                this->envTimbre = (int8_t)((int16_t)val)-0x7f;
+                break;
+            case 11:
+                this->envColor = (int8_t)((int16_t)val)-0x7f;
                 break;
             
             case 30:
@@ -320,6 +331,10 @@ void Instrument::GetParamString(uint8_t param, char *str)
             case 4:
                 vala = this->attackTime;
                 valb = this->decayTime;
+                break;
+            case 5:
+                vala = this->envTimbre;
+                valb = this->envColor;
                 break;
             case 15:
                 sprintf(str, "TYPE MACRO %s", algo_values[shape]);

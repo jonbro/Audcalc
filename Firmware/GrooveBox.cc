@@ -15,8 +15,8 @@ GrooveBox::GrooveBox(uint32_t *_color)
     for(int i=0;i<4;i++)
     {
         instruments[i].Init(&midi);
-        instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
-        instruments[i].SetAHD(4000, 1000, 20000);
+        //instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
+        //instruments[i].SetAHD(4000, 1000, 20000);
     }
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
@@ -32,7 +32,7 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
     memset(buffer, 0, size);
     memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
 
-    for(int v=0;v<4;v++)
+    for(int v=0;v<1;v++)
     {
         memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
         memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
@@ -40,8 +40,8 @@ void GrooveBox::Render(int16_t* buffer, size_t size)
         // mix in the instrument
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
-            workBuffer2[i] = add_q15(workBuffer2[i], instrument);
+            //q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
+            workBuffer2[i] = workBuffer[i];//add_q15(workBuffer2[i], workBuffer[i]);
         }
     }
 
@@ -148,7 +148,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         ssd1306_draw_string(p, 0, 8, 1, "Prm");
     }
-    else
+    if(!patternSelectMode)
     {
         instruments[currentVoice].GetParamString(param, str);
         ssd1306_draw_string(p, 0, 24, 1, str);

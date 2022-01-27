@@ -20,9 +20,10 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
+        # sine_wave.c
         main.cc
-        usb_audio.c
-        usb_descriptors.c
+        # usb_audio.c
+        # usb_descriptors.c
         GrooveBox.cc
         Instrument.cc
         Midi.cc
@@ -35,7 +36,7 @@ add_executable(tdm
         audio/digital_oscillator.cc
         audio/resources.cc
         audio/random.cc
-        #AudioSampleAmen_165.cpp
+        AudioSampleSine440.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
@@ -43,27 +44,27 @@ pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 pico_set_program_name(tdm "tdm")
 pico_set_program_version(tdm "0.1")
 
-pico_enable_stdio_uart(tdm 1)
-pico_enable_stdio_usb(tdm 0)
-
-# Add the standard library to the build
-target_link_libraries(tdm pico_stdlib pico_multicore hardware_sleep)
+pico_enable_stdio_usb(tdm 1)
+pico_enable_stdio_uart(tdm 0)
 
 target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 # Add any user requested libraries
 target_link_libraries(tdm
+        pico_stdlib
+        pico_multicore
+        hardware_sleep
         hardware_i2c
         hardware_pio
         hardware_adc
         hardware_flash
         pico_audio_i2s
-        tinyusb_device tinyusb_board
+        # tinyusb_device tinyusb_board
         )
-
 target_compile_definitions(tdm PRIVATE
-        USE_AUDIO_I2S=1
-        )
+# PICO_AUDIO_I2S_MONO_INPUT=1
+# #define for our example code
+# USE_AUDIO_I2S=1
+)
 
-pico_add_extra_outputs(tdm)
-
+pico_add_extra_outputs(tdm) 
