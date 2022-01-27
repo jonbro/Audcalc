@@ -308,18 +308,6 @@ F 3 "" H 4800 3650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Regulator_Linear:AMS1117-3.3 U7
-U 1 1 616EA29F
-P 8000 3250
-F 0 "U7" H 8000 3492 50  0000 C CNN
-F 1 "AMS1117-3.3" H 8000 3401 50  0000 C CNN
-F 2 "TO_SOT_Packages_SMD:SOT-223" H 8000 3450 50  0001 C CNN
-F 3 "http://www.advanced-monolithic.com/pdf/ds1117.pdf" H 8100 3000 50  0001 C CNN
-F 4 "C6186" H 8000 3250 50  0001 C CNN "LCSC"
-	1    8000 3250
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR052
 U 1 1 6368932B
 P 9000 3800
@@ -456,9 +444,6 @@ F 4 "c2128" H 8550 4150 50  0001 C CNN "LCSC"
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	8300 3250 8550 3250
-Connection ~ 8550 3250
-Wire Wire Line
 	8550 3250 9000 3250
 Wire Wire Line
 	8550 3550 8550 3850
@@ -569,4 +554,19 @@ Wire Wire Line
 	8150 4650 8150 5100
 Wire Wire Line
 	8150 5100 8000 5100
+Connection ~ 8550 3250
+Wire Wire Line
+	8300 3250 8550 3250
+$Comp
+L Regulator_Linear:AMS1117-3.3 U7
+U 1 1 616EA29F
+P 8000 3250
+F 0 "U7" H 8000 3492 50  0000 C CNN
+F 1 "AMS1117-3.3" H 8000 3401 50  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223" H 8000 3450 50  0001 C CNN
+F 3 "http://www.advanced-monolithic.com/pdf/ds1117.pdf" H 8100 3000 50  0001 C CNN
+F 4 "C6186" H 8000 3250 50  0001 C CNN "LCSC"
+	1    8000 3250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

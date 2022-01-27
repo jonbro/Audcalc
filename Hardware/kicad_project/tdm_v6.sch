@@ -89,6 +89,7 @@ F 0 "RV1" H 1933 1596 50  0000 R CNN
 F 1 "R_POT_US" H 1933 1505 50  0000 R CNN
 F 2 "Potentiometers:Potentiometer_Alps_RK09K_Horizontal" H 2000 1550 50  0001 C CNN
 F 3 "~" H 2000 1550 50  0001 C CNN
+F 4 "C209779" H 2000 1550 50  0001 C CNN "LCSC"
 	1    2000 1550
 	1    0    0    -1  
 $EndComp
@@ -124,6 +125,7 @@ F 0 "RV2" H 2833 1596 50  0000 R CNN
 F 1 "R_POT_US" H 2833 1505 50  0000 R CNN
 F 2 "Potentiometers:Potentiometer_Alps_RK09K_Horizontal" H 2900 1550 50  0001 C CNN
 F 3 "~" H 2900 1550 50  0001 C CNN
+F 4 "C209779" H 2900 1550 50  0001 C CNN "LCSC"
 	1    2900 1550
 	1    0    0    -1  
 $EndComp
