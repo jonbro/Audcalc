@@ -153,6 +153,8 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         instruments[currentVoice].GetParamString(param, str);
         ssd1306_draw_string(p, 0, 24, 1, str);
     }
+    ssd1306_draw_square(p, 0,0,128, 32);
+
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {

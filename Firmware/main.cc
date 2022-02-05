@@ -40,7 +40,6 @@ using namespace braids;
 #define I2C_SDA 2
 #define I2C_SCL 3
 #define TLV_RESET_PIN 21
-#define MCLK_OUTPUT_PIN 16
 
 #define TLV_I2C_ADDR            0x18
 #define TLV_REG_PAGESELECT	    0
@@ -361,7 +360,6 @@ int main()
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
-
     bool rev8 = false;
     if(rev8)
     {
@@ -422,9 +420,6 @@ int main()
     gpio_init(TLV_RESET_PIN);
     gpio_set_dir(TLV_RESET_PIN, GPIO_OUT);
 
-    // hardware reset
-    gpio_put(TLV_RESET_PIN, 1);
-    sleep_ms(10);
     gpio_put(TLV_RESET_PIN, 0);
     sleep_ms(10);
     gpio_put(TLV_RESET_PIN, 1);
@@ -454,6 +449,7 @@ int main()
     adc_select_input(0);
     int16_t touchCounter = 0x7fff;
     int16_t headphoneCheck = 60;
+    uint8_t brightnesscount = 0;
    // usbaudio_init();
     while(true)
     {
@@ -530,8 +526,10 @@ int main()
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
             // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
+            brightnesscount++;
             for (size_t i = 0; i < 20; i++)
             {
+                color[i+5] = urgb_u32(brightnesscount, brightnesscount, brightnesscount);
                 put_pixel(color[i+5]);
             }
             if(!screen_flip_ready)
