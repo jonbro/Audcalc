@@ -47,6 +47,25 @@ pitches = a4_pitch * 2 ** ((notes - a4_midi * 128) / (128 * 12))
 increments = excursion / sample_rate * pitches
 delays = sample_rate / pitches * 65536 * 4096
 
+# ok! so the way this works is that it stores a table _only_ for the highest octave
+# the table includes phase steps per note
+# then when looking up the phase in the LUT (ComputePhaseIncrement),
+# it bitshifts to get the lower octave phases (since bitshifting is equivelent to /2)
+# the other magic here is that the notes are multiplied by 128 right off the bat (since that is the base resolution of the input pitch)
+# this line here will give me the speeds for the top octave
+
+speeds = 2 ** ((notes - a4_midi * 128) / (128 * 12))
+
+# now we just need to multiply by the excursion to get the fixed point representation of these values
+# I'm going to go with 5q(32-5) - i.e. multiply by 27 bits worth of value to get as much data in the phase as possible
+# we can always shift down later if we want a phase value that shifts less than 32 bits
+
+# this is 3ff (9bits) * ffff (16 bits) - leaving some space so we use a 32s instead of 32u for storing the values
+speeds = speeds * (65536 * 1024.0)
+
+lookup_tables_32.append(
+    ('sample_increments', speeds.astype(int)))
+
 lookup_tables_32.append(
     ('oscillator_increments', increments.astype(int)))
 

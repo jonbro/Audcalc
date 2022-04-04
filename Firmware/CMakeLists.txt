@@ -31,6 +31,9 @@ add_executable(tdm
         ssd1306.c
         reverb.c
         Serializer.cc
+        filesystem.c
+        littlefs/lfs.c
+        littlefs/lfs_util.c
         audio/macro_oscillator.cc
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
@@ -44,8 +47,8 @@ pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 pico_set_program_name(tdm "tdm")
 pico_set_program_version(tdm "0.1")
 
-pico_enable_stdio_usb(tdm 1)
-pico_enable_stdio_uart(tdm 0)
+pico_enable_stdio_usb(tdm 0)
+pico_enable_stdio_uart(tdm 1)
 
 target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 

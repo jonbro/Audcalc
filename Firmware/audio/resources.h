@@ -74,6 +74,7 @@ extern const uint16_t lut_vco_detune[];
 extern const uint16_t lut_bell[];
 extern const uint16_t lut_env_expo[];
 extern const int16_t lut_blowing_jet[];
+extern const uint32_t lut_sample_increments[];
 extern const uint32_t lut_oscillator_increments[];
 extern const uint32_t lut_oscillator_delays[];
 extern const uint32_t lut_env_portamento_increments[];
@@ -136,11 +137,13 @@ extern const uint16_t chr_characters[];
 #define LUT_ENV_EXPO_SIZE 257
 #define LUT_BLOWING_JET 0
 #define LUT_BLOWING_JET_SIZE 257
-#define LUT_OSCILLATOR_INCREMENTS 0
+#define LUT_SAMPLE_INCREMENTS 0
+#define LUT_SAMPLE_INCREMENTS_SIZE 97
+#define LUT_OSCILLATOR_INCREMENTS 1
 #define LUT_OSCILLATOR_INCREMENTS_SIZE 97
-#define LUT_OSCILLATOR_DELAYS 1
+#define LUT_OSCILLATOR_DELAYS 2
 #define LUT_OSCILLATOR_DELAYS_SIZE 97
-#define LUT_ENV_PORTAMENTO_INCREMENTS 2
+#define LUT_ENV_PORTAMENTO_INCREMENTS 3
 #define LUT_ENV_PORTAMENTO_INCREMENTS_SIZE 128
 #define WAV_FORMANT_SINE 0
 #define WAV_FORMANT_SINE_SIZE 256

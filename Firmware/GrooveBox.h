@@ -27,7 +27,7 @@ class GrooveBox {
    void OnAdcUpdate(uint8_t a, uint8_t b);
    bool IsPlaying();
    int GetNote();
-   void Render(int16_t* buffer,size_t size);
+   void Render(int16_t* output_buffer, int16_t* input_buffer, size_t size);
    uint8_t GetInstrumentParamA(int voice);
    uint8_t GetInstrumentParamB(int voice);
    void Serialize();

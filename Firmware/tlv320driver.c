@@ -4,7 +4,7 @@
 #define I2C_SDA 2
 #define I2C_SCL 3
 #define TLV_RESET_PIN 21
-
+//#define TLV_DEBUG 0
 #define TLV_I2C_ADDR            0x18
 #define TLV_REG_PAGESELECT	    0
 #define TLV_REG_LDOCONTROL	    2
@@ -19,15 +19,19 @@ bool writeRegister(uint8_t reg, uint8_t val)
     data[1] = val;
 	int attempt=0;
 	while (1) {
-		attempt++;
+        attempt++;
         
         int ret = i2c_write_blocking(I2C_PORT, TLV_I2C_ADDR, data, 2, false);
-		if (ret == 2) {
+        if (ret == 2) {
+            #ifdef TLV_DEBUG
             printf("TLV320 write ok, %d tries\n", attempt);
+            #endif
             return true;
         }
         if (attempt >= 12) {
+            #ifdef TLV_DEBUG
             printf("TLV320 write failed, %d tries\n", attempt);
+            #endif
             return false;
         }
         //sleep_us(80);
@@ -39,7 +43,7 @@ bool readRegister(uint8_t page, uint8_t reg, uint8_t *rxdata)
     {
         if(!writeRegister(0, page))
         {
-            printf("failed to go to page %i\n", page);
+            //printf("failed to go to page %i\n", page);
             return false;
         }
         currentPage = page;
@@ -63,7 +67,7 @@ bool readRegister(uint8_t page, uint8_t reg, uint8_t *rxdata)
             }
         }
         if (attempt >= 12) {
-            printf("TLV320 read failed, %d tries\n", attempt);
+            //printf("TLV320 read failed, %d tries\n", attempt);
             return false;
         }
         //sleep_us(80);
@@ -75,7 +79,7 @@ bool write(uint8_t page, uint8_t reg, uint8_t val)
     {
         if(!writeRegister(0, page))
         {
-            printf("failed to go to page %i\n", page);
+            //printf("failed to go to page %i\n", page);
             return false;
         }
         currentPage = page;
@@ -109,7 +113,7 @@ void tlvDriverInit()
     write(0, 0x0c, 0x80|0x03); // original settings
     write(0, 0x0c, 0x80|0x02); // messing around
 
-    // adc clocks should be driven by dac clocks, so no power necessary, but need to be set correctly
+    // adc clocks should be driven by dac clocks, so no power necessary
     // but you still need to set them correctly
     write(0, 0x12, 0x05);
     write(0, 0x13, 0x03);
@@ -192,9 +196,12 @@ void tlvDriverInit()
     write(1, 0x0c, 0x0a);
     write(1, 0x0d, 0x0a);
     
+    // dac and mixer to lineout
+    write(1, 0x0e, 0x0a);
+    write(1, 0x0f, 0x0a);
     // route dac only to headphones
-    // write(1, 0x0c, 0x08);
-    // write(1, 0x0d, 0x08);
+    write(1, 0x0c, 0x08);
+    write(1, 0x0d, 0x08);
 
     
     // Set the ADC PTM Mode to PTM_R1
@@ -204,17 +211,24 @@ void tlvDriverInit()
     write(1, 0x10, 0x00);
     write(1, 0x11, 0x00);
     
+    // set lineout gain to 0  db
+    write(1, 0x12, 0x00);
+    write(1, 0x13, 0x00);
+    
     // power up headphones & mixer amp
     write(1, 0x09, 0x33);
+
+    // power up headphones, lineout & mixer amp
+    write(1, 0x09, 0x3f);
 
     // Powerup the Left and Right DAC Channels
     write(0, 0x3f, 0xd6);
     // Unmutethe DAC digital volume control 
     write(0, 0x40, 0x00);
     //sleep_ms(200);
-    printf("powering up adc, lets go\n");
+    //printf("powering up adc, lets go\n");
     sleep_ms(200);
-    printf("powering up adc, now\n");
+    //printf("powering up adc, now\n");
     // power up ADC
     write(0, 0x51, 0xc0);
     write(0, 0x52, 0x00);

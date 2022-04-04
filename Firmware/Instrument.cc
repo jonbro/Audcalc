@@ -1,5 +1,8 @@
 #include "Instrument.h"
 
+static const uint16_t kPitchTableStart = 128 * 128;
+static const uint16_t kOctave = 12 * 128;
+
 void Instrument::Init(Midi *_midi)
 {
     osc.Init();
@@ -10,9 +13,35 @@ void Instrument::Init(Midi *_midi)
     envPhase = 0;
     svf.Init();
     midi = _midi;
+    phase_ = 0;
     //SetType(INSTRUMENT_SAMPLE);
-    fullSampleLength = AudioSampleSine440[0] & 0xffffff;
-    sample = (int16_t*)&AudioSampleSine440[1];
+    // 
+    // sample = (int16_t*)&AudioSampleSine440[1];
+    int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDONLY);
+    if(err)
+    {
+        
+        printf("failed to open file %i\n", err);
+    }
+    else
+    {
+        printf("opened file \n");
+    }
+    uint32_t wavSize;
+    lfs_file_rewind(GetLFS(), &sinefile);
+    lfs_file_read(GetLFS(), &sinefile, &wavSize, 4);
+    fullSampleLength = wavSize & 0xffffff; // low 24 bits are the length of the wav file https://www.pjrc.com/teensy/td_libs_AudioPlayMemory.html
+    fullSampleLength = 32*128;
+    for (size_t i = 0; i < 10; i++)
+    {
+        int note = (60+i);
+        uint32_t phase_increment = ComputePhaseIncrement(note<<7);
+        printf("phase inc for %i : %i : %i\n", note, phase_increment, phase_increment>>25);
+    }
+    lfs_file_close(GetLFS(), &sinefile);
+    
+    
+
     sampleOffset = 0;
     // hard code the sample lengths
     // for(int i=0;i<16;i++)
@@ -32,8 +61,8 @@ const char *macroparams[16] = {
 };
 
 const char *sampleparams[16] = { 
-    "I/O", "FILT", "VlPn", "?",
-    "?", "?", "?", "?",
+    "I/O", "FILT", "VlPn", "Ptch",
+    "Env", "EnvF", "EnvP", "EnvT",
     "?", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
@@ -46,6 +75,28 @@ void Instrument::SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTi
     this->holdTime = holdTime;
     this->decayTime = decayTime;
     env.Update(0x2b, 0x7f);
+}
+
+uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
+  if (midi_pitch >= kPitchTableStart) {
+    midi_pitch = kPitchTableStart - 1;
+  }
+  
+  int32_t ref_pitch = midi_pitch;
+  ref_pitch -= kPitchTableStart;
+  
+  size_t num_shifts = 0;
+  while (ref_pitch < 0) {
+    ref_pitch += kOctave;
+    ++num_shifts;
+  }
+  
+  uint32_t a = lut_sample_increments[ref_pitch >> 4];
+  uint32_t b = lut_sample_increments[(ref_pitch >> 4) + 1];
+  uint32_t phase_increment = a + \
+      (static_cast<int32_t>(b - a) * (ref_pitch & 0xf) >> 4);
+  phase_increment >>= num_shifts;
+  return phase_increment;
 }
 
 #define SAMPLES_PER_BUFFER 128
@@ -65,26 +116,35 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     } 
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
-        // if(playingSlice >= 0)
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            const int16_t wave[2] = {0, 0};
+            // // skip the first 4 bytes, since that contains the sample length + encoding
+            lfs_file_seek(GetLFS(), &sinefile, sampleOffset*2+4, LFS_SEEK_SET);
+            lfs_file_read(GetLFS(), &sinefile, (void *)wave, 2);
+        
+            phase_ += phase_increment;
+            sampleOffset+=(phase_>>25);
+            phase_-=(phase_&(0xff<<25));
+            // should interpolate the sample position
+            // *buffer++ = Interpolate824(wave[0], phase_ >> 1);
+
+            // sampleOffset+=2;
+            while(sampleOffset > fullSampleLength-1)
             {
-                // this doesn't run in stereo, so just copy every other sample here
-                buffer[i] = sample[sampleOffset];
-                sampleOffset++;
-                if(sampleOffset > fullSampleLength)
-                {
-                    sampleOffset = 0;
-                }
-                buffer[i] = mult_q15(buffer[i], volume);
+                sampleOffset -=fullSampleLength;
             }
+            buffer[i] = wave[0];
+            //mult_q15(buffer[i], volume);
         }
+        RenderGlobal(sync, buffer, size);
         return;
     }
     osc.Render(sync, buffer, size);
-    // osc.set_parameter_1(add_q15(timbre, mult_q15(envval, envTimbre)) << 7);
-    // osc.set_parameter_2(add_q15(color, mult_q15(envval, envColor)) << 7);
-
+    RenderGlobal(sync, buffer, size);
+}
+void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
+{
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         q15_t envval = env.Render() >> 1;
@@ -96,10 +156,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             buffer[i] = mult_q15(buffer[i], envval);
         }
         //buffer[i] = svf.Process(buffer[i]);
-         buffer[i] = mult_q15(buffer[i], volume);
+        buffer[i] = mult_q15(buffer[i], volume);
     }
 }
-
 void Instrument::SetOscillator(uint8_t oscillator)
 {
     osc.set_shape((MacroOscillatorShape)oscillator);
@@ -124,6 +183,8 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
     {
         playingSlice = key;
         sampleOffset = 0;
+        phase_increment = ComputePhaseIncrement(note<<7);
+        env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
     if(instrumentType == INSTRUMENT_MACRO)
     {
@@ -198,17 +259,26 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
         case 1:
             sampleLength[lastPressedKey] = val<<7;
             break;
-        
+    
         // 2 vol / pan
         case 4:
             volume = val<<7;
             break;
         case 5:
             break;
-
-        // 2 octave
+        // 3
         case 6:
             octave = ((int8_t)(val/51))-2;
+            break;
+            
+
+        case 8:
+            this->attackTime = val;
+            env.Update(this->attackTime>>1, this->decayTime>>1);
+            break;
+        case 9:
+            this->decayTime = val;
+            env.Update(this->attackTime>>1, this->decayTime>>1);
             break;
         default:
             break;
@@ -262,7 +332,6 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 env.Update(this->attackTime>>1, this->decayTime>>1);
                 break;
 
-            // 4 vol / pan
             case 10:
                 this->envTimbre = (int8_t)((int16_t)val)-0x7f;
                 break;
@@ -300,7 +369,14 @@ void Instrument::GetParamString(uint8_t param, char *str)
             vala = volume >> 7;
             valb = 0x7f;
             break;
-
+        case 3:
+            vala = octave;
+            valb = 0x7f;
+            break;
+        case 4:
+            vala = this->attackTime;
+            valb = this->decayTime;
+            break;
         default:
             break;
         }
