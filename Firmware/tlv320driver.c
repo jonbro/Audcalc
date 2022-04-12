@@ -117,6 +117,7 @@ void tlvDriverInit()
     // but you still need to set them correctly
     write(0, 0x12, 0x05);
     write(0, 0x13, 0x03);
+    write(0, 0x13, 0x02); // messing around - as above
 
     // dosr 64
     write(0, 0x0d, 0x00);
@@ -156,36 +157,46 @@ void tlvDriverInit()
 
     // setup headphones to be powered by ldo
     // and set LDO input to 1.8-3.3
-    write(1, 0x0a, 0x0B);
+    write(1, 0x0a, 0x4B);
 
     // Set MicPGA startup delay to 3.1ms
     write(1, 0x47, 0x32);
     
     // micbias must always be on to avoid noise
     write(1, 0x33, 0x68); // micbias enable, 2.5v
-    bool setLineIn = true;
+    bool setLineIn = false;
+
     if(setLineIn)
     {
         // route IN1L to MicPGAL positive with 20k input impedance
-        write(1, 0x34, 0x80);
+        write(1, 0x34, 0xc0);
         // route Commonmode to MicPGAL neg with 20k input impedance    
         write(1, 0x36, 0x80);
 
         // route IN1R to MicPGAR positive with 20k input impedance
-        write(1, 0x37, 0x80);
+        write(1, 0x37, 0xc0);
         // route Commonmode to MicPGAR neg with 20k input impedance    
         write(1, 0x39, 0x80);
+        write(1, 0x3e, 0x03);
         // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
-        write(1, 0x3b, 0x0c);
-        write(1, 0x3c, 0x0c);
+        write(1, 0x3b, 0x00);
+        write(1, 0x3c, 0x00);
+
+        // digital volume control (this should turn it down a bit)
+        write(0, 0x53, 0x00);
+        write(0, 0x54, 0x00);
     }
     else
     {
+
         // mic in
-        write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
-        write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
-        write(1, 0x3b, 0x38); // Left MICPGA Volume Control 
-        write(1, 0x3c, 0x38);
+        write(1, 0x34, 0x30); // IN2L to MicPGAL pos with 10k input impedance
+        write(1, 0x36, 0x30); // IN2r to MicPGAL Neg with 10k input impedance
+        write(1, 0x3b, 0x24); // Left MICPGA Volume Control 
+        write(1, 0x3c, 0x24);
+        // lower the adc digital volume control?!?
+        write(0, 0x53, 0x0c);
+        write(0, 0x54, 0x0c);
     }
     
     // analog bypass & dac routed to headphones
@@ -205,8 +216,7 @@ void tlvDriverInit()
 
     
     // Set the ADC PTM Mode to PTM_R1
-    write(1, 0x3d, 0xff);
-
+    write(1, 0x3d, 0x01);
     // Set the HPL gain to 0dB
     write(1, 0x10, 0x00);
     write(1, 0x11, 0x00);

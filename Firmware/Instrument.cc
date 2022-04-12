@@ -13,35 +13,8 @@ void Instrument::Init(Midi *_midi)
     envPhase = 0;
     svf.Init();
     midi = _midi;
-    phase_ = 0;
-    //SetType(INSTRUMENT_SAMPLE);
-    // 
-    // sample = (int16_t*)&AudioSampleSine440[1];
-    int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDONLY);
-    if(err)
-    {
-        
-        printf("failed to open file %i\n", err);
-    }
-    else
-    {
-        printf("opened file \n");
-    }
-    uint32_t wavSize;
-    lfs_file_rewind(GetLFS(), &sinefile);
-    lfs_file_read(GetLFS(), &sinefile, &wavSize, 4);
-    fullSampleLength = wavSize & 0xffffff; // low 24 bits are the length of the wav file https://www.pjrc.com/teensy/td_libs_AudioPlayMemory.html
-    fullSampleLength = 32*128;
-    for (size_t i = 0; i < 10; i++)
-    {
-        int note = (60+i);
-        uint32_t phase_increment = ComputePhaseIncrement(note<<7);
-        printf("phase inc for %i : %i : %i\n", note, phase_increment, phase_increment>>25);
-    }
-    lfs_file_close(GetLFS(), &sinefile);
+    phase_ = 0;    
     
-    
-
     sampleOffset = 0;
     // hard code the sample lengths
     // for(int i=0;i<16;i++)
@@ -116,13 +89,15 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     } 
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
+        //return;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            const int16_t wave[2] = {0, 0};
+            int16_t wave = 0;
             // // skip the first 4 bytes, since that contains the sample length + encoding
-            lfs_file_seek(GetLFS(), &sinefile, sampleOffset*2+4, LFS_SEEK_SET);
-            lfs_file_read(GetLFS(), &sinefile, (void *)wave, 2);
-        
+            // lfs_file_seek(GetLFS(), &sinefile, sampleOffset+4, LFS_SEEK_SET);
+            file_read(&wave, sampleOffset*2, 2);
+            //lfs_file_read(GetLFS(), &sinefile, &wave, 1);
+            
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
             phase_-=(phase_&(0xff<<25));
@@ -134,7 +109,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             {
                 sampleOffset -=fullSampleLength;
             }
-            buffer[i] = wave[0];
+            buffer[i] = wave;
             //mult_q15(buffer[i], volume);
         }
         RenderGlobal(sync, buffer, size);

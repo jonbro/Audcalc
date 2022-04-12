@@ -22,6 +22,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
         instruments[i].SetAHD(4000, 1000, 20000);
     }
+    instruments[1].OpenFile(0);
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
     color = _color;
@@ -30,18 +31,23 @@ GrooveBox::GrooveBox(uint32_t *_color)
 int16_t workBuffer[SAMPLES_PER_BUFFER];
 int16_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
+//absolute_time_t lastRenderTime = -1;
 
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
+    absolute_time_t renderStartTime = get_absolute_time();
     memset(output_buffer, 0, size);
-    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-        workBuffer2[i] = input_buffer[i]&0x1fff;
+        workBuffer2[i] = input_buffer[i*2];
     }
+    //memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
 
+    //printf("input %i\n", workBuffer2[0]);
     for(int v=0;v<2;v++)
     {
+        if(v==1 && recording)
+            continue;
         memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
         memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
         instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
@@ -86,6 +92,19 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         chan[0] = workBuffer2[i];
         chan[1] = workBuffer2[i];
     }
+    if(recording)
+    { 
+        // for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        // {
+        //     workBuffer2[i] = input_buffer[i*2];
+        // }
+
+        file_write(workBuffer2, recordingLength*2, SAMPLES_PER_BUFFER*2);
+        recordingLength+=SAMPLES_PER_BUFFER;
+    }
+
+        // printf("renderTime %lld \n", absolute_time_diff_us(renderStartTime, get_absolute_time()));
+
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
@@ -180,6 +199,38 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 {
     int x=key/5;
     int y=key%5;
+    if(x==4&&y==0)
+    {
+        if(pressed)
+        {
+            // go into record mode
+            // close the file
+            instruments[1].CloseFile();
+            // open file locally
+            // int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
+            // if(!err)
+            // {
+            //     //reserve 4 bytes at the beginning
+            //     lfs_file_seek(GetLFS(), &sinefile, 4, LFS_SEEK_SET);
+                recordingLength = 0;
+                recording = true;
+            // }
+            // else
+            // {
+            //     printf("recording failed\n");
+            // }
+        }
+        else
+        {
+            // finish recording
+            // lfs_file_rewind(GetLFS(), &sinefile);
+            // lfs_file_write(GetLFS(), &sinefile, &recordingLength, 4);
+            // lfs_file_close(GetLFS(), &sinefile);
+            //file_write(&recordingLength, 0, 4);
+            recording = false;
+            instruments[1].OpenFile(recordingLength);
+        }
+    }
     if(x<4 && y>0 && pressed)
     {
         

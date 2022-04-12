@@ -23,6 +23,9 @@ static int lfs_flash_prog(const struct lfs_config *c, lfs_block_t block,
 static int lfs_flash_erase(const struct lfs_config *c, lfs_block_t block);
 static int lfs_flash_sync(const struct lfs_config *c);
 
+int file_read(void *buffer, uint32_t offset, size_t size);
+int file_write(void *buffer, uint32_t offset, size_t size);
+
 void TestFS();
 
 lfs_t* GetLFS();

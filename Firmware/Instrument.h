@@ -46,15 +46,28 @@ class Instrument
         }
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
-        void OpenFile(){
-              int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDONLY);
-              int16_t wave;
-              for (size_t i = 0; i < 128; i++)
-              {
-                lfs_file_seek(GetLFS(), &sinefile, 4+i*2, LFS_SEEK_SET);
-                lfs_file_read(GetLFS(), &sinefile, (void *)wave, 2);
-                printf("wav value: %i\n", wave);
-              }
+        void OpenFile(uint32_t recordingLength){
+          // int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDONLY);
+          // if(err)
+          // {
+              
+          //     printf("failed to open file %i\n", err);
+          // }
+          // else
+          // {
+          //     printf("opened file \n");
+          // }
+          // uint32_t wavSize;
+          // file_read(&wavSize, 0, 4);
+          // // lfs_file_rewind(GetLFS(), &sinefile);
+          // // lfs_file_read(GetLFS(), &sinefile, &wavSize, 4);
+          // fullSampleLength = wavSize & 0xffffff; // low 24 bits are the length of the wav file https://www.pjrc.com/teensy/td_libs_AudioPlayMemory.html 
+          fullSampleLength = recordingLength;
+          printf("sample length %i\n", fullSampleLength);
+        }
+        void CloseFile()
+        {
+          //lfs_file_close(GetLFS(), &sinefile);
         }
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);

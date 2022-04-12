@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/time.h"
+
 #include "Instrument.h"
 extern "C" {
   #include "ssd1306.h"
@@ -35,6 +37,9 @@ class GrooveBox {
    Instrument instruments[4];
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
+  bool recording = false;
+     uint32_t recordingLength;
+
  private:
    uint8_t instrumentParamA[8];
    uint8_t instrumentParamB[8];
@@ -66,5 +71,7 @@ class GrooveBox {
    uint16_t nextTrigger = 0;
    uint8_t lastAdcValA = 0;
    uint8_t lastAdcValB = 0;
+
+   lfs_file_t sinefile;
 };
 #endif // GROOVEBOX_H_

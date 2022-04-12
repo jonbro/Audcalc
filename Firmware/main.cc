@@ -76,7 +76,7 @@ static float clip(float value)
 int dma_chan_input;
 int dma_chan_output;
 uint sm;
-uint32_t capture_buf[SAMPLES_PER_BUFFER*3];
+uint32_t capture_buf[SAMPLES_PER_BUFFER*2];
 int capture_buf_offset = 0;
 int output_buf_offset = 0;
 
@@ -91,11 +91,16 @@ int input_position = 0;
 int initial_sample_count = 0;
 lfs_file_t sinefile;
 
+GrooveBox *gbox;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
 void dma_input_handler() {
+    uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
     dma_hw->ints0 = 1u << dma_chan_input;
-    dma_channel_set_write_addr(dma_chan_input, capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER, true);
-    capture_buf_offset = (capture_buf_offset+1)%3;
+    dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
+    uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
+    uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
+    gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+    capture_buf_offset = (capture_buf_offset+1)%2;
 }
 bool hi = false;
 int16_t out_count = 0;
@@ -103,26 +108,16 @@ int flipflopout = 0;
 
 int triCount = 0;
 int note = 60;
-GrooveBox *gbox;
 
 int needsNewAudioBuffer = 0;
 
 void dma_output_handler() {
     dma_hw->ints1 = 1u << dma_chan_output;
     dma_channel_set_read_addr(dma_chan_output, output_buf+output_buf_offset*SAMPLES_PER_BUFFER, true);
-    needsNewAudioBuffer++;
+    output_buf_offset = (output_buf_offset+1)%3;
 }
 
 int flashReadPos = 0;
-
-void fillNextAudioBuffer()
-{
-    output_buf_offset = (output_buf_offset+1)%3;
-    uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-    uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
-    gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
-    needsNewAudioBuffer--;
-}
 
 static inline void put_pixel(uint32_t pixel_grb) {
     pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
@@ -304,7 +299,6 @@ int main()
     set_sys_clock_khz(200000, true); 
     stdio_init_all();
 
-
     //sleep_ms(4000);
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
@@ -401,7 +395,6 @@ int main()
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
    // usbaudio_init();
-    gbox->instruments[1].OpenFile();
     while(true)
     {
         gpio_put(col_pin_base, true);
@@ -486,17 +479,17 @@ int main()
             }
             if(!screen_flip_ready)
             {
-                multicore_lockout_start_timeout_us(500);
+                //multicore_lockout_start_timeout_us(500);
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
-                multicore_lockout_end_timeout_us(500);
+                //multicore_lockout_end_timeout_us(500);
             }
             needsScreenupdate = false;
         }
-        while(needsNewAudioBuffer>0)
-        {
-            fillNextAudioBuffer();
-        }
+        // while(needsNewAudioBuffer>0)
+        // {
+        //     fillNextAudioBuffer();
+        // }
     }
     return 0;
 }

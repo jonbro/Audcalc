@@ -1,7 +1,7 @@
 #include "filesystem.h"
 
 // arbitrary offset into flash, hopefully doesn't overlap with the program space lol
-#define FS_START 0x9F000
+#define FS_START 0xAC000
 const uint8_t *flash_start = (const uint8_t *) (XIP_BASE + FS_START);
 
 int lfs_flash_read(const struct lfs_config *c,
@@ -14,22 +14,23 @@ int lfs_flash_read(const struct lfs_config *c,
 int lfs_flash_prog(const struct lfs_config *c,
                                  lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size) {
     uint8_t *addr = flash_start + (block * c->block_size) + off;
-    uint32_t ints = save_and_disable_interrupts();
     multicore_lockout_start_timeout_us(500);
+    uint32_t ints = save_and_disable_interrupts();
     flash_range_program((intptr_t)addr - (intptr_t)XIP_BASE, (const uint8_t *)buffer, size);
-    multicore_lockout_end_timeout_us(500);
     restore_interrupts(ints);
+    multicore_lockout_end_timeout_us(500);
     return 0;
 }
 
 int lfs_flash_erase(const struct lfs_config *c, lfs_block_t block) {
     uint8_t *addr = flash_start + (block * c->block_size);
-    // Serial.printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, me->_blockSize);
-    uint32_t ints = save_and_disable_interrupts();
+    //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
+    int res = 0;
     multicore_lockout_start_timeout_us(500);
+    uint32_t ints = save_and_disable_interrupts();
     flash_range_erase((intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
-    multicore_lockout_end_timeout_us(500);
     restore_interrupts(ints);
+    multicore_lockout_end_timeout_us(500);
     return 0;
 }
 
@@ -54,7 +55,7 @@ const struct lfs_config cfg = {
     .read_size = 256,
     .prog_size = 256,
     .block_size = 4096,
-    .block_count = 128,
+    .block_count = 256,
     .block_cycles = 16,
     .cache_size = 256,
     .lookahead_size = 16,
@@ -65,12 +66,35 @@ lfs_t* GetLFS()
     return &lfs;
 }
 
+int file_read(void *buffer, uint32_t offset, size_t size)
+{
+    memcpy(buffer, flash_start+offset, size);
+    return 0;
+}
+int file_write(void *buffer, uint32_t offset, size_t size)
+{
+    uint32_t ints = save_and_disable_interrupts();
+    multicore_lockout_start_timeout_us(500);
+    flash_range_program(FS_START+offset, buffer, size);
+    multicore_lockout_end_timeout_us(500);
+    restore_interrupts(ints);
+    return 0;
+}
+
 void TestFS()
 {
+    // instead of all this junk - lets just clear some space
+    multicore_lockout_start_timeout_us(500);
+    uint32_t ints = save_and_disable_interrupts();
+    flash_range_erase(FS_START,4096*32);
+    restore_interrupts(ints);
+    multicore_lockout_end_timeout_us(500);
+
+    return;
     int err = lfs_mount(&lfs, &cfg);
 
-    // reformat if we can't mount the filesystem
-    // this should only happen on the first boot
+    // // reformat if we can't mount the filesystem
+    // // this should only happen on the first boot
     if (err)
     {
         lfs_format(&lfs, &cfg);
@@ -96,7 +120,7 @@ void TestFS()
     // fullSampleLength = AudioSampleSine440[0] & 0xffffff;
     // sample = (int16_t*)&AudioSampleSine440[1];
     // if the file already exists we can skip opening
-    err = lfs_file_open(&lfs, &sinefile, "sine", LFS_O_RDWR | LFS_O_CREAT);
+    err = lfs_file_open(&lfs, &sinefile, "sine", LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
     if(!err)
     {
         lfs_file_write(&lfs, &sinefile, AudioSampleSine440, 4*65);
