@@ -81,6 +81,20 @@ int file_write(void *buffer, uint32_t offset, size_t size)
     return 0;
 }
 
+int file_erase() {
+    //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
+    multicore_lockout_start_timeout_us(500);
+    uint32_t ints = save_and_disable_interrupts();
+    // re-enable the audio related interrupts so we don't mess up the dac
+    irq_set_enabled(DMA_IRQ_0, true);
+    irq_set_enabled(DMA_IRQ_1, true);
+    flash_range_erase(FS_START,4096*32);
+    restore_interrupts(ints);
+    multicore_lockout_end_timeout_us(500);
+    return 0;
+}
+
+
 void TestFS()
 {
     // instead of all this junk - lets just clear some space

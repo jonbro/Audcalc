@@ -199,6 +199,15 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 {
     int x=key/5;
     int y=key%5;
+    
+    // erase mode
+    if(x==4&&y==1)
+    {
+        erasing = true;
+        file_erase();
+        erasing = false;
+    }
+    // record mode
     if(x==4&&y==0)
     {
         if(pressed)

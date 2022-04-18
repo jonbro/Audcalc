@@ -6,6 +6,8 @@
 
 #include "littlefs/lfs.h"
 #include "hardware/flash.h"
+#include "hardware/dma.h"
+#include "hardware/irq.h"
 #include "pico/multicore.h"
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +27,7 @@ static int lfs_flash_sync(const struct lfs_config *c);
 
 int file_read(void *buffer, uint32_t offset, size_t size);
 int file_write(void *buffer, uint32_t offset, size_t size);
-
+int file_erase();
 void TestFS();
 
 lfs_t* GetLFS();

@@ -38,7 +38,8 @@ class GrooveBox {
    int CurrentStep = 0;
    uint8_t currentVoice = 0;
   bool recording = false;
-     uint32_t recordingLength;
+  uint32_t recordingLength;
+  bool erasing = false;
 
  private:
    uint8_t instrumentParamA[8];

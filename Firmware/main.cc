@@ -93,13 +93,21 @@ lfs_file_t sinefile;
 
 GrooveBox *gbox;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
-void dma_input_handler() {
+void __not_in_flash_func(dma_input_handler)() {
     uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
     dma_hw->ints0 = 1u << dma_chan_input;
     dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
     uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
     uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-    gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+    if(!gbox->erasing)
+    {
+        gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+    }
+    else
+    {
+        // do monitor / passthrough here
+        
+    }
     capture_buf_offset = (capture_buf_offset+1)%2;
 }
 bool hi = false;
@@ -111,7 +119,7 @@ int note = 60;
 
 int needsNewAudioBuffer = 0;
 
-void dma_output_handler() {
+void __not_in_flash_func(dma_output_handler)() {
     dma_hw->ints1 = 1u << dma_chan_output;
     dma_channel_set_read_addr(dma_chan_output, output_buf+output_buf_offset*SAMPLES_PER_BUFFER, true);
     output_buf_offset = (output_buf_offset+1)%3;
@@ -329,7 +337,7 @@ int main()
     bool rev8 = true;
     if(rev8)
     {
-        // power 
+        // power hold on
         gpio_init(23);
         gpio_set_dir(23, GPIO_IN);
         gpio_set_pulls(23, true, false);

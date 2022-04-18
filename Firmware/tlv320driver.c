@@ -164,7 +164,7 @@ void tlvDriverInit()
     
     // micbias must always be on to avoid noise
     write(1, 0x33, 0x68); // micbias enable, 2.5v
-    bool setLineIn = false;
+    bool setLineIn = true;
 
     if(setLineIn)
     {
