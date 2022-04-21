@@ -99,7 +99,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         //     workBuffer2[i] = input_buffer[i*2];
         // }
 
-        file_write(workBuffer2, recordingLength*2, SAMPLES_PER_BUFFER*2);
+        //file_write(workBuffer2, recordingLength*2, SAMPLES_PER_BUFFER*2);
         recordingLength+=SAMPLES_PER_BUFFER;
     }
 
@@ -204,7 +204,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(x==4&&y==1)
     {
         erasing = true;
-        file_erase();
+        //file_erase();
         erasing = false;
     }
     // record mode

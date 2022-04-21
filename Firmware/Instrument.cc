@@ -95,7 +95,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             int16_t wave = 0;
             // // skip the first 4 bytes, since that contains the sample length + encoding
             // lfs_file_seek(GetLFS(), &sinefile, sampleOffset+4, LFS_SEEK_SET);
-            file_read(&wave, sampleOffset*2, 2);
+            //file_read(&wave, sampleOffset*2, 2);
             //lfs_file_read(GetLFS(), &sinefile, &wave, 1);
             
             phase_ += phase_increment;

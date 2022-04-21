@@ -302,7 +302,7 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 #define AMP_CONTROL 29
-int main_real()
+int main()
 {
     set_sys_clock_khz(200000, true); 
     stdio_init_all();
