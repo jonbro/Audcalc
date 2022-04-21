@@ -32,6 +32,11 @@ add_executable(tdm
         reverb.c
         Serializer.cc
         filesystem.c
+        spiffs/spiffs_cache.c
+        spiffs/spiffs_check.c
+        spiffs/spiffs_gc.c
+        spiffs/spiffs_hydrogen.c
+        spiffs/spiffs_nucleus.c
         littlefs/lfs.c
         littlefs/lfs_util.c
         audio/macro_oscillator.cc

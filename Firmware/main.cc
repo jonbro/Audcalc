@@ -302,11 +302,12 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 #define AMP_CONTROL 29
-int main()
+int main_real()
 {
     set_sys_clock_khz(200000, true); 
     stdio_init_all();
-
+    TestFS();
+    return 0;
     //sleep_ms(4000);
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);

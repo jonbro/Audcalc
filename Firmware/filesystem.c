@@ -93,16 +93,144 @@ int file_erase() {
     multicore_lockout_end_timeout_us(500);
     return 0;
 }
+static s32_t my_spiffs_read(u32_t addr, u32_t size, u8_t *dst)
+{
+    memcpy(dst, flash_start+addr, size);
+    return SPIFFS_OK;
+}
+static u8_t spiffs_write_buf[256];
 
+static s32_t my_spiffs_write(u32_t addr, u32_t size, u8_t *src)
+{
+    //uint32_t ints = save_and_disable_interrupts();
+    //multicore_lockout_start_timeout_us(500);
+    // irritatingly, spiffs doesn't align writes to the logical page boundary, so we need to do that?
+    u32_t addr_offset = addr%256;
+    // lets assume the write size is always going to be less than 256?
+    memset(spiffs_write_buf, 0xff, 256);
+    // print out current data at target address
+    // for (size_t i = 0; i < 256; i++)
+    // {
+    //     printf("%02x ", (*(flash_start+addr-addr_offset+i)) & 0xff);
+    //     if(i%8==7)
+    //         printf("\n");
+    // }
+    // printf("\nwrite:\n");
+    // for (size_t i = 0; i < size; i++)
+    // {
+    //     printf("%02x ", (*(src+i)) & 0xff);
+    //     if(i%8==7)
+    //         printf("\n");
+    // }
+    // printf("\n");
+    for (size_t i = 0; i < 256; i++)
+    {
+        if(i>=addr_offset && i-addr_offset < size)
+        {
+            spiffs_write_buf[i] = spiffs_write_buf[i] & src[i-addr_offset]; 
+        }
+        // todo: there is an early out we can do here, figure it out.
+    }
+
+    printf("write size %i addrbase %i addr_offset %i \n", size, addr, addr_offset);
+    flash_range_program(FS_START+addr-addr_offset, spiffs_write_buf, 256);
+    // for (size_t i = 0; i < 256; i++)
+    // {
+    //     printf("%02x ", (*(flash_start+addr-addr_offset+i)) & 0xff);
+    //     if(i%8==7)
+    //         printf("\n");
+    // }
+    // printf("\n");
+    //multicore_lockout_end_timeout_us(500);
+    //restore_interrupts(ints);
+    return SPIFFS_OK;
+}
+
+static s32_t my_spiffs_erase(u32_t addr, u32_t size)
+{
+    //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
+    //multicore_lockout_start_timeout_us(500);
+    //uint32_t ints = save_and_disable_interrupts();
+    // re-enable the audio related interrupts so we don't mess up the dac
+    // irq_set_enabled(DMA_IRQ_0, true);
+    // irq_set_enabled(DMA_IRQ_1, true);
+    flash_range_erase(FS_START+addr,size);
+    //restore_interrupts(ints);
+    //multicore_lockout_end_timeout_us(500);
+    return SPIFFS_OK;
+}
+
+static spiffs fs;
+#define LOG_PAGE_SIZE       256
+
+static u8_t spiffs_work_buf[LOG_PAGE_SIZE*32];
+static u8_t spiffs_fds[32*4];
+static u8_t spiffs_cache_buf[(LOG_PAGE_SIZE+32)*4];
+
+void my_spiffs_mount() {
+    spiffs_config cfg;
+    cfg.phys_size = 1*512*1024; // use all spi flash
+    cfg.phys_addr = 0; // start spiffs at start of spi flash
+    cfg.phys_erase_block = 0xffff; // according to datasheet
+    cfg.log_block_size = 0xffff; // let us not complicate things
+    cfg.log_page_size = LOG_PAGE_SIZE; // as we said
+
+    cfg.hal_read_f = my_spiffs_read;
+    cfg.hal_write_f = my_spiffs_write;
+    cfg.hal_erase_f = my_spiffs_erase;
+
+    int res = SPIFFS_mount(&fs,
+        &cfg,
+        spiffs_work_buf,
+        spiffs_fds,
+        sizeof(spiffs_fds),
+        spiffs_cache_buf,
+        sizeof(spiffs_cache_buf),
+        0);
+    printf("mount res: %i\n", res);
+    if(res == SPIFFS_ERR_NOT_A_FS)
+    {
+        int res = SPIFFS_format(&fs);
+        printf("format res: %i\n", res);
+
+        res = SPIFFS_mount(&fs,
+            &cfg,
+            spiffs_work_buf,
+            spiffs_fds,
+            sizeof(spiffs_fds),
+            spiffs_cache_buf,
+            sizeof(spiffs_cache_buf),
+            0);
+        printf("mount res: %i\n", res);
+    }
+}
 
 void TestFS()
 {
-    // instead of all this junk - lets just clear some space
-    multicore_lockout_start_timeout_us(500);
-    uint32_t ints = save_and_disable_interrupts();
-    flash_range_erase(FS_START,4096*32);
-    restore_interrupts(ints);
-    multicore_lockout_end_timeout_us(500);
+    // and again, lets just make my own file system, yay!
+    // once again, an alternate approach, lets test out spiffs
+        // instead of all this junk - lets just clear some space
+    //multicore_lockout_start_timeout_us(500);
+    // uint32_t ints = save_and_disable_interrupts();
+    // flash_range_erase(FS_START,4096*32);
+    // restore_interrupts(ints);
+    //multicore_lockout_end_timeout_us(500);
+
+    my_spiffs_mount();
+    char buf[12];
+    
+    // Surely, I've mounted spiffs before entering here
+  
+    spiffs_file fd = SPIFFS_open(&fs, "my_file2", SPIFFS_CREAT | SPIFFS_TRUNC | SPIFFS_RDWR, 0);
+    if (SPIFFS_write(&fs, fd, (u8_t *)"Hello world", 12) < 0) printf("errno %i\n", SPIFFS_errno(&fs));
+    SPIFFS_close(&fs, fd); 
+  
+    fd = SPIFFS_open(&fs, "my_file2", SPIFFS_RDWR, 0);
+    if (SPIFFS_read(&fs, fd, (u8_t *)buf, 12) < 0) printf("errno %i\n", SPIFFS_errno(&fs));
+    SPIFFS_close(&fs, fd);
+  
+    printf("--> %s <--\n", buf);
+    return;
 
     return;
     int err = lfs_mount(&lfs, &cfg);
