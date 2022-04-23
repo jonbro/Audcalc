@@ -27,7 +27,7 @@ very limited file system, but I have different requirements:
 
 */
 
-#define BLOCK_SIZE 0xfff
+#define BLOCK_SIZE 0x1000
 
 typedef struct
 {
@@ -42,6 +42,8 @@ typedef struct
 {
     bool initialized;
     uint16_t object_id;
+    uint8_t read_offset;
+    uint32_t current_block;
 } ffs_file;
 
 typedef struct
@@ -102,6 +104,8 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
         if(blockHeader.object_id == file_id)
         {
             found = true;
+            file->current_block = block_offset;
+            file->read_offset = 0;  
             break;
         }
         block_offset += BLOCK_SIZE;
@@ -134,45 +138,42 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
     ffs_blockheader blockHeader;
     if(!file->initialized)
     {
-        // find the first free block and start writing into it
-        while(block_offset < fs->size)
+        // find a new empty block to write into
+        int block_offset = ffs_find_empty(fs);
+        if(block_offset < 0)
         {
-            fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
-            // find empty block?
-            if(blockHeader.object_id == 0xffff)
-            {
-                blockHeader.object_id = file->object_id;
-                blockHeader.initial_page = true;
-                blockHeader.jump_page = 0xffffffff;
-                blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
-
-                // we are wasting a crapton of space here, but its ok?
-                // easier just to waste and keep everything aligned rather than doing a bunch of copies at this point
-
-                memset(fs->work_buf, 0xff, 256);
-                memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
-                fs->write(block_offset, 256, fs->work_buf);
-                // step forward to the next 256 byte aligned chunks
-                block_offset += 256;
-
-                // need to handle going out of the block, but for now we can safely write into this chunk 
-                // in fact - if we never write more than 256, we can safely just use this
-                memset(fs->work_buf, 0xff, 256);
-                memcpy(fs->work_buf, buffer, size);
-                fs->write(block_offset, 256, fs->work_buf);
-                
-                file->initialized = true;
-                return 0;
-            }
-            block_offset += BLOCK_SIZE;
+            return -1;
         }
+        blockHeader.object_id = file->object_id;
+        blockHeader.initial_page = true;
+        blockHeader.jump_page = 0xffffffff;
+        blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
+
+        // we are wasting a crapton of space here, but its ok?
+        // easier just to waste and keep everything aligned rather than doing a bunch of copies at this point
+
+        memset(fs->work_buf, 0xff, 256);
+        memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
+        fs->write(block_offset, 256, fs->work_buf);
+        // step forward to the next 256 byte aligned chunks
+        block_offset += 256;
+
+        // need to handle going out of the block, but for now we can safely write into this chunk 
+        // in fact - if we never write more than 256, we can safely just use this
+        memset(fs->work_buf, 0xff, 256);
+        memcpy(fs->work_buf, buffer, size);
+        fs->write(block_offset, 256, fs->work_buf);
+        file->current_block = block_offset-256;
+        file->read_offset = 0;
+        file->initialized = true;
+        return 0;
     }
     else
     {
         while(block_offset < fs->size)
         {
             fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
-            // find empty block?
+            // look for last block
             if(blockHeader.object_id == file->object_id)
             {
                 if(blockHeader.jump_page != 0xffffffff)
@@ -202,6 +203,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
                     fs->write(block_offset, 256, fs->work_buf);
+
                     // clear block header and write into new empty page
                     blockHeader.jump_page = 0xffffffff;
                     blockHeader.object_id = file->object_id;
@@ -209,8 +211,8 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
 
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
-                    fs->write(block_offset, 256, fs->work_buf);
                     block_offset = empty;
+                    fs->write(block_offset, 256, fs->work_buf);
                     continue;
                 }
                 //update the pagemask
@@ -243,11 +245,20 @@ static int ffs_erase(ffs_filesystem *fs, ffs_file *file)
         if(blockHeader.object_id == file->object_id)
         {
             fs->erase(block_offset, BLOCK_SIZE);
+            // use jumps to erase the rest
+            while(blockHeader.jump_page != 0xffffffff)
+            {
+                block_offset = blockHeader.jump_page;
+                fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
+                fs->erase(block_offset, BLOCK_SIZE);
+            }
+            file->initialized = false;
+            return 0;
         }
         block_offset+=BLOCK_SIZE;
     }
-    file->initialized = false;
-    return 0;
+    // couldn't find the file
+    return -1;
 }
 
 static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
@@ -261,22 +272,29 @@ static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t siz
     {
         return -1; // need better error codes
     }
+
     // need to actually keep track of read state!
-    uint32_t block_offset = 0;
+    uint32_t read_offset = file->current_block;
     ffs_blockheader blockHeader;
-    while(block_offset < fs->size)
+
+    fs->read(read_offset, sizeof(blockHeader), &blockHeader);
+    assert(blockHeader.object_id == file->object_id);
+    // confirm the read offset is readable
+    assert((~blockHeader.written_page_mask & (1<<file->read_offset)) != 0);
+
+    read_offset = file->current_block + 256*(file->read_offset+1); // compensate for the block header
+    fs->read(read_offset, size, buffer);
+    // advance the read stuff
+    if(++file->read_offset >= 15)
     {
-        fs->read(block_offset, sizeof(blockHeader), &blockHeader);
-        if(blockHeader.object_id == file->object_id)
-        {
-            // advance the read past the blockheader
-            block_offset += 256;
-            fs->read(block_offset, size, buffer);
-            return 0;
-        }
-        block_offset+=BLOCK_SIZE;
+        // advance to the next block
+        file->read_offset = 0;
+
+        //TODO: handle out of bounds here
+        // maybe just rewind to the beginning lol.
+        file->current_block = blockHeader.jump_page;  
     }
-    return -1;
+    return 0;
 }
 
 int file_read(uint32_t offset, size_t size, void *buffer);

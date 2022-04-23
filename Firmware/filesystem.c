@@ -34,7 +34,7 @@ int file_erase(uint32_t offset, size_t size)
 void TestFS()
 {
     uint8_t work_buf[256];
-    file_erase(0, 4096*32);
+    file_erase(0, 0xfff*32);
     // lets just confirm that reading works the way we expect
     ffs_blockheader header;
     file_read(0, sizeof(ffs_blockheader), &header);
@@ -44,7 +44,7 @@ void TestFS()
         .erase = file_erase,
         .read = file_read,
         .write = file_write,
-        .size = 4096*32
+        .size = 0xfff*32
     };
     ffs_filesystem fs;
     ffs_file file0;
@@ -80,13 +80,16 @@ void TestFS()
     
     // confirm file erased
     {
-        uint8_t output[256*2];
-
-        // direct file read, since we don't have any protection
-        file_read(0, 256*2, output);
-        for (size_t i = 0; i < 256*2; i++)
+        uint8_t output[256];
+        // lets check the first few blocks - things shouldn't have gone out of bounds here
+        for (size_t j = 0; j < 32; j++)
         {
-            assert(output[i] == 0xff);
+            // direct file read, since we don't have any protection
+            file_read(j*256, 256, output);
+            for (size_t i = 0; i < 256; i++)
+            {
+                assert(output[i] == 0xff);
+            }
         }
     }
 
