@@ -28,6 +28,7 @@ very limited file system, but I have different requirements:
 */
 
 #define BLOCK_SIZE 0x1000
+#define EMPTY_JUMP_PAGE 0xffffffff
 
 typedef struct
 {
@@ -40,10 +41,13 @@ typedef struct
 
 typedef struct
 {
-    bool initialized;
-    uint16_t object_id;
-    uint8_t read_offset;
-    uint32_t current_block;
+    bool        initialized;
+    uint16_t    object_id;
+    
+    uint32_t    filesize;
+    uint32_t    logical_read_offset; // where we are in the file (disconnected from physical address)
+    uint8_t     inblock_read_offset;
+    uint32_t    current_block;
 } ffs_file;
 
 typedef struct
@@ -58,10 +62,12 @@ typedef struct
 
 typedef struct 
 {
-    uint16_t object_id;
-    uint16_t written_page_mask;
-    uint32_t jump_page;
-    uint8_t  initial_page;
+    uint16_t    object_id;
+    uint16_t    written_page_mask;
+    uint32_t    jump_page; // should rename to "next block"
+    uint32_t    prior_block;
+    uint8_t     initial_page;
+    uint32_t    block_logical_start;
 } ffs_blockheader;
 
 
@@ -105,7 +111,8 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
         {
             found = true;
             file->current_block = block_offset;
-            file->read_offset = 0;  
+            file->inblock_read_offset = 0;
+            file->logical_read_offset = 0; 
             break;
         }
         block_offset += BLOCK_SIZE;
@@ -147,8 +154,9 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
         blockHeader.object_id = file->object_id;
         blockHeader.initial_page = true;
         blockHeader.jump_page = 0xffffffff;
+        blockHeader.prior_block = EMPTY_JUMP_PAGE;
         blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
-
+        blockHeader.block_logical_start = 0;
         // we are wasting a crapton of space here, but its ok?
         // easier just to waste and keep everything aligned rather than doing a bunch of copies at this point
 
@@ -156,20 +164,21 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
         memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
         fs->write(block_offset, 256, fs->work_buf);
         // step forward to the next 256 byte aligned chunks
-        block_offset += 256;
 
         // need to handle going out of the block, but for now we can safely write into this chunk 
         // in fact - if we never write more than 256, we can safely just use this
         memset(fs->work_buf, 0xff, 256);
         memcpy(fs->work_buf, buffer, size);
-        fs->write(block_offset, 256, fs->work_buf);
-        file->current_block = block_offset-256;
-        file->read_offset = 0;
+        fs->write(block_offset+256, 256, fs->work_buf);
+        file->current_block = block_offset;
+        file->inblock_read_offset = 0;
+        file->logical_read_offset = 0;
         file->initialized = true;
         return 0;
     }
     else
     {
+        // faster writes if we store the blockwrite position
         while(block_offset < fs->size)
         {
             fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
@@ -204,11 +213,13 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
                     fs->write(block_offset, 256, fs->work_buf);
 
+                    uint32_t last_logical_start = blockHeader.block_logical_start;
                     // clear block header and write into new empty page
                     blockHeader.jump_page = 0xffffffff;
                     blockHeader.object_id = file->object_id;
                     blockHeader.written_page_mask = 0xffff;
-
+                    blockHeader.block_logical_start = last_logical_start+15*256;
+                    blockHeader.prior_block = block_offset;
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
                     block_offset = empty;
@@ -260,9 +271,73 @@ static int ffs_erase(ffs_filesystem *fs, ffs_file *file)
     // couldn't find the file
     return -1;
 }
-
+static int ffs_load_blockheader(ffs_filesystem *fs, ffs_file *file, ffs_blockheader *blockheader)
+{
+    fs->read(file->current_block, sizeof(ffs_blockheader), blockheader);
+}
 static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
 {
+    // early out if logical read position already set correctly
+    if(file->logical_read_offset == position)
+    {
+        return 0;
+    }
+    // early out if read position is past end of file
+    if(position >= file->filesize)
+    {
+        return -1;
+    }
+    // load blockheader
+    ffs_blockheader blockHeader;
+    ffs_load_blockheader(fs, file, &blockHeader);
+
+    if(position >= blockHeader.block_logical_start)
+    {
+        // seeking forward
+        if(position-blockHeader.block_logical_start < 256*15)
+        {
+            // if the read position is within the current block, we can just move things forward
+            file->logical_read_offset = position;
+            return 0;
+        }
+        else
+        {
+            // we are going forward to a later block
+            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
+            {
+                file->current_block = blockHeader.jump_page;
+                ffs_load_blockheader(fs, file, &blockHeader);
+                if(position-blockHeader.block_logical_start < 256*15)
+                {
+                    // if the read position is within the current block, we can just move things forward
+                    file->logical_read_offset = position;
+                    return 0;
+                }
+            }
+            // we shouldn't hit this, it should have caught this error because we are asking for something
+            // past the end of the file
+            assert(false);
+        }
+    }
+    else
+    {
+        // seeking backwards
+        while(blockHeader.prior_block != EMPTY_JUMP_PAGE)
+        {
+            file->current_block = blockHeader.prior_block;
+            ffs_load_blockheader(fs, file, &blockHeader);
+            if(position-blockHeader.block_logical_start < 256*15)
+            {
+                // if the read position is within the current block, we can just move things forward
+                file->logical_read_offset = position;
+                return 0;
+            }
+        }
+        // we shouldn't hit this, it should have caught this error because we are asking for something
+        // past the beginning of the file. Should be impossible to even do this, since we are using uints
+        // anyways, asserts are for logical errors
+        assert(false);
+    }
     
 }
 
@@ -270,30 +345,31 @@ static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t siz
 {
     if(!file->initialized)
     {
+        // file isn't initialized?
         return -1; // need better error codes
     }
 
     // need to actually keep track of read state!
-    uint32_t read_offset = file->current_block;
     ffs_blockheader blockHeader;
 
-    fs->read(read_offset, sizeof(blockHeader), &blockHeader);
+    fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
     assert(blockHeader.object_id == file->object_id);
-    // confirm the read offset is readable
-    assert((~blockHeader.written_page_mask & (1<<file->read_offset)) != 0);
 
-    read_offset = file->current_block + 256*(file->read_offset+1); // compensate for the block header
-    fs->read(read_offset, size, buffer);
-    // advance the read stuff
-    if(++file->read_offset >= 15)
+    int read_position = file->logical_read_offset-blockHeader.block_logical_start;    
+    // clamp the read amount to the remaining in the block
+    int next_read_amount = (read_position+size>256*15)?256*15-read_position:size;
+    fs->read(read_position+file->current_block+256, next_read_amount, buffer);
+    if(size-next_read_amount>0)
     {
-        // advance to the next block
-        file->read_offset = 0;
-
-        //TODO: handle out of bounds here
-        // maybe just rewind to the beginning lol.
-        file->current_block = blockHeader.jump_page;  
+        // this will advance the read to the next block
+        ffs_seek(fs, file, next_read_amount+file->logical_read_offset);
+        // kinda dangerous to recurse, but lets assume we aren't gonna overflow the stack, lol.
+        return ffs_read(fs, file, ((uint8_t*)buffer)+next_read_amount, size-next_read_amount);
     }
+    // advance the read position
+    // ignore the boundary error at this point, even if it is out of bounds
+    // the next file read will trigger the boundary error?
+    ffs_seek(fs, file, file->logical_read_offset+size);
     return 0;
 }
 
@@ -303,11 +379,10 @@ int file_erase(uint32_t offset, size_t size);
 
 // spiffs handlers
 
-void my_spiffs_mount();
-
 void TestFS();
+void InitializeFilesystem();
 
-lfs_t* GetLFS();
+ffs_filesystem* GetFilesystem();
 
 #ifdef __cplusplus
 }
