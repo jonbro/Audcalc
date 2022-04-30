@@ -21,8 +21,9 @@ GrooveBox::GrooveBox(uint32_t *_color)
             instruments[i].SetType(INSTRUMENT_MACRO);
         instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
         instruments[i].SetAHD(4000, 1000, 20000);
+        ffs_open(GetFilesystem(), &files[i], i);
+        instruments[i].SetFile(&files[i]);
     }
-    instruments[1].OpenFile(0);
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
     color = _color;
@@ -94,17 +95,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
     if(recording)
     { 
-        // for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        // {
-        //     workBuffer2[i] = input_buffer[i*2];
-        // }
-
-        //file_write(workBuffer2, recordingLength*2, SAMPLES_PER_BUFFER*2);
-        recordingLength+=SAMPLES_PER_BUFFER;
+        ffs_append(GetFilesystem(), &files[1], workBuffer2, SAMPLES_PER_BUFFER*2);
     }
-
-        // printf("renderTime %lld \n", absolute_time_diff_us(renderStartTime, get_absolute_time()));
-
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
@@ -212,32 +204,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     {
         if(pressed)
         {
-            // go into record mode
-            // close the file
-            instruments[1].CloseFile();
-            // open file locally
-            // int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
-            // if(!err)
-            // {
-            //     //reserve 4 bytes at the beginning
-            //     lfs_file_seek(GetLFS(), &sinefile, 4, LFS_SEEK_SET);
-                recordingLength = 0;
-                recording = true;
-            // }
-            // else
-            // {
-            //     printf("recording failed\n");
-            // }
+            recordingLength = 0;
+            recording = true;
         }
         else
         {
             // finish recording
-            // lfs_file_rewind(GetLFS(), &sinefile);
-            // lfs_file_write(GetLFS(), &sinefile, &recordingLength, 4);
-            // lfs_file_close(GetLFS(), &sinefile);
-            //file_write(&recordingLength, 0, 4);
             recording = false;
-            instruments[1].OpenFile(recordingLength);
         }
     }
     if(x<4 && y>0 && pressed)

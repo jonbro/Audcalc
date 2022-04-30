@@ -89,7 +89,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     } 
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
-        //return;
+        uint32_t filesize = ffs_file_size(GetFilesystem(), file);
+        if(filesize == 0)
+            return;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t wave = 0;
@@ -97,7 +99,8 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             // lfs_file_seek(GetLFS(), &sinefile, sampleOffset+4, LFS_SEEK_SET);
             //file_read(&wave, sampleOffset*2, 2);
             //lfs_file_read(GetLFS(), &sinefile, &wave, 1);
-            
+            ffs_seek(GetFilesystem(), file, sampleOffset*2);
+            ffs_read(GetFilesystem(), file, &wave, 2);
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
             phase_-=(phase_&(0xff<<25));
@@ -105,9 +108,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             // *buffer++ = Interpolate824(wave[0], phase_ >> 1);
 
             // sampleOffset+=2;
-            while(sampleOffset > fullSampleLength-1)
+            while(sampleOffset*2 > filesize - 1)
             {
-                sampleOffset -=fullSampleLength;
+                sampleOffset -= filesize/2;
             }
             buffer[i] = wave;
             //mult_q15(buffer[i], volume);

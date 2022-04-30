@@ -20,7 +20,6 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
-        # sine_wave.c
         main.cc
         # usb_audio.c
         # usb_descriptors.c
@@ -44,7 +43,6 @@ add_executable(tdm
         audio/digital_oscillator.cc
         audio/resources.cc
         audio/random.cc
-        AudioSampleSine440.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)

@@ -11,23 +11,25 @@ int file_read(uint32_t offset, size_t size, void *buffer)
 }
 int file_write(uint32_t offset, size_t size, void *buffer)
 {
+    multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + offset, buffer, size);
     restore_interrupts(ints);
+    multicore_lockout_end_timeout_us(500);
     return 0;
 }
 
 int file_erase(uint32_t offset, size_t size)
 {
     //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
-    // multicore_lockout_start_timeout_us(500);
+    multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
     // // re-enable the audio related interrupts so we don't mess up the dac
-    // irq_set_enabled(DMA_IRQ_0, true);
-    // irq_set_enabled(DMA_IRQ_1, true);
+    irq_set_enabled(DMA_IRQ_0, true);
+    irq_set_enabled(DMA_IRQ_1, true);
     flash_range_erase(FS_START + offset,size);
     restore_interrupts(ints);
-    // multicore_lockout_end_timeout_us(500);
+    multicore_lockout_end_timeout_us(500);
     return 0;
 }
 ffs_filesystem filesystem;
@@ -40,8 +42,9 @@ ffs_filesystem* GetFilesystem()
 
 void InitializeFilesystem()
 {
+    // file system should be sound, don't need to erase
     file_erase(0, 0x1000*0x100);
-        ffs_cfg cfg = {
+    ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,
         .write = file_write,
@@ -76,7 +79,14 @@ void TestFS()
     {
         printf("error in append\n");
     }
-    
+
+    {
+        // file size must be a multiple of 256 / pagesize
+        uint32_t filesize = ffs_file_size(&fs, &file0);
+        printf("filesize: %i\n", filesize);
+        assert(filesize == 256);
+    }
+
     // clear the test string
     memset(&test, 0, 12);
     if(ffs_read(&fs, &file0, &test, 12))
@@ -193,5 +203,10 @@ void TestFS()
         }
     }
 
+    {
+        // initial open filesize lookup
+        ffs_open(&fs, &file0, 0);
+        printf("file size%i\n", ffs_file_size(&fs, &file0));
+    }
     printf("test success\n");
 }

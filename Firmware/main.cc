@@ -89,7 +89,6 @@ extern uint32_t __flash_binary_end;
 bool initial_sample = false;
 int input_position = 0;
 int initial_sample_count = 0;
-lfs_file_t sinefile;
 
 GrooveBox *gbox;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
@@ -97,6 +96,7 @@ void __not_in_flash_func(dma_input_handler)() {
     uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
     dma_hw->ints0 = 1u << dma_chan_input;
     dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
+    capture_buf_offset = (capture_buf_offset+1)%2;
     uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
     uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
     if(!gbox->erasing)
@@ -304,10 +304,13 @@ uint8_t adc2_prev;
 #define AMP_CONTROL 29
 int main()
 {
-    set_sys_clock_khz(200000, true); 
+    set_sys_clock_khz(150000, true); 
     stdio_init_all();
-    TestFS();
-    return 0;
+    
+    // TestFS();
+    // return 0;
+    
+   
     //sleep_ms(4000);
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
@@ -330,7 +333,7 @@ int main()
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
-    TestFS();
+    InitializeFilesystem();
 
     adc_init();
     adc_gpio_init(26);
@@ -488,17 +491,13 @@ int main()
             }
             if(!screen_flip_ready)
             {
-                //multicore_lockout_start_timeout_us(500);
+                // multicore_lockout_start_timeout_us(500);
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
-                //multicore_lockout_end_timeout_us(500);
+                // multicore_lockout_end_timeout_us(500);
             }
             needsScreenupdate = false;
         }
-        // while(needsNewAudioBuffer>0)
-        // {
-        //     fillNextAudioBuffer();
-        // }
     }
     return 0;
 }

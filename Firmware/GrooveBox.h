@@ -73,6 +73,6 @@ class GrooveBox {
    uint8_t lastAdcValA = 0;
    uint8_t lastAdcValB = 0;
 
-   lfs_file_t sinefile;
+   ffs_file files[16];
 };
 #endif // GROOVEBOX_H_

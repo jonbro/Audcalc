@@ -4,7 +4,6 @@
 #include "q15.h"
 #include "audio/svf.h"
 #include "Midi.h"
-#include "AudioSampleSine440.h"
 #include "audio/settings.h"
 #include "ADSREnvelope.h"
 #include "filesystem.h"
@@ -44,31 +43,12 @@ class Instrument
           if(type == INSTRUMENT_DRUMS)
             osc.set_shape(MACRO_OSC_SHAPE_KICK);
         }
+        void SetFile(ffs_file *_file)
+        {
+          file = _file;
+        }
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
-        void OpenFile(uint32_t recordingLength){
-          // int err = lfs_file_open(GetLFS(), &sinefile, "sine", LFS_O_RDONLY);
-          // if(err)
-          // {
-              
-          //     printf("failed to open file %i\n", err);
-          // }
-          // else
-          // {
-          //     printf("opened file \n");
-          // }
-          // uint32_t wavSize;
-          // file_read(&wavSize, 0, 4);
-          // // lfs_file_rewind(GetLFS(), &sinefile);
-          // // lfs_file_read(GetLFS(), &sinefile, &wavSize, 4);
-          // fullSampleLength = wavSize & 0xffffff; // low 24 bits are the length of the wav file https://www.pjrc.com/teensy/td_libs_AudioPlayMemory.html 
-          fullSampleLength = recordingLength;
-          printf("sample length %i\n", fullSampleLength);
-        }
-        void CloseFile()
-        {
-          //lfs_file_close(GetLFS(), &sinefile);
-        }
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
@@ -93,7 +73,8 @@ class Instrument
         q15_t timbre;
         uint8_t cutoff;
         uint8_t resonance;
-        uint32_t sampleOffset;
+        uint32_t sampleOffset; 
+        ffs_file *file;
         // stored in the displayed param values (since the user doesn't have access to more than this anyways)
         // (maybe I add a fine tune?)
         uint32_t sampleStart[16];
@@ -101,6 +82,5 @@ class Instrument
         uint32_t fullSampleLength;
         ADSREnvelope env;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
-        lfs_file_t sinefile;
         uint32_t phase_increment = 0;
 };

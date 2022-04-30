@@ -1,18 +1,12 @@
 #ifndef filesystem_H_
 #define filesystem_H_
 
-// was getting an assert failure in fopen
-#define LFS_NO_ASSERT 0
-
-#include "littlefs/lfs.h"
 #include "hardware/flash.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "pico/multicore.h"
 #include <stdio.h>
 #include <string.h>
-#include "AudioSampleSine440.h"
-#include <spiffs/spiffs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,6 +89,20 @@ static int ffs_mount(ffs_filesystem *fs, const ffs_cfg *cfg, void *work_buf)
     fs->work_buf = work_buf;
 }
 
+static int16_t ffs_find_empty_page(ffs_blockheader *blockheader)
+{
+    int foundPage = -1;
+    // find the first empty page
+    for (size_t i = 0; i < 15; i++)
+    {
+        if((~blockheader->written_page_mask & (1<<i)) == 0)
+        {
+            foundPage = i;
+            break;
+        }
+    }
+    return foundPage;
+}
 
 static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
 {
@@ -110,9 +118,26 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
         if(blockHeader.object_id == file_id)
         {
             found = true;
-            file->current_block = block_offset;
-            file->inblock_read_offset = 0;
-            file->logical_read_offset = 0; 
+            file->current_block         = block_offset;
+            file->inblock_read_offset   = 0;
+            file->logical_read_offset   = 0; 
+
+            // need to walk the filetree to generate the filesize
+            file->filesize              = 0;
+            int writtenPages = ffs_find_empty_page(&blockHeader);
+            if(writtenPages > 0)
+            {
+                file->filesize+=writtenPages*256;
+            }
+            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
+            {
+                fs->read(blockHeader.jump_page, 1, &blockHeader);
+                int writtenPages = ffs_find_empty_page(&blockHeader);
+                if(writtenPages > 0)
+                {
+                    file->filesize+=writtenPages*256;
+                }
+            }
             break;
         }
         block_offset += BLOCK_SIZE;
@@ -120,8 +145,10 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     if(!found)
     {
         file->initialized = false;
+        file->filesize = 0;
     }
     file->object_id = file_id;
+    return 0;
 }
 static int ffs_find_empty(ffs_filesystem *fs)
 {
@@ -174,6 +201,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
         file->inblock_read_offset = 0;
         file->logical_read_offset = 0;
         file->initialized = true;
+        file->filesize+=256;
         return 0;
     }
     else
@@ -236,6 +264,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
                 memset(fs->work_buf, 0xff, 256);
                 memcpy(fs->work_buf, buffer, 256);
                 fs->write(block_offset+(foundPage+1)*256, 256, fs->work_buf);
+                file->filesize+=256;
                 return 0;
             }
             block_offset += BLOCK_SIZE;
@@ -273,7 +302,8 @@ static int ffs_erase(ffs_filesystem *fs, ffs_file *file)
 }
 static int ffs_load_blockheader(ffs_filesystem *fs, ffs_file *file, ffs_blockheader *blockheader)
 {
-    fs->read(file->current_block, sizeof(ffs_blockheader), blockheader);
+    ffs_blockheader headerForSize;
+    fs->read(file->current_block, sizeof(headerForSize), blockheader);
 }
 static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
 {
@@ -289,7 +319,8 @@ static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     }
     // load blockheader
     ffs_blockheader blockHeader;
-    ffs_load_blockheader(fs, file, &blockHeader);
+
+    fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
 
     if(position >= blockHeader.block_logical_start)
     {
@@ -306,7 +337,7 @@ static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
             while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
             {
                 file->current_block = blockHeader.jump_page;
-                ffs_load_blockheader(fs, file, &blockHeader);
+                fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
                 if(position-blockHeader.block_logical_start < 256*15)
                 {
                     // if the read position is within the current block, we can just move things forward
@@ -325,7 +356,7 @@ static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         while(blockHeader.prior_block != EMPTY_JUMP_PAGE)
         {
             file->current_block = blockHeader.prior_block;
-            ffs_load_blockheader(fs, file, &blockHeader);
+            fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
             if(position-blockHeader.block_logical_start < 256*15)
             {
                 // if the read position is within the current block, we can just move things forward
@@ -339,6 +370,11 @@ static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         assert(false);
     }
     
+}
+
+static int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
+{
+    return file->filesize;
 }
 
 static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size)
@@ -376,8 +412,6 @@ static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t siz
 int file_read(uint32_t offset, size_t size, void *buffer);
 int file_write(uint32_t offset, size_t size, void *buffer);
 int file_erase(uint32_t offset, size_t size);
-
-// spiffs handlers
 
 void TestFS();
 void InitializeFilesystem();
