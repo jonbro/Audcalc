@@ -9,26 +9,29 @@ void Delay_init(Delay *delay, int length)
         delay->buf[i] = 0;
     }
 }
+
 int16_t Delay_process(Delay *delay, int16_t in)
 {
     int16_t delayed = delay->buf[delay->count];
     delay->buf[delay->count] = in;
-    if (++delay->count > delay->length)
+    if (++delay->count > delay->length-1)
         delay->count = 0;
-
     return delayed;
 }
+
+
 int16_t Delay_tap(Delay *delay, int tap)
 {
     int offset = tap+delay->count;
     while (offset < 0)
         offset += delay->length;
-    while(offset > delay->length)
+    while(offset > delay->length-1)
     {
         offset -= delay->length;
     }
     return delay->buf[offset];
 }
+
 /*
 struct HPF {
    int16_t x0;

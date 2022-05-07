@@ -301,7 +301,6 @@ void sleep()
 }
 
 
-
 uint8_t adc1_prev;
 uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
@@ -365,7 +364,7 @@ int main()
     memset(color, 0, 25 * sizeof(uint32_t));
 
     gbox = new GrooveBox(color);
-    gbox->Deserialize();
+    //gbox->Deserialize();
     // fill the silence buffer so we get something out
     for(int i=0;i<128;i++)
     {

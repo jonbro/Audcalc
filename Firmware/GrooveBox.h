@@ -12,7 +12,7 @@ extern "C" {
 #include "q15.h"
 #include "Midi.h"
 #include "Serializer.h"
-
+#include "reverb.h"
 class Pattern
 {
    public:
@@ -42,37 +42,38 @@ class GrooveBox {
   bool erasing = false;
 
  private:
-   uint8_t instrumentParamA[8];
-   uint8_t instrumentParamB[8];
-   int needsNoteTrigger = -1;
-   int drawY = 0;
-   int lastNotePlayed = 0;
-   
-   int patternChain[16] = {0};
-   int patternChainLength = 1;
-   int chainStep = 0;
-   bool nextPatternSelected = false;
+  uint8_t instrumentParamA[8];
+  uint8_t instrumentParamB[8];
+  int needsNoteTrigger = -1;
+  int drawY = 0;
+  int lastNotePlayed = 0;
+  
+  int patternChain[16] = {0};
+  int patternChainLength = 1;
+  int chainStep = 0;
+  bool nextPatternSelected = false;
 
-   bool playing = false;
-   bool writing = false;
-   bool holdingWrite = false;
-   bool liveWrite = false;
-   bool soundSelectMode = false;
-   bool patternSelectMode = false;
-   bool paramSelectMode = false;
-   uint8_t param = 0;
-   uint32_t *color;
-   Pattern patterns[16];
-   Pattern *Editing;
-   Pattern *Playing;
-   uint8_t notes[16*16*16];
-   uint8_t trigger[16*16*16]; // could probably use the notes array above for this, just have a "off" value
-   Midi midi;
-   uint32_t bpm = 105;
-   uint16_t nextTrigger = 0;
-   uint8_t lastAdcValA = 0;
-   uint8_t lastAdcValB = 0;
-
-   ffs_file files[16];
+  bool playing = false;
+  bool writing = false;
+  bool holdingWrite = false;
+  bool liveWrite = false;
+  bool soundSelectMode = false;
+  bool patternSelectMode = false;
+  bool paramSelectMode = false;
+  uint8_t param = 0;
+  uint32_t *color;
+  Pattern patterns[16];
+  Pattern *Editing;
+  Pattern *Playing;
+  uint8_t notes[16*16*16];
+  uint8_t trigger[16*16*16]; // could probably use the notes array above for this, just have a "off" value
+  Midi midi;
+  uint32_t bpm = 125;
+  uint16_t nextTrigger = 0;
+  uint8_t lastAdcValA = 0;
+  uint8_t lastAdcValB = 0;
+  Delay delay;
+  ffs_file files[16];
+  GlobalParamSet globalParamSet;
 };
 #endif // GROOVEBOX_H_

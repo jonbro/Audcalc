@@ -11,12 +11,18 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 
 GrooveBox::GrooveBox(uint32_t *_color)
 {
+    Delay_init(&delay, 10000);
     midi.Init();
     for(int i=0;i<8;i++)
     {
         instruments[i].Init(&midi);
         if(i==0)
             instruments[i].SetType(INSTRUMENT_SAMPLE);
+        else if(i==7)
+        {
+            instruments[i].SetType(INSTRUMENT_GLOBAL);
+            instruments[7].globalParamSet = &globalParamSet;
+        }
         else
             instruments[i].SetType(INSTRUMENT_MACRO);
         instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
@@ -32,70 +38,89 @@ GrooveBox::GrooveBox(uint32_t *_color)
 int16_t workBuffer[SAMPLES_PER_BUFFER];
 int16_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
+int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
-
+int16_t last_delay = 0;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
     memset(output_buffer, 0, size);
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    {
-        workBuffer2[i] = input_buffer[i*2];
-    }
     //memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
 
     //printf("input %i\n", workBuffer2[0]);
-    for(int v=0;v<8;v++)
+    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-        if(v==1 && recording)
-            continue;
-        memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
-        memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-        instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
-        // mix in the instrument
+        workBuffer2[i] = input_buffer[i*2];
+        toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParamSet.input_fx_send)<<6);
+    }
+    if(!recording)
+    {
+        for(int v=0;v<8;v++)
+        {
+            if(v==1 && recording)
+                continue;
+            memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
+            memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+            instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
+            // mix in the instrument
+            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            {
+                q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
+                workBuffer2[i] = add_q15(workBuffer2[i], workBuffer[i]);
+                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<6));
+            }
+        }
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
-            workBuffer2[i] = add_q15(workBuffer2[i], workBuffer[i]);
+            int16_t delay_feedback = mult_q15(last_delay, 0x4fff);
+            toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
+            last_delay = Delay_process(&delay, toDelayBuffer[i]);
+            workBuffer2[i] = add_q15(workBuffer2[i], last_delay);
+        }
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            // this can all be done outside this loop?
+            int requestedNote = GetNote();
+            if(requestedNote >= 0)
+            {
+                instruments[currentVoice].NoteOn(requestedNote, true);
+            }
+            if(IsPlaying())
+            {
+                if(nextTrigger-- == 0)
+                {
+                    for(int v=0;v<8;v++)
+                    {
+                        int requestedNote = GetTrigger(v, CurrentStep);
+                        if(requestedNote >= 0)
+                        {
+                            instruments[v].NoteOn(requestedNote, false);
+                        }
+                    }
+                    UpdateAfterTrigger(CurrentStep);
+                    CurrentStep = (++CurrentStep)%16;
+                    if(CurrentStep==0)
+                    {
+                        chainStep = (++chainStep)%patternChainLength;
+                    }
+                    nextTrigger = 60u*44100u/globalParamSet.bpm/4;
+                }
+            }
+            int16_t* chan = (output_buffer+i*2);
+            chan[0] = workBuffer2[i];
+            chan[1] = workBuffer2[i];
         }
     }
 
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    {
-        // this can all be done outside this loop?
-        int requestedNote = GetNote();
-        if(requestedNote >= 0)
-        {
-            instruments[currentVoice].NoteOn(requestedNote, true);
-        }
-        if(IsPlaying())
-        {
-            if(nextTrigger-- == 0)
-            {
-                for(int v=0;v<8;v++)
-                {
-                    int requestedNote = GetTrigger(v, CurrentStep);
-                    if(requestedNote >= 0)
-                    {
-                        instruments[v].NoteOn(requestedNote, false);
-                    }
-                }
-                UpdateAfterTrigger(CurrentStep);
-                CurrentStep = (++CurrentStep)%16;
-                if(CurrentStep==0)
-                {
-                    chainStep = (++chainStep)%patternChainLength;
-                }
-                nextTrigger = 60u*44100u/bpm/4;
-            }
-        }
-        int16_t* chan = (output_buffer+i*2);
-        chan[0] = workBuffer2[i];
-        chan[1] = workBuffer2[i];
-    }
     if(recording)
     { 
         ffs_append(GetFilesystem(), &files[currentVoice], workBuffer2, SAMPLES_PER_BUFFER*2);
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            int16_t* chan = (output_buffer+i*2);
+            chan[0] = workBuffer2[i];
+            chan[1] = workBuffer2[i];
+        }
     }
 }
 int GrooveBox::GetTrigger(uint voice, uint step)

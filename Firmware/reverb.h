@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 typedef struct Delay {
-    int16_t buf[494];
+    int16_t buf[10000];
     int count;
     int length;
 } Delay;

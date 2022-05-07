@@ -13,11 +13,17 @@ enum InstrumentParameter {
   INSTRUMENT_PARAM_MACRO_TIMBRE,
   INSTRUMENT_PARAM_MACRO_MODULATION
 };
+struct GlobalParamSet
+{
+  uint32_t bpm = 125;
+  uint8_t  input_fx_send = 0;
+};
 enum InstrumentType {
   INSTRUMENT_MACRO,
+  INSTRUMENT_SAMPLE,
   INSTRUMENT_MIDI,
   INSTRUMENT_DRUMS,
-  INSTRUMENT_SAMPLE,
+  INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 };
 enum EnvelopeSegment {
   ENV_SEGMENT_ATTACK = 0,
@@ -59,6 +65,8 @@ class Instrument
         }
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
+        uint8_t delaySend = 0;
+        GlobalParamSet *globalParamSet;
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
@@ -84,6 +92,7 @@ class Instrument
         uint8_t cutoff;
         uint8_t resonance;
         uint32_t sampleOffset; 
+        uint32_t sampleEnd; 
         ffs_file *file;
         // stored in the displayed param values (since the user doesn't have access to more than this anyways)
         // (maybe I add a fine tune?)

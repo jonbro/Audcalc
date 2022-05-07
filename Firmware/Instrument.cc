@@ -40,7 +40,6 @@ const char *sampleparams[16] = {
     "?", "?", "FLTO", "TYPE"
 };
 
-
 // Values are defined in number of samples
 void Instrument::SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime)
 {
@@ -105,7 +104,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 
             buffer[i] = wave;
 
-            if(sampleOffset*2 > filesize - 1)
+            if(sampleOffset > sampleEnd - 1)
             {
                 if(loopMode == INSTRUMENT_LOOPMODE_NONE)
                 {
@@ -167,6 +166,11 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
         playingSlice = key;
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
         sampleOffset = (sampleStart[key]>>8) * (filesize>>8);
+        sampleEnd = sampleOffset + (sampleLength[key]>>8) * (filesize>>8);
+        if(sampleEnd > filesize -1)
+        {
+            sampleEnd = filesize *2 -1;
+        }
         // just hardcode note to 69 for now
         note = 69;
         phase_increment = ComputePhaseIncrement(note<<7);
@@ -219,7 +223,7 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
                 break;
         }
     }
-    else
+    else if(instrumentType == INSTRUMENT_MIDI)
     {
         if(lastNoteOnPitch >= 0)
             midi->NoteOff(lastNoteOnPitch-24);
@@ -233,6 +237,17 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
 // parameter values are doubled so we just get one at a time (0-31)
 void Instrument::SetParameter(uint8_t param, uint8_t val)
 {
+    // instrument type
+    if(param == 30 && instrumentType != INSTRUMENT_GLOBAL)
+    {
+        instrumentType = (InstrumentType)((((uint16_t)val)*4) >> 8);
+        return;
+    }
+    if(param == 28 && instrumentType != INSTRUMENT_GLOBAL)
+    {
+        delaySend = val;
+        return;
+    }
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         switch (param)
@@ -256,8 +271,6 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
         case 6:
             octave = ((int8_t)(val/51))-2;
             break;
-            
-
         case 8:
             this->attackTime = val;
             env.Update(this->attackTime>>1, this->decayTime>>1);
@@ -334,12 +347,20 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 this->envColor = (int8_t)((int16_t)val)-0x7f;
                 break;
             
-            case 30:
+            case 31:
                 shape = (MacroOscillatorShape)((((uint16_t)val)*41) >> 8);
                 osc.set_shape(shape);
                 break;
             default:
             break;
+        }
+    }
+    else if(instrumentType == INSTRUMENT_GLOBAL)
+    {
+        switch(param){
+            case 0:
+                globalParamSet->bpm = val;
+                break;
         }
     }
 }
@@ -348,7 +369,42 @@ void Instrument::GetParamString(uint8_t param, char *str)
 {
     int16_t vala = 0;
     int16_t valb = 0;
-    
+
+    if(param == 14)
+    {
+        sprintf(str, "FX %i", delaySend);
+        return;
+    }
+    if(instrumentType == INSTRUMENT_GLOBAL)
+    {
+        switch (param)
+        {
+            case 0:
+                sprintf(str, "bpm %i", globalParamSet->bpm);
+                return;
+                break;
+        }
+    }
+    if(instrumentType == INSTRUMENT_MIDI)
+    {
+        switch (param)
+        {
+            case 15:
+                sprintf(str, "TYPE MIDI");
+                return;
+                break;
+        }
+    }
+    if(instrumentType == INSTRUMENT_DRUMS)
+    {
+        switch (param)
+        {
+            case 15:
+                sprintf(str, "TYPE DRUMS");
+                return;
+                break;
+        }
+    }
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         switch (param)
@@ -377,6 +433,10 @@ void Instrument::GetParamString(uint8_t param, char *str)
             return;
             break;
         // sample out point
+        case 15:
+            sprintf(str, "TYPE SAMP");
+            return;
+            break;
 
         default:
             break;
@@ -414,7 +474,7 @@ void Instrument::GetParamString(uint8_t param, char *str)
                 valb = this->envColor;
                 break;
             case 15:
-                sprintf(str, "TYPE MACRO %s", algo_values[shape]);
+                sprintf(str, "TYPE SYNTH %s", algo_values[shape]);
                 return;
                 break;
             default:
