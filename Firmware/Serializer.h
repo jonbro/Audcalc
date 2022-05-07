@@ -3,6 +3,7 @@
 #include "pico/multicore.h"
 #include <stdio.h>
 #include <string.h>
+#include "filesystem.h"
 
 class Serializer
 {
@@ -11,12 +12,13 @@ class Serializer
         void    AddData(uint8_t val);
         void    Finish();
         uint8_t GetNextValue();
+        void    Erase();
+        ffs_file writeFile;
     private:
         void    FlushToFlash();
-        void    Erase();
         uint32_t writePosition;
         uint32_t readPosition;
         uint32_t flashPosition;
-        uint8_t data[FLASH_SECTOR_SIZE];
+        uint8_t data[256];
         bool needsSectorErase;
 };

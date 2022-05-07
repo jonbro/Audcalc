@@ -27,6 +27,16 @@ enum EnvelopeSegment {
   ENV_NUM_SEGMENTS,
 };
 
+enum LoopMode {
+  INSTRUMENT_LOOPMODE_NONE,
+  INSTRUMENT_LOOPMODE_FWD,
+};
+enum SamplePlaybackSegment {
+  SMP_PLAYING = 0,
+  SMP_COMPLETE = 1,
+  SMP_NUM_SEGMENTS,
+};
+
 class Instrument
 {
     public:
@@ -82,5 +92,7 @@ class Instrument
         uint32_t fullSampleLength;
         ADSREnvelope env;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
+        LoopMode loopMode = INSTRUMENT_LOOPMODE_NONE;
+        SamplePlaybackSegment sampleSegment = SMP_COMPLETE;
         uint32_t phase_increment = 0;
 };

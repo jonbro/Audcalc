@@ -43,7 +43,7 @@ ffs_filesystem* GetFilesystem()
 void InitializeFilesystem()
 {
     // file system should be sound, don't need to erase
-    file_erase(0, 0x1000*0x100);
+    //file_erase(0, 0x1000*0x100);
     ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,
@@ -51,6 +51,11 @@ void InitializeFilesystem()
         .size = 0x1000*100
     };
     ffs_mount(&filesystem, &cfg, fs_work_buf);
+
+    // open the file, delete and move on
+    ffs_file f0;
+    ffs_open(&filesystem, &f0, 0);
+    ffs_erase(&filesystem, &f0);
 }
 void TestFS()
 {

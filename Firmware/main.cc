@@ -27,6 +27,7 @@ extern "C" {
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 #include "filesystem.h"
+#include "ws2812.h"
 
 #define POCKETMOD_IMPLEMENTATION
 //#include "pocketmod.h"
@@ -93,22 +94,24 @@ int initial_sample_count = 0;
 GrooveBox *gbox;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
 void __not_in_flash_func(dma_input_handler)() {
-    uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
-    dma_hw->ints0 = 1u << dma_chan_input;
-    dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
-    capture_buf_offset = (capture_buf_offset+1)%2;
-    uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
-    uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-    if(!gbox->erasing)
-    {
-        gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+    if (dma_hw->ints0 & (1u<<dma_chan_input)) {
+        uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
+        dma_hw->ints0 = (1u << dma_chan_input);
+        dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
+        capture_buf_offset = (capture_buf_offset+1)%2;
+        uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
+        uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
+        if(!gbox->erasing)
+        {
+            gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+        }
+        else
+        {
+            // do monitor / passthrough here
+            
+        }
+        capture_buf_offset = (capture_buf_offset+1)%2;
     }
-    else
-    {
-        // do monitor / passthrough here
-        
-    }
-    capture_buf_offset = (capture_buf_offset+1)%2;
 }
 bool hi = false;
 int16_t out_count = 0;
@@ -120,9 +123,11 @@ int note = 60;
 int needsNewAudioBuffer = 0;
 
 void __not_in_flash_func(dma_output_handler)() {
-    dma_hw->ints1 = 1u << dma_chan_output;
-    dma_channel_set_read_addr(dma_chan_output, output_buf+output_buf_offset*SAMPLES_PER_BUFFER, true);
-    output_buf_offset = (output_buf_offset+1)%3;
+    if (dma_hw->ints0 & (1u<<dma_chan_output)) {
+        dma_hw->ints0 = 1u << dma_chan_output;
+        dma_channel_set_read_addr(dma_chan_output, output_buf+output_buf_offset*SAMPLES_PER_BUFFER, true);
+        output_buf_offset = (output_buf_offset+1)%3;
+    }
 }
 
 int flashReadPos = 0;
@@ -216,7 +221,7 @@ void configure_audio_driver()
     dma_channel_set_irq0_enabled(dma_chan_input, true);
 
     // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-    irq_set_exclusive_handler(DMA_IRQ_0, dma_input_handler);
+    irq_add_shared_handler(DMA_IRQ_0, dma_input_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY-1);
     irq_set_enabled(DMA_IRQ_0, true);
     // need another dma channel for output
     dma_chan_output = dma_claim_unused_channel(true);
@@ -234,10 +239,10 @@ void configure_audio_driver()
         128, // Number of transfers
         true// Start immediately
     );
-    dma_channel_set_irq1_enabled(dma_chan_output, true);
+    dma_channel_set_irq0_enabled(dma_chan_output, true);
     // Configure the processor to run dma_handler() when DMA IRQ 0 is asserted
-    irq_set_exclusive_handler(DMA_IRQ_1, dma_output_handler);
-    irq_set_enabled(DMA_IRQ_1, true);
+    irq_add_shared_handler(DMA_IRQ_0, dma_output_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY-2);
+    irq_set_enabled(DMA_IRQ_0, true);
 }
 // see https://ghubcoder.github.io/posts/awaking-the-pico/ to explain why we need this recovery code
 void recover_from_sleep(uint scb_orig, uint clock0_orig, uint clock1_orig){
@@ -306,12 +311,8 @@ int main()
 {
     set_sys_clock_khz(150000, true); 
     stdio_init_all();
-    
-    // TestFS();
-    // return 0;
-    
-   
-    //sleep_ms(4000);
+    ws2812_init();
+
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
 
@@ -360,17 +361,11 @@ int main()
         gpio_put(AMP_CONTROL, true);
     }
 
-    PIO wspio = pio0;
-    int wssm = pio_claim_unused_sm(wspio, true);
-    uint wsoffset = pio_add_program(wspio, &ws2812_program);
-    // ws tx = 4
-    ws2812_program_init(wspio, wssm, wsoffset, 22, 800000, false);
-    put_pixel(urgb_u32(5, 3, 20));
-
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
     gbox = new GrooveBox(color);
+    gbox->Deserialize();
     // fill the silence buffer so we get something out
     for(int i=0;i<128;i++)
     {
@@ -407,6 +402,8 @@ int main()
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
    // usbaudio_init();
+    bool requestSerialize = false;
+    bool requestDeserialize = false;
     while(true)
     {
         gpio_put(col_pin_base, true);
@@ -442,13 +439,9 @@ int main()
                 gbox->OnKeyUpdate(i, s>0); 
                 if(s>0)
                 {
-                    if(!screen_flip_ready)
-                    {
-                        if(i==21)
-                            gbox->Serialize();
-                        if(i==22)
-                            gbox->Deserialize();
-                    }
+                    printf("keypressed %i\n", i);
+                    requestSerialize = i==21;
+                    requestDeserialize = i==22;
                 } 
             }
         }
@@ -469,14 +462,14 @@ int main()
 
             // }
                     //color[10] = gpio_get(24)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-
             // }
-            // touchCounter--;
-            // if(touchCounter <= 0)
-            // {
-            //     sleep();
-            //     touchCounter = 0x1f4;
-            // }
+            touchCounter--;
+            if(touchCounter <= 0)
+            {
+                // store song here
+                // gbox->Serialize();
+                //gpio_set_pulls(23, false, true);
+            }
             adc_select_input(1);
             uint16_t adc_val = adc_read();
             adc_select_input(0);
@@ -484,20 +477,25 @@ int main()
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
             // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             // color[11] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-
-            for (size_t i = 0; i < 20; i++)
-            {
-                put_pixel(color[i+5]);
-            }
             if(!screen_flip_ready)
             {
-                // multicore_lockout_start_timeout_us(500);
+                    if(requestSerialize){
+                        gbox->Serialize();
+                        requestSerialize = false;
+                    }
+                    if(requestDeserialize)
+                    {
+                        gbox->Deserialize();
+                        requestDeserialize = false;
+                    }
+
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
-                // multicore_lockout_end_timeout_us(500);
             }
+            ws2812_setColors(color+5);
             needsScreenupdate = false;
         }
+        ws2812_trigger();
     }
     return 0;
 }

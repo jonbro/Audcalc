@@ -12,10 +12,10 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     midi.Init();
-    for(int i=0;i<2;i++)
+    for(int i=0;i<8;i++)
     {
         instruments[i].Init(&midi);
-        if(i==1)
+        if(i==0)
             instruments[i].SetType(INSTRUMENT_SAMPLE);
         else
             instruments[i].SetType(INSTRUMENT_MACRO);
@@ -45,7 +45,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     //memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
 
     //printf("input %i\n", workBuffer2[0]);
-    for(int v=0;v<2;v++)
+    for(int v=0;v<8;v++)
     {
         if(v==1 && recording)
             continue;
@@ -72,7 +72,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         {
             if(nextTrigger-- == 0)
             {
-                for(int v=0;v<2;v++)
+                for(int v=0;v<8;v++)
                 {
                     int requestedNote = GetTrigger(v, CurrentStep);
                     if(requestedNote >= 0)
@@ -95,7 +95,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
     if(recording)
     { 
-        ffs_append(GetFilesystem(), &files[1], workBuffer2, SAMPLES_PER_BUFFER*2);
+        ffs_append(GetFilesystem(), &files[currentVoice], workBuffer2, SAMPLES_PER_BUFFER*2);
     }
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
@@ -354,10 +354,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 void GrooveBox::Serialize()
 {
     Serializer s;
+    // erase the existing file first
+    ffs_file writefile;
+    ffs_open(GetFilesystem(), &writefile, 101);
+    ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     uint8_t *n = notes;
     uint8_t *t = trigger;
-
     for(int i=0;i<SAVE_SIZE;i++)
     {
         s.AddData(*t);
@@ -366,12 +369,15 @@ void GrooveBox::Serialize()
         t++;
     }
     s.Finish();
+
 }
 void GrooveBox::Deserialize()
 {
     // should probably put this is some different class
     Serializer s;
     s.Init();
+    if(!s.writeFile.initialized)
+        return;
     uint8_t *n = notes;
     uint8_t *t = trigger;
     for(int i=0;i<SAVE_SIZE;i++)
@@ -381,5 +387,13 @@ void GrooveBox::Deserialize()
         *n = tmp2 = s.GetNextValue();
         t++;
         n++;
+    } 
+    // erase so we are prepared to write the file the next time
+    s.Erase();
+    // reload the trigger settings
+    for (size_t i = 0; i < 16; i++)
+    {
+        color[i%4+(i/4)*5+5] = GetTrigger(currentVoice, i)?urgb_u32(3, 20, 7):urgb_u32(0,0,0);
     }
+    
 }

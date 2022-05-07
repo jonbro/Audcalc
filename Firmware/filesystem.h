@@ -114,7 +114,7 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     ffs_blockheader blockHeader;
     while(block_offset < fs->size)
     {
-        fs->read(block_offset, 1, &blockHeader);
+        fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
         if(blockHeader.object_id == file_id)
         {
             found = true;
@@ -131,7 +131,7 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             }
             while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
             {
-                fs->read(blockHeader.jump_page, 1, &blockHeader);
+                fs->read(blockHeader.jump_page, sizeof(ffs_blockheader), &blockHeader);
                 int writtenPages = ffs_find_empty_page(&blockHeader);
                 if(writtenPages > 0)
                 {
@@ -180,7 +180,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
         }
         blockHeader.object_id = file->object_id;
         blockHeader.initial_page = true;
-        blockHeader.jump_page = 0xffffffff;
+        blockHeader.jump_page = EMPTY_JUMP_PAGE;
         blockHeader.prior_block = EMPTY_JUMP_PAGE;
         blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
         blockHeader.block_logical_start = 0;
@@ -243,7 +243,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
 
                     uint32_t last_logical_start = blockHeader.block_logical_start;
                     // clear block header and write into new empty page
-                    blockHeader.jump_page = 0xffffffff;
+                    blockHeader.jump_page = EMPTY_JUMP_PAGE;
                     blockHeader.object_id = file->object_id;
                     blockHeader.written_page_mask = 0xffff;
                     blockHeader.block_logical_start = last_logical_start+15*256;

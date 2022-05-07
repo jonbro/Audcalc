@@ -36,7 +36,7 @@ const char *macroparams[16] = {
 const char *sampleparams[16] = { 
     "I/O", "FILT", "VlPn", "Ptch",
     "Env", "EnvF", "EnvP", "EnvT",
-    "?", "?", "?", "?",
+    "lop", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
 
@@ -90,30 +90,35 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
-        if(filesize == 0)
+        if(filesize == 0 || sampleSegment == SMP_COMPLETE)
             return;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t wave = 0;
-            // // skip the first 4 bytes, since that contains the sample length + encoding
-            // lfs_file_seek(GetLFS(), &sinefile, sampleOffset+4, LFS_SEEK_SET);
-            //file_read(&wave, sampleOffset*2, 2);
-            //lfs_file_read(GetLFS(), &sinefile, &wave, 1);
+
             ffs_seek(GetFilesystem(), file, sampleOffset*2);
             ffs_read(GetFilesystem(), file, &wave, 2);
+
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
             phase_-=(phase_&(0xff<<25));
-            // should interpolate the sample position
-            // *buffer++ = Interpolate824(wave[0], phase_ >> 1);
 
-            // sampleOffset+=2;
-            while(sampleOffset*2 > filesize - 1)
-            {
-                sampleOffset -= filesize/2;
-            }
             buffer[i] = wave;
-            //mult_q15(buffer[i], volume);
+
+            if(sampleOffset*2 > filesize - 1)
+            {
+                if(loopMode == INSTRUMENT_LOOPMODE_NONE)
+                {
+                    sampleSegment = SMP_COMPLETE;
+                }
+                else
+                {
+                    while(sampleOffset*2 > filesize - 1)
+                    {
+                        sampleOffset -= filesize/2;
+                    }
+                }
+            }
         }
         RenderGlobal(sync, buffer, size);
         return;
@@ -160,8 +165,12 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         playingSlice = key;
-        sampleOffset = 0;
+        uint32_t filesize = ffs_file_size(GetFilesystem(), file);
+        sampleOffset = (sampleStart[key]>>8) * (filesize>>8);
+        // just hardcode note to 69 for now
+        note = 69;
         phase_increment = ComputePhaseIncrement(note<<7);
+        sampleSegment = SMP_PLAYING;
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
     if(instrumentType == INSTRUMENT_MACRO)
@@ -232,7 +241,6 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
         case 0:
             sampleStart[lastPressedKey] = val<<7;
             break;
-
         // sample out point
         case 1:
             sampleLength[lastPressedKey] = val<<7;
@@ -258,6 +266,15 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
             this->decayTime = val;
             env.Update(this->attackTime>>1, this->decayTime>>1);
             break;
+                    // sample in point
+        case 16:
+            loopMode = (LoopMode)((((uint16_t)val)*2) >> 8);
+            break;
+        // sample out point
+        case 17:
+            sampleLength[lastPressedKey] = val<<7;
+            break;
+
         default:
             break;
         }
@@ -318,7 +335,7 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 break;
             
             case 30:
-                shape = (MacroOscillatorShape)((((uint16_t)val)*46) >> 8);
+                shape = (MacroOscillatorShape)((((uint16_t)val)*41) >> 8);
                 osc.set_shape(shape);
                 break;
             default:
@@ -355,6 +372,12 @@ void Instrument::GetParamString(uint8_t param, char *str)
             vala = this->attackTime;
             valb = this->decayTime;
             break;
+        case 8:
+            sprintf(str, "LOOP_MODE %i", loopMode);
+            return;
+            break;
+        // sample out point
+
         default:
             break;
         }
