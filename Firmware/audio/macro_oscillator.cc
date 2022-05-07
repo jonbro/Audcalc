@@ -362,20 +362,6 @@ void MacroOscillator::RenderDigital(
   digital_oscillator_.Render(sync, buffer, size);
 }
 
-void MacroOscillator::RenderSawComb(
-  const uint8_t* sync,
-  int16_t* buffer,
-  size_t size) {
-  analog_oscillator_[0].set_parameter(0);
-  analog_oscillator_[0].set_pitch(pitch_);
-  analog_oscillator_[0].set_shape(OSC_SHAPE_SAW);
-  analog_oscillator_[0].Render(sync, buffer, NULL, size);
-  
-  digital_oscillator_.set_parameters(parameter_[0], parameter_[1]);
-  digital_oscillator_.set_pitch(pitch_);
-  digital_oscillator_.set_shape(OSC_SHAPE_COMB_FILTER);
-  digital_oscillator_.Render(sync, buffer, size);
-}
 
 /* static */
 MacroOscillator::RenderFn MacroOscillator::fn_table_[] = {
@@ -392,11 +378,6 @@ MacroOscillator::RenderFn MacroOscillator::fn_table_[] = {
   &MacroOscillator::RenderTriple,
   &MacroOscillator::RenderTriple,
   &MacroOscillator::RenderTriple,
-  &MacroOscillator::RenderDigital,
-  &MacroOscillator::RenderDigital,
-  &MacroOscillator::RenderSawComb,
-  &MacroOscillator::RenderDigital,
-  &MacroOscillator::RenderDigital,
   &MacroOscillator::RenderDigital,
   &MacroOscillator::RenderDigital,
   &MacroOscillator::RenderDigital,

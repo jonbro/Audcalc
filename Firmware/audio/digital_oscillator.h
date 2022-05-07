@@ -55,7 +55,6 @@ static const size_t kNumAdditiveHarmonics = 12;
 enum DigitalOscillatorShape {
   OSC_SHAPE_TRIPLE_RING_MOD,
   OSC_SHAPE_SAW_SWARM,
-  OSC_SHAPE_COMB_FILTER,
   OSC_SHAPE_TOY,
 
   OSC_SHAPE_DIGITAL_FILTER_LP,
@@ -78,11 +77,6 @@ enum DigitalOscillatorShape {
   OSC_SHAPE_KICK,
   OSC_SHAPE_HAT,
   OSC_SHAPE_SNARE,
-  
-  OSC_SHAPE_PLUCKED,
-  OSC_SHAPE_BOWED,
-  OSC_SHAPE_BLOWN,
-  OSC_SHAPE_FLUTED,
   
   OSC_SHAPE_WAVETABLES,
   OSC_SHAPE_WAVE_MAP,
@@ -290,7 +284,6 @@ class DigitalOscillator {
  private:
   void RenderTripleRingMod(const uint8_t*, int16_t*, size_t);
   void RenderSawSwarm(const uint8_t*, int16_t*, size_t);
-  void RenderComb(const uint8_t*, int16_t*, size_t);
   void RenderToy(const uint8_t*, int16_t*, size_t);
 
   void RenderDigitalFilter(const uint8_t*, int16_t*, size_t);
@@ -306,10 +299,6 @@ class DigitalOscillator {
   
   void RenderStruckBell(const uint8_t*, int16_t*, size_t);
   void RenderStruckDrum(const uint8_t*, int16_t*, size_t);
-  void RenderPlucked(const uint8_t*, int16_t*, size_t);
-  void RenderBowed(const uint8_t*, int16_t*, size_t);
-  void RenderBlown(const uint8_t*, int16_t*, size_t);
-  void RenderFluted(const uint8_t*, int16_t*, size_t);
 
   void RenderWavetables(const uint8_t*, int16_t*, size_t);
   void RenderWaveMap(const uint8_t*, int16_t*, size_t);
@@ -358,21 +347,7 @@ class DigitalOscillator {
   
   Excitation pulse_[4];
   Svf svf_[3];
-  
-  union {
-    int16_t comb[kCombDelayLength];
-    int16_t ks[1025 * 4];
-    struct {
-      int8_t bridge[kWGBridgeLength];
-      int8_t neck[kWGNeckLength];
-    } bowed;
-    int16_t bore[kWGBoreLength];
-    struct {
-      int8_t jet[kWGJetLength];
-      int8_t bore[kWGFBoreLength];
-    } fluted;
-  } delay_lines_;
-  
+    
   static RenderFn fn_table_[];
   
   DISALLOW_COPY_AND_ASSIGN(DigitalOscillator);
