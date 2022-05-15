@@ -43,7 +43,7 @@ ffs_filesystem* GetFilesystem()
 void InitializeFilesystem()
 {
     // file system should be sound, don't need to erase
-    file_erase(0, 0x1000*0x100);
+    // file_erase(0, 0x1000*0x100);
     ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,

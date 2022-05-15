@@ -51,7 +51,7 @@ class Instrument
         void Render(const uint8_t* sync,int16_t* buffer,size_t size);
         void RenderGlobal(const uint8_t* sync,int16_t* buffer,size_t size);
         void SetParameter(uint8_t param, uint8_t value);
-        void NoteOn(int16_t pitch, bool livePlay);
+        void NoteOn(int16_t pitch, int16_t midi_note, bool livePlay);
         void SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime);
         void SetType(InstrumentType type)
         {

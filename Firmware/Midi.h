@@ -9,4 +9,5 @@ class Midi
         void Init();
         void NoteOn(int16_t pitch);
         void NoteOff(int16_t pitch);
+        int GetNote();
 };

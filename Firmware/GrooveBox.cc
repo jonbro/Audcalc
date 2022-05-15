@@ -8,6 +8,11 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
             ((uint32_t) (g) << 16) |
             (uint32_t) (b);
 }
+static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
+    *r = (urgb>>8)&0xff;
+    *g = (urgb>>16)&0xff;
+    *b = (urgb)&0xff;
+}
 
 GrooveBox::GrooveBox(uint32_t *_color)
 {
@@ -83,7 +88,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             int requestedNote = GetNote();
             if(requestedNote >= 0)
             {
-                instruments[currentVoice].NoteOn(requestedNote, true);
+                instruments[currentVoice].NoteOn(requestedNote, requestedNote > 15?requestedNote:-1, true);
             }
             if(IsPlaying())
             {
@@ -94,7 +99,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         int requestedNote = GetTrigger(v, CurrentStep);
                         if(requestedNote >= 0)
                         {
-                            instruments[v].NoteOn(requestedNote, false);
+                            instruments[v].NoteOn(requestedNote, requestedNote > 15?requestedNote:-1, false);
                         }
                     }
                     UpdateAfterTrigger(CurrentStep);
@@ -132,24 +137,13 @@ int GrooveBox::GetTrigger(uint voice, uint step)
 }
 int GrooveBox::GetNote()
 {
-    int res = needsNoteTrigger;
+    int midi_note = midi.GetNote();
+    int res = midi_note >= 0 ? midi_note : needsNoteTrigger;
     needsNoteTrigger = -1;
     return res;
 }
 void GrooveBox::UpdateAfterTrigger(uint step)
 {
-    for(int i=0;i<16;i++)
-    {
-        int x = i%4;
-        int y = i/4;
-        int key = x+(y+1)*5;
-        if(step == i)
-        {
-            color[key] = urgb_u32(250, 30, 80);
-        }
-        else
-            color[key] = trigger[patternChain[chainStep]*256+currentVoice*16+i]?urgb_u32(100, 60, 200):urgb_u32(0,0,0);
-    }
 }
 
 bool GrooveBox::IsPlaying()
@@ -196,6 +190,56 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         instruments[currentVoice].GetParamString(param, str);
         ssd1306_draw_string(p, 0, 24, 1, str);
+    }
+    if(recording)
+    {
+        int filesize = ffs_file_size(GetFilesystem(), &files[currentVoice]);
+
+        sprintf(str, "Remaining: %i", (0x1000*100-filesize)/88100);
+        ssd1306_draw_string(p, 0, 0, 1, str);
+    }
+    // grid
+    for(int i=0;i<16;i++)
+    {
+        int x = i%4;
+        int y = i/4;
+        int key = x+(y+1)*5;
+        if(CurrentStep == i && IsPlaying())
+        {
+            color[key] = urgb_u32(250, 30, 80);
+        }
+        else if(trigger[patternChain[chainStep]*256+currentVoice*16+i])
+        {
+            color[key] = urgb_u32(100, 60, 200);
+        }
+        else
+        {
+            // fade to black
+            uint8_t r,g,b;
+            u32_urgb(color[key], &r, &g, &b);
+            const uint8_t fade_speed = 0xaf; 
+            color[key] = urgb_u32(((uint16_t)r*fade_speed)>>8, ((uint16_t)g*fade_speed)>>8, ((uint16_t)b*fade_speed)>>8);
+        }
+    }
+    // play light
+    if(IsPlaying())
+    {
+        if(CurrentStep%4==0)
+        {
+            color[19] = urgb_u32(40, 200, 40);
+        }
+        else
+        {
+            uint8_t r,g,b;
+            u32_urgb(color[19], &r, &g, &b);
+            const uint8_t fade_speed = 0xef; 
+            g = ((uint16_t)g*fade_speed)>>8;
+            color[19] = urgb_u32(((uint16_t)r*fade_speed)>>8, g>20?g:20, ((uint16_t)b*fade_speed)>>8);
+        }
+    }
+    else
+    {
+        color[19] = urgb_u32(0, 0, 0);
     }
 }
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)

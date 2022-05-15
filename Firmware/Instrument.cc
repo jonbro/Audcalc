@@ -153,7 +153,7 @@ const int keyToMidi[16] = {
     60, 62, 64, 65
 };
 
-void Instrument::NoteOn(int16_t key, bool livePlay)
+void Instrument::NoteOn(int16_t key, int16_t midinote, bool livePlay)
 {
     // used for editing values for specific keys
     if(livePlay)
@@ -161,6 +161,10 @@ void Instrument::NoteOn(int16_t key, bool livePlay)
         lastPressedKey = key;
     }
     int note = keyToMidi[key]+12*octave;
+    if(midinote >= 0)
+    {
+        note = midinote;
+    }
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         playingSlice = key;

@@ -308,24 +308,29 @@ uint8_t adc2_prev;
 #define AMP_CONTROL 29
 int main()
 {
+    sleep_ms(2000);
+    printf("here %s, %s\n", __FILE__, __LINE__);
     set_sys_clock_khz(150000, true); 
     stdio_init_all();
     ws2812_init();
-
+    printf("here %s, %s\n", __FILE__, __LINE__);
+    
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
 
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(10);
     gpio_put(SUBSYSTEM_RESET_PIN, 0);
-    sleep_ms(20);
+    sleep_ms(40);
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(20);
+    printf("here %s, %s\n", __FILE__, __LINE__);
     
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
+    printf("here %s, %s\n", __FILE__, __LINE__);
 
     // I2C Initialisation. Using it at 100Khz.
     i2c_init(I2C_PORT, 400*1000);
@@ -333,7 +338,9 @@ int main()
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
+    printf("here %s, %s\n", __FILE__, __LINE__);
     InitializeFilesystem();
+    printf("here %s, %s\n", __FILE__, __LINE__);
 
     adc_init();
     adc_gpio_init(26);
@@ -478,23 +485,22 @@ int main()
             // color[11] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             if(!screen_flip_ready)
             {
-                    if(requestSerialize){
-                        gbox->Serialize();
-                        requestSerialize = false;
-                    }
-                    if(requestDeserialize)
-                    {
-                        gbox->Deserialize();
-                        requestDeserialize = false;
-                    }
-
+                if(requestSerialize){
+                    gbox->Serialize();
+                    requestSerialize = false;
+                }
+                if(requestDeserialize)
+                {
+                    gbox->Deserialize();
+                    requestDeserialize = false;
+                }
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
             }
             ws2812_setColors(color+5);
             needsScreenupdate = false;
+            ws2812_trigger();
         }
-        ws2812_trigger();
     }
     return 0;
 }
