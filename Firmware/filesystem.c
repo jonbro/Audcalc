@@ -1,7 +1,7 @@
 #include "filesystem.h"
 
 // arbitrary offset into flash, hopefully doesn't overlap with the program space lol
-#define FS_START 0xAC000
+#define FS_START 0x40000
 const uint8_t *flash_start = (const uint8_t *) (XIP_BASE + FS_START);
 
 int file_read(uint32_t offset, size_t size, void *buffer)
@@ -43,12 +43,13 @@ ffs_filesystem* GetFilesystem()
 void InitializeFilesystem()
 {
     // file system should be sound, don't need to erase
-    // file_erase(0, 0x1000*0x100);
+    
+    //file_erase(0, 16*1024*1024-0x40000);
     ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,
         .write = file_write,
-        .size = 0x1000*100
+        .size = 16*1024*1024-0x40000
     };
     ffs_mount(&filesystem, &cfg, fs_work_buf);
 

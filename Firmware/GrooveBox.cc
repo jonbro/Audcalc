@@ -46,16 +46,23 @@ static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
+int16_t last_input;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
     memset(output_buffer, 0, size);
     //memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-
+    last_input = 0;
     //printf("input %i\n", workBuffer2[0]);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-        workBuffer2[i] = input_buffer[i*2];
+
+        int16_t input = workBuffer2[i] = input_buffer[i*2];
+        if(input<0)
+        {
+            input *= -1;
+        }
+        last_input = input>last_input?input:last_input;
         toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParamSet.input_fx_send)<<6);
     }
     if(!recording)
@@ -195,7 +202,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         int filesize = ffs_file_size(GetFilesystem(), &files[currentVoice]);
 
-        sprintf(str, "Remaining: %i", (0x1000*100-filesize)/88100);
+        sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-filesize)/88100);
         ssd1306_draw_string(p, 0, 0, 1, str);
     }
     // grid
@@ -241,7 +248,11 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         color[19] = urgb_u32(0, 0, 0);
     }
+    // update various slow hardware things
+    hardware_set_amp(globalParamSet.amp_enabled);
+    ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
 }
+
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
     if(abs((int16_t)lastAdcValA-(int16_t)a) > 2)

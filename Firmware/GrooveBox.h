@@ -13,6 +13,8 @@ extern "C" {
 #include "Midi.h"
 #include "Serializer.h"
 #include "reverb.h"
+#include "hardware.h"
+
 class Pattern
 {
    public:

@@ -17,6 +17,7 @@ struct GlobalParamSet
 {
   uint32_t bpm = 125;
   uint8_t  input_fx_send = 0;
+  bool     amp_enabled;
 };
 enum InstrumentType {
   INSTRUMENT_MACRO,

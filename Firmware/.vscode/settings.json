@@ -19,7 +19,7 @@
     "cmake.buildBeforeRun": true,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "cmake.configureArgs": [
-        "-D\"PICO_BOARD=vgaboard\""
+        "-D\"PICO_BOARD=TDM_BOARD\""
     ],
     "cortex-debug.variableUseNaturalFormat": true
 }

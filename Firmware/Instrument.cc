@@ -366,6 +366,11 @@ void Instrument::SetParameter(uint8_t param, uint8_t val)
                 globalParamSet->bpm = val;
                 break;
         }
+        switch(param){
+            case 2:
+                globalParamSet->amp_enabled = val>0x7f;
+                break;
+        }
     }
 }
 
@@ -385,6 +390,10 @@ void Instrument::GetParamString(uint8_t param, char *str)
         {
             case 0:
                 sprintf(str, "bpm %i", globalParamSet->bpm);
+                return;
+                break;
+            case 1:
+                sprintf(str, globalParamSet->amp_enabled?"speaker on":"speaker off");
                 return;
                 break;
         }

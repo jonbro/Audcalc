@@ -164,40 +164,10 @@ void tlvDriverInit()
     
     // micbias must always be on to avoid noise
     write(1, 0x33, 0x68); // micbias enable, 2.5v
-    bool setLineIn = true;
+    
+    bool setLineIn = false;
 
-    if(setLineIn)
-    {
-        // route IN1L to MicPGAL positive with 20k input impedance
-        write(1, 0x34, 0xc0);
-        // route Commonmode to MicPGAL neg with 20k input impedance    
-        write(1, 0x36, 0x80);
-
-        // route IN1R to MicPGAR positive with 20k input impedance
-        write(1, 0x37, 0xc0);
-        // route Commonmode to MicPGAR neg with 20k input impedance    
-        write(1, 0x39, 0x80);
-        write(1, 0x3e, 0x03);
-        // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
-        write(1, 0x3b, 0x00);
-        write(1, 0x3c, 0x00);
-
-        // digital volume control (this should turn it down a bit)
-        write(0, 0x53, 0x00);
-        write(0, 0x54, 0x00);
-    }
-    else
-    {
-
-        // mic in
-        write(1, 0x34, 0x30); // IN2L to MicPGAL pos with 10k input impedance
-        write(1, 0x36, 0x30); // IN2r to MicPGAL Neg with 10k input impedance
-        write(1, 0x3b, 0x24); // Left MICPGA Volume Control 
-        write(1, 0x3c, 0x24);
-        // lower the adc digital volume control?!?
-        write(0, 0x53, 0x0c);
-        write(0, 0x54, 0x0c);
-    }
+    driver_set_mic(true);
     
     // analog bypass & dac routed to headphones
     write(1, 0x0c, 0x0a);
@@ -245,4 +215,39 @@ void tlvDriverInit()
 
     // enable headphone detection
     write(0, 0x43, 0x80);
+}
+
+void driver_set_mic(bool mic_state)
+{
+    if(mic_state)
+    {
+        // mic in
+        write(1, 0x34, 0x30); // IN2L to MicPGAL pos with 10k input impedance
+        write(1, 0x36, 0x30); // IN2r to MicPGAL Neg with 10k input impedance
+        write(1, 0x3b, 0x44); // Left MICPGA Volume Control 
+        write(1, 0x3c, 0x44);
+        // lower the adc digital volume control?!?
+        write(0, 0x53, 0x0c);
+        write(0, 0x54, 0x0c);
+    }
+    else
+    {
+        // route IN1L to MicPGAL positive with 20k input impedance
+        write(1, 0x34, 0xc0);
+        // route Commonmode to MicPGAL neg with 20k input impedance    
+        write(1, 0x36, 0x80);
+
+        // route IN1R to MicPGAR positive with 20k input impedance
+        write(1, 0x37, 0xc0);
+        // route Commonmode to MicPGAR neg with 20k input impedance    
+        write(1, 0x39, 0x80);
+        write(1, 0x3e, 0x03);
+        // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
+        write(1, 0x3b, 0x00);
+        write(1, 0x3c, 0x00);
+
+        // digital volume control (this should turn it down a bit)
+        write(0, 0x53, 0x00);
+        write(0, 0x54, 0x00);
+    }
 }

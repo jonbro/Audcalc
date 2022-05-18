@@ -28,6 +28,7 @@ extern "C" {
 #include "audio/macro_oscillator.h"
 #include "filesystem.h"
 #include "ws2812.h"
+#include "hardware.h"
 
 #define POCKETMOD_IMPLEMENTATION
 //#include "pocketmod.h"
@@ -305,15 +306,11 @@ uint8_t adc1_prev;
 uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
-#define AMP_CONTROL 29
 int main()
 {
-    sleep_ms(2000);
-    printf("here %s, %s\n", __FILE__, __LINE__);
-    set_sys_clock_khz(150000, true); 
+    set_sys_clock_khz(200000, true); 
     stdio_init_all();
     ws2812_init();
-    printf("here %s, %s\n", __FILE__, __LINE__);
     
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
@@ -324,13 +321,11 @@ int main()
     sleep_ms(40);
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(20);
-    printf("here %s, %s\n", __FILE__, __LINE__);
     
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
-    printf("here %s, %s\n", __FILE__, __LINE__);
 
     // I2C Initialisation. Using it at 100Khz.
     i2c_init(I2C_PORT, 400*1000);
@@ -338,9 +333,7 @@ int main()
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
-    printf("here %s, %s\n", __FILE__, __LINE__);
     InitializeFilesystem();
-    printf("here %s, %s\n", __FILE__, __LINE__);
 
     adc_init();
     adc_gpio_init(26);
@@ -362,9 +355,8 @@ int main()
         gpio_pull_down(HEADPHONE_DETECT);
         
         //enable amp
-        gpio_init(AMP_CONTROL);
-        gpio_set_dir(AMP_CONTROL, GPIO_OUT);
-        gpio_put(AMP_CONTROL, true);
+        hardware_init();
+        hardware_set_amp_force(false, true);
     }
 
     uint32_t color[25];
@@ -483,6 +475,7 @@ int main()
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
             // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             // color[11] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
+            //hardware_set_mic(!gpio_get(LINE_IN_DETECT));
             if(!screen_flip_ready)
             {
                 if(requestSerialize){

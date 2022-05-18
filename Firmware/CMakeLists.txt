@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 17)
 # (note this can come from environment, CMake cache etc)
 set(PICO_SDK_PATH "C:/Users/jonbro/Documents/Pico/pico-sdk")
 
+set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR})
+set(PICO_BOARD "tdm_board")
+
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
@@ -17,6 +20,7 @@ project(tdm C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
+
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
@@ -30,6 +34,7 @@ add_executable(tdm
         ssd1306.c
         ws2812.c
         reverb.c
+        hardware.c
         Serializer.cc
         filesystem.c
         spiffs/spiffs_cache.c
@@ -51,8 +56,8 @@ pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 pico_set_program_name(tdm "tdm")
 pico_set_program_version(tdm "0.1")
 
-pico_enable_stdio_usb(tdm 1)
-pico_enable_stdio_uart(tdm 0)
+pico_enable_stdio_usb(tdm 0)
+pico_enable_stdio_uart(tdm 1)
 
 target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
