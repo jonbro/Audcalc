@@ -1,3 +1,4 @@
+#define FFS_IMPLEMENTATION
 #include "filesystem.h"
 
 // arbitrary offset into flash, hopefully doesn't overlap with the program space lol
@@ -54,13 +55,16 @@ void InitializeFilesystem()
     ffs_mount(&filesystem, &cfg, fs_work_buf);
 
     // open the file, delete and move on
-    // ffs_file f0;
-    // ffs_open(&filesystem, &f0, 0);
-    // ffs_erase(&filesystem, &f0);
+    for (size_t i = 0; i < 15; i++)
+    {
+        ffs_file f0;
+        ffs_open(&filesystem, &f0, i);
+        ffs_erase(&filesystem, &f0);
+    }
 }
 void TestFS()
 {
-    file_erase(0, 0xfff*32);
+    //file_erase(0, 0xfff*32);
     // lets just confirm that reading works the way we expect
     ffs_blockheader header;
     file_read(0, sizeof(ffs_blockheader), &header);
@@ -99,7 +103,7 @@ void TestFS()
     {
         printf("error in read\n");
     }
-    char compare[] = "Hello World"; 
+    char compare[] = "Hello World";
     for(int i=0;i<12;i++)
     {
         assert(compare[i] == test[i]);

@@ -29,9 +29,14 @@
 #ifndef BRAIDS_QUANTIZER_SCALES_H_
 #define BRAIDS_QUANTIZER_SCALES_H_
 
-#include "braids/quantizer.h"
-
 namespace braids {
+
+struct Scale {
+  int16_t span;
+  size_t num_notes;
+  int16_t notes[16];
+};
+
 
 const Scale scales[] = {
   // Off

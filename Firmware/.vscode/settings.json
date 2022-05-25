@@ -21,5 +21,8 @@
     "cmake.configureArgs": [
         "-D\"PICO_BOARD=TDM_BOARD\""
     ],
-    "cortex-debug.variableUseNaturalFormat": true
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.associations": {
+        "voice_data.h": "c"
+    }
 }

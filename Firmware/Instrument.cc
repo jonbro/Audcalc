@@ -93,6 +93,22 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             return;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
+            if(sampleOffset > sampleEnd - 1)
+            {
+                if(loopMode == INSTRUMENT_LOOPMODE_NONE)
+                {
+                    sampleSegment = SMP_COMPLETE;
+                    return;
+                }
+                else
+                {
+                    while(sampleOffset*2 > filesize - 1)
+                    {
+                        sampleOffset -= filesize/2;
+                    }
+                }
+            }
+            
             int16_t wave = 0;
 
             ffs_seek(GetFilesystem(), file, sampleOffset*2);
@@ -103,21 +119,6 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             phase_-=(phase_&(0xff<<25));
 
             buffer[i] = wave;
-
-            if(sampleOffset > sampleEnd - 1)
-            {
-                if(loopMode == INSTRUMENT_LOOPMODE_NONE)
-                {
-                    sampleSegment = SMP_COMPLETE;
-                }
-                else
-                {
-                    while(sampleOffset*2 > filesize - 1)
-                    {
-                        sampleOffset -= filesize/2;
-                    }
-                }
-            }
         }
         RenderGlobal(sync, buffer, size);
         return;
@@ -137,7 +138,7 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             buffer[i] = mult_q15(buffer[i], envval);
         }
-        //buffer[i] = svf.Process(buffer[i]);
+        buffer[i] = svf.Process(buffer[i]);
         buffer[i] = mult_q15(buffer[i], volume);
     }
 }
@@ -153,36 +154,65 @@ const int keyToMidi[16] = {
     60, 62, 64, 65
 };
 
-void Instrument::NoteOn(int16_t key, int16_t midinote, bool livePlay)
+void Instrument::UpdateVoiceData(VoiceData &voiceData)
+{
+    delaySend = voiceData.delaySend;
+    volume = ((q15_t)voiceData.volume)<<7;
+    if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
+    {
+        // copy parameters from voice
+        osc.set_parameter_1(voiceData.timbre << 7);
+        osc.set_parameter_2(voiceData.color << 7);
+        env.Update(voiceData.attackTime>>1, voiceData.decayTime>>1);
+        svf.set_frequency((voiceData.cutoff>>1) << 7);
+        svf.set_resonance((voiceData.resonance>>1) << 7);
+    }
+    if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
+    {
+        // copy parameters from voice
+        env.Update(voiceData.attackTime>>1, voiceData.decayTime>>1);
+        svf.set_frequency((voiceData.cutoff>>1) << 7);
+        svf.set_resonance((voiceData.resonance>>1) << 7);
+    }
+}
+void Instrument::NoteOn(int16_t key, int16_t midinote, bool livePlay, VoiceData &voiceData)
 {
     // used for editing values for specific keys
     if(livePlay)
     {
         lastPressedKey = key;
     }
-    int note = keyToMidi[key]+12*octave;
+    int note = keyToMidi[key]+12*voiceData.GetOctave();
     if(midinote >= 0)
     {
         note = midinote;
     }
-    if(instrumentType == INSTRUMENT_SAMPLE)
+    if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
+        UpdateVoiceData(voiceData);
         playingSlice = key;
+        file = voiceData.file;
+        instrumentType = voiceData.GetInstrumentType();
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
-        sampleOffset = (sampleStart[key]>>8) * (filesize>>8);
-        sampleEnd = sampleOffset + (sampleLength[key]>>8) * (filesize>>8);
-        if(sampleEnd > filesize -1)
+        sampleOffset = (voiceData.sampleStart[key]) * (filesize>>9);
+        sampleEnd = sampleOffset + (voiceData.sampleLength[key]) * (filesize>>9);
+        if(sampleEnd*2 > filesize - 1)
         {
-            sampleEnd = filesize *2 -1;
+            sampleEnd = filesize * 2 -1;
         }
+        printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
         // just hardcode note to 69 for now
         note = 69;
         phase_increment = ComputePhaseIncrement(note<<7);
         sampleSegment = SMP_PLAYING;
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
-    if(instrumentType == INSTRUMENT_MACRO)
+    if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
+        // copy parameters from voice
+        UpdateVoiceData(voiceData);
+        // only set shape on initial trigger
+        osc.set_shape(voiceData.GetShape());
         enable_env = true;
         osc.set_pitch(note<<7);
         osc.Strike();

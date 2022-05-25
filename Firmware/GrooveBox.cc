@@ -4,39 +4,43 @@
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
-            ((uint32_t) (r) << 8) |
+            ((uint32_t) (r) << 0) |
             ((uint32_t) (g) << 16) |
-            (uint32_t) (b);
+            ((uint32_t) (b) << 8);
 }
 static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
-    *r = (urgb>>8)&0xff;
+    *r = (urgb>>0)&0xff;
     *g = (urgb>>16)&0xff;
-    *b = (urgb)&0xff;
+    *b = (urgb>>8)&0xff;
 }
 
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     Delay_init(&delay, 10000);
     midi.Init();
-    for(int i=0;i<8;i++)
+    paramSetA = paramSetB = false;
+    for(int i=0;i<16;i++)
     {
         instruments[i].Init(&midi);
-        if(i==0)
-            instruments[i].SetType(INSTRUMENT_SAMPLE);
-        else if(i==7)
+        if(i==15)
         {
-            instruments[i].SetType(INSTRUMENT_GLOBAL);
-            instruments[7].globalParamSet = &globalParamSet;
+            patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);
+            globalParams = &patterns[i];
+            globalParams->bpm = 104;
         }
         else
+        {
+            ffs_open(GetFilesystem(), &files[i], i);
+            patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
+            patterns[i].SetFile(&files[i]);
             instruments[i].SetType(INSTRUMENT_MACRO);
-        instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
-        instruments[i].SetAHD(4000, 1000, 20000);
-        ffs_open(GetFilesystem(), &files[i], i);
-        instruments[i].SetFile(&files[i]);
+            instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
+            instruments[i].SetAHD(4000, 1000, 20000);
+        }
     }
     memset(trigger, 0, 16*16*16);
     memset(notes, 0, 16*16*16);
+    Deserialize();
     color = _color;
 }
 
@@ -44,33 +48,40 @@ int16_t workBuffer[SAMPLES_PER_BUFFER];
 int16_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
+int16_t recordBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
 int16_t last_input;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
-    memset(output_buffer, 0, size);
-    //memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
     //printf("input %i\n", workBuffer2[0]);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-
-        int16_t input = workBuffer2[i] = input_buffer[i*2];
+        int16_t input = input_buffer[i*2];
+        // collapse input buffer so its easier to copy to the recording device
+        // temporarily use the output buffer
+        recordBuffer[i] = input;
+        if(playThroughEnabled)
+        {
+            workBuffer2[i] = input;
+            toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParams->delaySend)<<6);
+        }
         if(input<0)
         {
             input *= -1;
         }
         last_input = input>last_input?input:last_input;
-        toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParamSet.input_fx_send)<<6);
     }
+
     if(!recording)
     {
         for(int v=0;v<8;v++)
         {
-            if(v==1 && recording)
-                continue;
             memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
             memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
             instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
@@ -79,12 +90,13 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             {
                 q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
                 workBuffer2[i] = add_q15(workBuffer2[i], workBuffer[i]);
-                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<6));
+                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(instrument, ((int16_t)instruments[v].delaySend)<<6));
             }
         }
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t delay_feedback = mult_q15(last_delay, 0x4fff);
+            //int16_t delay_feedback = 0;
             toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
             last_delay = Delay_process(&delay, toDelayBuffer[i]);
             workBuffer2[i] = add_q15(workBuffer2[i], last_delay);
@@ -95,18 +107,19 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             int requestedNote = GetNote();
             if(requestedNote >= 0)
             {
-                instruments[currentVoice].NoteOn(requestedNote, requestedNote > 15?requestedNote:-1, true);
+                TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, true, patterns[currentVoice], currentVoice);
             }
             if(IsPlaying())
             {
                 if(nextTrigger-- == 0)
                 {
-                    for(int v=0;v<8;v++)
+                    // skip the last one, since the global can't be sequenced
+                    for(int v=0;v<15;v++)
                     {
                         int requestedNote = GetTrigger(v, CurrentStep);
                         if(requestedNote >= 0)
                         {
-                            instruments[v].NoteOn(requestedNote, requestedNote > 15?requestedNote:-1, false);
+                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, false, patterns[v], v);
                         }
                     }
                     UpdateAfterTrigger(CurrentStep);
@@ -115,7 +128,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     {
                         chainStep = (++chainStep)%patternChainLength;
                     }
-                    nextTrigger = 60u*44100u/globalParamSet.bpm/4;
+                    nextTrigger = 60u*44100u/globalParams->bpm/4;
                 }
             }
             int16_t* chan = (output_buffer+i*2);
@@ -125,8 +138,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
 
     if(recording)
-    { 
-        ffs_append(GetFilesystem(), &files[currentVoice], workBuffer2, SAMPLES_PER_BUFFER*2);
+    {
+        ffs_append(GetFilesystem(), &files[currentVoice], recordBuffer, SAMPLES_PER_BUFFER*2);
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t* chan = (output_buffer+i*2);
@@ -134,6 +147,13 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             chan[1] = workBuffer2[i];
         }
     }
+}
+void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData, int channel)
+{
+    Instrument *nextPlay = &instruments[voiceCounter];
+    nextPlay->NoteOn(pitch, midi_note, livePlay, voiceData);
+    voiceChannel[voiceCounter] = channel;
+    voiceCounter = (++voiceCounter)%8;
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
@@ -162,22 +182,62 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     ssd1306_clear(p);
     char str[32];
     ssd1306_set_string_color(p, false);
-
-    if(soundSelectMode)
+    if(clearTime > 0 && holdingEscape)
     {
-        sprintf(str, "Snd: %i", currentVoice);
+        sprintf(str, "clear pat %i in %i", patternChain[0]+1, clearTime/60);
+        clearTime--;
+        if(clearTime == 0)
+        {
+            // empty the current pattern
+            for (size_t voice = 0; voice < 16; voice++)
+            {
+                for (size_t j = 0; j < 16; j++)
+                {
+                    trigger[patternChain[0]*256+voice*16+j] = 0;
+                    notes[patternChain[0]*256+voice*16+j] = 0;
+                }
+            }
+        }
         ssd1306_draw_string(p, 0, 8, 1, str);
     }
-    else if(patternSelectMode)
+    else if(shutdownTime > 0 && soundSelectMode)
     {
-        sprintf(str, "Pat");
+        sprintf(str, "shutdown in %i", shutdownTime/60);
         ssd1306_draw_string(p, 0, 8, 1, str);
+        shutdownTime--;  
+        if(shutdownTime == 0)
+        {
+            Serialize();
+            reset_usb_boot(0, 0);
+        }
+    }
+    else if(clearTime == 0 && patternSelectMode && holdingEscape)
+    {
+        sprintf(str, "pat %i cleared", patternChain[0]+1);
+        ssd1306_draw_string(p, 0, 8, 1, str);
+    }
+    else if(!patternSelectMode)
+    {
+        sprintf(str, "snd %i pat %i", currentVoice, patternChain[chainStep]);
+        ssd1306_draw_string(p, 0, 8, 1, str);
+    }
+
+    // copy pattern
+    if(patternSelectMode && holdingWrite)
+    {
+        sprintf(str, "copy pat %i to", patternChain[0]+1);
+        ssd1306_draw_string(p, 0, 8, 1, str);
+    }
+
+    if(patternSelectMode && clearTime < 0 && !holdingWrite)
+    {
+        ssd1306_draw_string(p, 0, 8, 1, "chn");
         if(patternChainLength>0)
         {
             for(int i=0;i<patternChainLength;i++)
             {
                 int boxX = 24+(i%8)*12;
-                int boxY = 6+12*(i/8);
+                int boxY = 8+12*(i/8);
                 if(i==chainStep)
                 {
                     ssd1306_draw_square(p, boxX, boxY+10, 15, 1);
@@ -189,21 +249,16 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             }
         }
     }
-    else if(paramSelectMode)
-    {
-        ssd1306_draw_string(p, 0, 8, 1, "Prm");
-    }
-    if(!patternSelectMode)
-    {
-        instruments[currentVoice].GetParamString(param, str);
-        ssd1306_draw_string(p, 0, 24, 1, str);
-    }
-    if(recording)
+    else if(recording)
     {
         int filesize = ffs_file_size(GetFilesystem(), &files[currentVoice]);
-
         sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-filesize)/88100);
         ssd1306_draw_string(p, 0, 0, 1, str);
+    }
+    else
+    {
+        patterns[currentVoice].GetParamString(param, str, lastNotePlayed);
+        ssd1306_draw_string(p, 0, 24, 1, str);
     }
     // grid
     for(int i=0;i<16;i++)
@@ -211,15 +266,33 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         int x = i%4;
         int y = i/4;
         int key = x+(y+1)*5;
-        if(CurrentStep == i && IsPlaying())
+        if(patternSelectMode)
         {
-            color[key] = urgb_u32(250, 30, 80);
+            if(patternChain[chainStep] == i)
+            {
+                color[key] = urgb_u32(10, 200, 45);
+            }
+
         }
-        else if(trigger[patternChain[chainStep]*256+currentVoice*16+i])
+        else if(soundSelectMode)
         {
-            color[key] = urgb_u32(100, 60, 200);
+            if(currentVoice == i)
+            {
+                color[key] = urgb_u32(10, 40, 255);
+            }
         }
         else
+        {
+            if(CurrentStep == i && IsPlaying())
+            {
+                color[key] = urgb_u32(250, 30, 80);
+            }
+            else if(trigger[patternChain[chainStep]*256+currentVoice*16+i])
+            {
+                color[key] = urgb_u32(100, 60, 200);
+            }
+        }
+
         {
             // fade to black
             uint8_t r,g,b;
@@ -228,12 +301,24 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             color[key] = urgb_u32(((uint16_t)r*fade_speed)>>8, ((uint16_t)g*fade_speed)>>8, ((uint16_t)b*fade_speed)>>8);
         }
     }
+    // right side buttons
+    if(liveWrite || writing)
+    {
+        color[24] = urgb_u32(255, 40, 40);
+    }
     // play light
     if(IsPlaying())
     {
         if(CurrentStep%4==0)
         {
-            color[19] = urgb_u32(40, 200, 40);
+            if(liveWrite)
+            {
+                color[19] = urgb_u32(255, 40, 40);
+            }
+            else
+            {
+                color[19] = urgb_u32(40, 255, 40);
+            }
         }
         else
         {
@@ -249,21 +334,50 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         color[19] = urgb_u32(0, 0, 0);
     }
     // update various slow hardware things
-    hardware_set_amp(globalParamSet.amp_enabled);
+    hardware_set_amp(globalParams->amp_enabled>0x7f);
+    playThroughEnabled = hardware_line_in_detected();
+    hardware_set_mic(!playThroughEnabled);
     ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
 }
 
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
-    if(abs((int16_t)lastAdcValA-(int16_t)a) > 2)
+    // should use the distance from the parameter to trigger this
+    uint8_t& current_a = patterns[currentVoice].GetParam(param*2, lastNotePlayed);
+    uint8_t& current_b = patterns[currentVoice].GetParam(param*2+1, lastNotePlayed);
+    bool voiceNeedsUpdate = false;
+    if(paramSetA
+        || a==current_a
+        || (a>current_a && a-current_a < 2)
+        || (a<current_a && current_a-a < 2)
+        || lastAdcValA > current_a && a < current_a
+        || lastAdcValA < current_a && a > current_a)
     {
-        instruments[currentVoice].SetParameter(param*2, a);
-        lastAdcValA = a;
+        current_a = a;
+        voiceNeedsUpdate = paramSetA = true;
     }
-    if(abs((int16_t)lastAdcValB-(int16_t)b) > 2)
+
+    if(paramSetB
+        || b==current_b
+        || (b>current_b && b-current_b < 2)
+        || (b<current_b && current_b-b < 2)
+        || lastAdcValB > current_b && b < current_b
+        || lastAdcValB < current_b && b > current_b)
     {
-        instruments[currentVoice].SetParameter(param*2+1, b);
-        lastAdcValB = b;
+        current_b = b;
+        voiceNeedsUpdate = paramSetB = true;
+    }
+    lastAdcValA = a;
+    lastAdcValB = b;
+    if(voiceNeedsUpdate)
+    {
+        for (size_t i = 0; i < 8; i++)
+        {
+            if(voiceChannel[i] == currentVoice)
+            {
+                instruments[i].UpdateVoiceData(patterns[currentVoice]);
+            }
+        }
     }
 }
 
@@ -293,25 +407,36 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             recording = false;
         }
     }
+    if(x==3&&y==0)
+    {
+        holdingEscape = pressed;
+        if(!holdingEscape)
+        {
+            clearTime = -1;
+        }
+    }
     if(x<4 && y>0 && pressed)
     {
         
         int sequenceStep = x+(y-1)*4;
         if(soundSelectMode)
         {
+            if(sequenceStep != currentVoice)
+                paramSetA = paramSetB = false;
             currentVoice = sequenceStep;
         }
         else if(paramSelectMode)
         {
+            if(sequenceStep != param)
+                paramSetA = paramSetB = false;
             param = sequenceStep;
         }
         else if(patternSelectMode)
         {
-            if(holdingWrite)
+            if(holdingWrite && sequenceStep!=patternChain[0])
             {
                 // copy pattern
-                int currentPattern = patternChain[chainStep];
-                
+                int currentPattern = patternChain[0];
                 for (size_t voice = 0; voice < 16; voice++)
                 {
                     for (size_t step = 0; step < 16; step++)
@@ -339,6 +464,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         else if(!writing)
         {
             lastNotePlayed = needsNoteTrigger = sequenceStep;
+            paramSetA = paramSetB = false;
         }
         else if(liveWrite)
         {
@@ -346,7 +472,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             notes[patternChain[chainStep]*256+currentVoice*16+CurrentStep] = sequenceStep;
             color[x+y*5] = urgb_u32(5, 3, 20);
         }
-        else
+        else // writing
         {
             bool setTrig = trigger[patternChain[chainStep]*256+currentVoice*16+sequenceStep] = !trigger[patternChain[chainStep]*256+currentVoice*16+sequenceStep];
             if(setTrig)
@@ -413,9 +539,19 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         soundSelectMode = pressed;
     }
 
+    if(holdingWrite && soundSelectMode)
+    {
+        // start countdown to save & shutdown / bootselect
+        shutdownTime = 60*6;
+    }
+
     // pattern select
     if(x==1 && y==0)
     {
+        if(holdingEscape && pressed)
+        {
+            clearTime = 180*2;
+        }
         patternSelectMode = pressed;
         if(pressed)
         {
@@ -436,9 +572,12 @@ void GrooveBox::Serialize()
     Serializer s;
     // erase the existing file first
     ffs_file writefile;
+    erasing = true;
     ffs_open(GetFilesystem(), &writefile, 101);
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
+    // version
+    s.AddData(1);
     uint8_t *n = notes;
     uint8_t *t = trigger;
     for(int i=0;i<SAVE_SIZE;i++)
@@ -448,8 +587,17 @@ void GrooveBox::Serialize()
         n++;
         t++;
     }
-    s.Finish();
 
+    // save pattern data
+    uint8_t *patternReader = (uint8_t*)patterns;
+    for (size_t i = 0; i < sizeof(VoiceData)*16; i++)
+    {
+        s.AddData(*patternReader);
+        patternReader++;
+    }
+     
+    s.Finish();
+    printf("serialized file size %i\n", s.writeFile.filesize);
 }
 void GrooveBox::Deserialize()
 {
@@ -457,6 +605,9 @@ void GrooveBox::Deserialize()
     Serializer s;
     s.Init();
     if(!s.writeFile.initialized)
+        return;
+    // save version
+    if(s.GetNextValue() != 1)
         return;
     uint8_t *n = notes;
     uint8_t *t = trigger;
@@ -467,13 +618,20 @@ void GrooveBox::Deserialize()
         *n = tmp2 = s.GetNextValue();
         t++;
         n++;
-    } 
-    // erase so we are prepared to write the file the next time
-    s.Erase();
+    }
+
+    // load pattern data
+    uint8_t *patternReader = (uint8_t*)patterns;
+    for (size_t i = 0; i < sizeof(VoiceData)*16; i++)
+    {
+        *patternReader = s.GetNextValue();
+        patternReader++;
+    }
+    printf("loaded filesize %i\n", s.writeFile.filesize);
+
     // reload the trigger settings
     for (size_t i = 0; i < 16; i++)
     {
         color[i%4+(i/4)*5+5] = GetTrigger(currentVoice, i)?urgb_u32(3, 20, 7):urgb_u32(0,0,0);
     }
-    
 }

@@ -76,9 +76,24 @@ initial page - 0x01
 
 */
 
+#ifdef FFS_STATIC
+#define FFS_DEF static
+#else
+#define FFS_DEF extern
+#endif
+
+FFS_DEF int ffs_mount(ffs_filesystem *fs, const ffs_cfg *cfg, void *work_buf);
+FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id);
+FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size);
+FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position);
+FFS_DEF int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size);
+FFS_DEF int ffs_erase(ffs_filesystem *fs, ffs_file *file);
+FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file);
+
+#ifdef FFS_IMPLEMENTATION
 // these should return some kind of error code on failure
 // no formatting, we assume things have been cleaned up for us in advance of writing
-static int ffs_mount(ffs_filesystem *fs, const ffs_cfg *cfg, void *work_buf)
+FFS_DEF int ffs_mount(ffs_filesystem *fs, const ffs_cfg *cfg, void *work_buf)
 {
     // copy cfg into our filesystem
     fs->erase = cfg->erase;
@@ -104,7 +119,7 @@ static int16_t ffs_find_empty_page(ffs_blockheader *blockheader)
     return foundPage;
 }
 
-static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
+FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
 {
     // cannot use the top bit of the file id, used for marking dead pages
     assert((file_id & 0x8000) == 0);
@@ -121,9 +136,9 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             file->current_block         = block_offset;
             file->inblock_read_offset   = 0;
             file->logical_read_offset   = 0; 
-
             // need to walk the filetree to generate the filesize
             file->filesize              = 0;
+            file->initialized           = true;
             int writtenPages = ffs_find_empty_page(&blockHeader);
             if(writtenPages > 0)
             {
@@ -133,9 +148,13 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             {
                 fs->read(blockHeader.jump_page, sizeof(ffs_blockheader), &blockHeader);
                 int writtenPages = ffs_find_empty_page(&blockHeader);
-                if(writtenPages > 0)
+                if(writtenPages >= 0)
                 {
                     file->filesize+=writtenPages*256;
+                }
+                else
+                {
+                    file->filesize+=15*256;
                 }
             }
             break;
@@ -150,6 +169,7 @@ static int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     file->object_id = file_id;
     return 0;
 }
+
 static int ffs_find_empty(ffs_filesystem *fs)
 {
     uint32_t block_offset = 0;
@@ -166,7 +186,8 @@ static int ffs_find_empty(ffs_filesystem *fs)
     }
     return -1;
 }
-static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size)
+
+FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size)
 {
     uint32_t block_offset = 0;
     ffs_blockheader blockHeader;
@@ -273,7 +294,7 @@ static int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t s
     return -1;
 }
 
-static int ffs_erase(ffs_filesystem *fs, ffs_file *file)
+FFS_DEF int ffs_erase(ffs_filesystem *fs, ffs_file *file)
 {
     // find any blocks that have this file in them and remove
     uint32_t block_offset = 0;
@@ -300,12 +321,14 @@ static int ffs_erase(ffs_filesystem *fs, ffs_file *file)
     // couldn't find the file
     return -1;
 }
+
 static int ffs_load_blockheader(ffs_filesystem *fs, ffs_file *file, ffs_blockheader *blockheader)
 {
     ffs_blockheader headerForSize;
     fs->read(file->current_block, sizeof(headerForSize), blockheader);
 }
-static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
+
+FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
 {
     // early out if logical read position already set correctly
     if(file->logical_read_offset == position)
@@ -372,12 +395,12 @@ static int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     
 }
 
-static int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
+FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
 {
     return file->filesize;
 }
 
-static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size)
+FFS_DEF int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t size)
 {
     if(!file->initialized)
     {
@@ -408,6 +431,7 @@ static int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t siz
     ffs_seek(fs, file, file->logical_read_offset+size);
     return 0;
 }
+#endif //FFS_IMPLEMENTATION
 
 int file_read(uint32_t offset, size_t size, void *buffer);
 int file_write(uint32_t offset, size_t size, void *buffer);

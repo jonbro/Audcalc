@@ -7,8 +7,10 @@
 #include "audio/settings.h"
 #include "ADSREnvelope.h"
 #include "filesystem.h"
+#include "voice_data.h"
 
 using namespace braids;
+
 enum InstrumentParameter {
   INSTRUMENT_PARAM_MACRO_TIMBRE,
   INSTRUMENT_PARAM_MACRO_MODULATION
@@ -18,13 +20,6 @@ struct GlobalParamSet
   uint32_t bpm = 125;
   uint8_t  input_fx_send = 0;
   bool     amp_enabled;
-};
-enum InstrumentType {
-  INSTRUMENT_MACRO,
-  INSTRUMENT_SAMPLE,
-  INSTRUMENT_MIDI,
-  INSTRUMENT_DRUMS,
-  INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 };
 enum EnvelopeSegment {
   ENV_SEGMENT_ATTACK = 0,
@@ -52,8 +47,9 @@ class Instrument
         void Render(const uint8_t* sync,int16_t* buffer,size_t size);
         void RenderGlobal(const uint8_t* sync,int16_t* buffer,size_t size);
         void SetParameter(uint8_t param, uint8_t value);
-        void NoteOn(int16_t pitch, int16_t midi_note, bool livePlay);
+        void NoteOn(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData);
         void SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime);
+        void UpdateVoiceData(VoiceData &voiceData);
         void SetType(InstrumentType type)
         {
           instrumentType = type;

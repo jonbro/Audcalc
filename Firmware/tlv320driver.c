@@ -163,27 +163,28 @@ void tlvDriverInit()
     write(1, 0x47, 0x32);
     
     // micbias must always be on to avoid noise
-    write(1, 0x33, 0x68); // micbias enable, 2.5v
+    // write(1, 0x33, 0x68); // micbias enable, 2.5v
+    // write(1, 0x33, 0x54); // micbias enable, 1.7v LDO in generation
+    //write(1, 0x33, 0x50); // micbias enable, 1.7v avdd  generation
+    // write(1, 0x33, 0x74); // micbias enable, powersupply
     
-    bool setLineIn = false;
+    driver_set_mic(false);
+    
+    // // analog bypass & dac routed to headphones
+    // write(1, 0x0c, 0x0a);
+    // write(1, 0x0d, 0x0a);
 
-    driver_set_mic(true);
+    // // dac & mixer to headphones
+    // write(1, 0x0c, 0x0a);
+    // write(1, 0x0d, 0x0a);
     
-    // analog bypass & dac routed to headphones
-    write(1, 0x0c, 0x0a);
-    write(1, 0x0d, 0x0a);
-
-    // dac & mixer to headphones
-    write(1, 0x0c, 0x0a);
-    write(1, 0x0d, 0x0a);
-    
-    // dac and mixer to lineout
-    write(1, 0x0e, 0x0a);
-    write(1, 0x0f, 0x0a);
     // route dac only to headphones
     write(1, 0x0c, 0x08);
     write(1, 0x0d, 0x08);
 
+    // dac and mixer to lineout
+    write(1, 0x0e, 0x08);
+    write(1, 0x0f, 0x08);
     
     // Set the ADC PTM Mode to PTM_R1
     write(1, 0x3d, 0x01);
@@ -192,8 +193,8 @@ void tlvDriverInit()
     write(1, 0x11, 0x00);
     
     // set lineout gain to 0  db
-    write(1, 0x12, 0x00);
-    write(1, 0x13, 0x00);
+    write(1, 0x12, 0xa);
+    write(1, 0x13, 0xa);
     
     // power up headphones & mixer amp
     write(1, 0x09, 0x33);
@@ -219,19 +220,24 @@ void tlvDriverInit()
 
 void driver_set_mic(bool mic_state)
 {
+    // return;
     if(mic_state)
     {
+        write(1, 0x33, 0x74); // micbias enable, powersupply
+
         // mic in
-        write(1, 0x34, 0x30); // IN2L to MicPGAL pos with 10k input impedance
-        write(1, 0x36, 0x30); // IN2r to MicPGAL Neg with 10k input impedance
-        write(1, 0x3b, 0x44); // Left MICPGA Volume Control 
-        write(1, 0x3c, 0x44);
+        write(1, 0x34, 0x11); // IN2L to MicPGAL pos with 10k input impedance
+        write(1, 0x36, 0x11); // IN2r to MicPGAL Neg with 10k input impedance
+        write(1, 0x3b, 0x24); // Left MICPGA Volume Control 
+        write(1, 0x3c, 0x24);
         // lower the adc digital volume control?!?
         write(0, 0x53, 0x0c);
         write(0, 0x54, 0x0c);
     }
     else
     {
+        write(1, 0x33, 0x68); // micbias enable, 2.5v
+
         // route IN1L to MicPGAL positive with 20k input impedance
         write(1, 0x34, 0xc0);
         // route Commonmode to MicPGAL neg with 20k input impedance    

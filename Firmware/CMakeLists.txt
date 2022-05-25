@@ -21,13 +21,13 @@ project(tdm C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
         main.cc
         # usb_audio.c
         # usb_descriptors.c
         GrooveBox.cc
+        voice_data.cc
         Instrument.cc
         Midi.cc
         tlv320driver.c
@@ -37,11 +37,6 @@ add_executable(tdm
         hardware.c
         Serializer.cc
         filesystem.c
-        spiffs/spiffs_cache.c
-        spiffs/spiffs_check.c
-        spiffs/spiffs_gc.c
-        spiffs/spiffs_hydrogen.c
-        spiffs/spiffs_nucleus.c
         littlefs/lfs.c
         littlefs/lfs_util.c
         audio/macro_oscillator.cc

@@ -1,6 +1,7 @@
 #include "hardware.h"
 
 #define AMP_CONTROL 29
+#define LINE_IN_DETECT 24
 
 void hardware_init()
 {
@@ -27,15 +28,13 @@ static bool last_mic_state = false;
 
 void hardware_set_mic(bool mic_state)
 {
-    // if we want to turn on, and the amp is off (i.e. no feedback)
-    if(!last_amp_state && mic_state && last_mic_state != mic_state)
+    if(last_mic_state != mic_state)
     {
         last_mic_state = mic_state;
         driver_set_mic(last_mic_state);
     }
-    else if(last_mic_state != mic_state)
-    {
-        last_mic_state = mic_state;
-        driver_set_mic(last_mic_state);
-    }
+}
+bool hardware_line_in_detected()
+{
+    return !gpio_get(LINE_IN_DETECT);
 }

@@ -26,6 +26,7 @@ extern "C" {
 #include "reverb.h"
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
+
 #include "filesystem.h"
 #include "ws2812.h"
 #include "hardware.h"
@@ -304,14 +305,20 @@ void sleep()
 
 uint8_t adc1_prev;
 uint8_t adc2_prev;
+
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
+
 int main()
 {
+    gpio_init(BLINK_PIN_LED);
+    gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
+    gpio_put(BLINK_PIN_LED, true);
+    sleep_ms(100);
     set_sys_clock_khz(200000, true); 
     stdio_init_all();
     ws2812_init();
-    
+
     gpio_init(SUBSYSTEM_RESET_PIN);
     gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
 
@@ -321,6 +328,7 @@ int main()
     sleep_ms(40);
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(20);
+    gpio_put(BLINK_PIN_LED, false);
     
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
@@ -478,15 +486,15 @@ int main()
             //hardware_set_mic(!gpio_get(LINE_IN_DETECT));
             if(!screen_flip_ready)
             {
-                if(requestSerialize){
-                    gbox->Serialize();
-                    requestSerialize = false;
-                }
-                if(requestDeserialize)
-                {
-                    gbox->Deserialize();
-                    requestDeserialize = false;
-                }
+                // if(requestSerialize){
+                //     gbox->Serialize();
+                //     requestSerialize = false;
+                // }
+                // if(requestDeserialize)
+                // {
+                //     gbox->Deserialize();
+                //     requestDeserialize = false;
+                // }
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
             }

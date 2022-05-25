@@ -13,6 +13,7 @@ void hardware_set_amp(bool amp_state);
 void hardware_set_amp_force(bool amp_state, bool force);
 
 void hardware_set_mic(bool mic_state);
+bool hardware_line_in_detected();
 
 #ifdef __cplusplus
 }
