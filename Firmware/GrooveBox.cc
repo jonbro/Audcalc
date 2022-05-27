@@ -208,6 +208,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         if(shutdownTime == 0)
         {
             Serialize();
+            
             reset_usb_boot(0, 0);
         }
     }
@@ -629,9 +630,9 @@ void GrooveBox::Deserialize()
     }
     printf("loaded filesize %i\n", s.writeFile.filesize);
 
-    // reload the trigger settings
-    for (size_t i = 0; i < 16; i++)
-    {
-        color[i%4+(i/4)*5+5] = GetTrigger(currentVoice, i)?urgb_u32(3, 20, 7):urgb_u32(0,0,0);
-    }
+    // // reload the trigger settings
+    // for (size_t i = 0; i < 16; i++)
+    // {
+    //     color[i%4+(i/4)*5+5] = GetTrigger(currentVoice, i)?urgb_u32(3, 20, 7):urgb_u32(0,0,0);
+    // }
 }

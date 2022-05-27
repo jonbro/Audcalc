@@ -140,9 +140,13 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             file->filesize              = 0;
             file->initialized           = true;
             int writtenPages = ffs_find_empty_page(&blockHeader);
-            if(writtenPages > 0)
+            if(writtenPages >= 0)
             {
                 file->filesize+=writtenPages*256;
+            }
+            else
+            {
+                file->filesize+=15*256;
             }
             while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
             {
