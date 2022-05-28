@@ -55,12 +55,12 @@ void InitializeFilesystem()
     ffs_mount(&filesystem, &cfg, fs_work_buf);
 
     // open the file, delete and move on
-    for (size_t i = 0; i < 15; i++)
-    {
-        ffs_file f0;
-        ffs_open(&filesystem, &f0, i);
-        ffs_erase(&filesystem, &f0);
-    }
+    // for (size_t i = 0; i < 15; i++)
+    // {
+    //     ffs_file f0;
+    //     ffs_open(&filesystem, &f0, i);
+    //     ffs_erase(&filesystem, &f0);
+    // }
 }
 void TestFS()
 {

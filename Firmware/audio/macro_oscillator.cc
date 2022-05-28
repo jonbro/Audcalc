@@ -288,6 +288,7 @@ void MacroOscillator::RenderDualSync(
   END_INTERPOLATE_PARAMETER_1
 }
 
+// FOLD oscillator
 void MacroOscillator::RenderSineTriangle(
     const uint8_t* sync,
     int16_t* buffer,

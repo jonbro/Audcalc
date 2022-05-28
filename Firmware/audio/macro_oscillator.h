@@ -45,7 +45,8 @@ class MacroOscillator {
   MacroOscillator() { }
   ~MacroOscillator() { }
   
-  inline void Init() {
+  inline void Init(int16_t *temp_buffer) {
+    temp_buffer_ = temp_buffer;
     analog_oscillator_[0].Init();
     analog_oscillator_[1].Init();
     analog_oscillator_[2].Init();
@@ -107,7 +108,7 @@ class MacroOscillator {
   int16_t previous_parameter_[2];
   int16_t pitch_;
   uint8_t sync_buffer_[128];
-  int16_t temp_buffer_[128];
+  int16_t *temp_buffer_;
   int32_t lp_state_;
   
   AnalogOscillator analog_oscillator_[3];

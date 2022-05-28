@@ -26,6 +26,8 @@ add_executable(tdm
         main.cc
         # usb_audio.c
         # usb_descriptors.c
+        usb_microphone.c
+        usb_descriptors.c
         GrooveBox.cc
         voice_data.cc
         Instrument.cc
@@ -37,8 +39,6 @@ add_executable(tdm
         hardware.c
         Serializer.cc
         filesystem.c
-        littlefs/lfs.c
-        littlefs/lfs_util.c
         audio/macro_oscillator.cc
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
@@ -66,7 +66,7 @@ target_link_libraries(tdm
         hardware_adc
         hardware_flash
         pico_audio_i2s
-        # tinyusb_device tinyusb_board
+        tinyusb_device tinyusb_board
         )
 target_compile_definitions(tdm PRIVATE
 # PICO_AUDIO_I2S_MONO_INPUT=1

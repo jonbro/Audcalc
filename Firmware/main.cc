@@ -27,6 +27,8 @@ extern "C" {
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 
+#include "usb_microphone.h"
+
 #include "filesystem.h"
 #include "ws2812.h"
 #include "hardware.h"
@@ -68,6 +70,7 @@ using namespace braids;
 #define row_pin_base 11
 #define col_pin_base 6
 
+void on_usb_microphone_tx_ready();
 
 static float clip(float value)
 {
@@ -309,6 +312,7 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
+
 int main()
 {
     gpio_init(BLINK_PIN_LED);
@@ -410,6 +414,10 @@ int main()
    // usbaudio_init();
     bool requestSerialize = false;
     bool requestDeserialize = false;
+
+      // initialize the USB microphone interface
+    // usb_microphone_set_tx_ready_handler(on_usb_microphone_tx_ready);
+
     while(true)
     {
         gpio_put(col_pin_base, true);

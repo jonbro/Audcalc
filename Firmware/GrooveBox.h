@@ -16,12 +16,12 @@ extern "C" {
 #include "reverb.h"
 #include "hardware.h"
 #include "voice_data.h"
+#include "usb_microphone.h"
 
 class GrooveBox {
  public:
   GrooveBox(uint32_t *_color);
   void OnKeyUpdate(uint key, bool pressed);
-  void UpdateAfterTrigger(uint step);
   int GetTrigger(uint voice, uint step);
   void UpdateDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint8_t a, uint8_t b);
@@ -40,7 +40,16 @@ class GrooveBox {
   bool erasing = false;
   bool playThroughEnabled = false;
 
+  uint8_t GetCurrentPattern()
+  {
+    return patternChain[chainStep];
+  }
+  void ResetADCLatch()
+  {
+    paramSetA = paramSetB = false;
+  }
  private:
+  bool needsInitialADC; 
   void TriggerInstrument(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData, int channel);
   uint8_t voiceCounter;
   uint8_t instrumentParamA[8];
@@ -60,21 +69,26 @@ class GrooveBox {
   bool soundSelectMode = false;
   bool patternSelectMode = false;
   bool paramSelectMode = false;
+  
   uint8_t param = 0;
   uint32_t *color;
+  // each sound can be on a different step through the pattern, we should track these
+  uint8_t patternStep[16] = {0};
 
+  // the page we are currently editing for each sound
+  // clamped to the length of this pattern / sound
+  uint8_t editPage[16] = {0};
+  
   int patternChain[16] = {0};
   int8_t voiceChannel[16] = {-1};
+  
   int patternChainLength = 1;
   int chainStep = 0;
   bool nextPatternSelected = false;
-  
+  uint8_t storingParamLockForStep = 0;
   VoiceData patterns[16];
   VoiceData *Editing;
   VoiceData *Playing;
-
-  uint8_t notes[16*16*16];
-  uint8_t trigger[16*16*16]; // could probably use the notes array above for this, just have a "off" value
 
   Midi midi;
   uint32_t bpm = 125;

@@ -3,9 +3,9 @@
 static const uint16_t kPitchTableStart = 128 * 128;
 static const uint16_t kOctave = 12 * 128;
 
-void Instrument::Init(Midi *_midi)
+void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
 {
-    osc.Init();
+    osc.Init(temp_buffer);
     currentSegment = ENV_SEGMENT_COMPLETE;
     osc.set_pitch(60<<7);
     osc.set_shape(MACRO_OSC_SHAPE_WAVE_MAP);
@@ -163,7 +163,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         // copy parameters from voice
         osc.set_parameter_1(voiceData.timbre << 7);
         osc.set_parameter_2(voiceData.color << 7);
-        env.Update(voiceData.attackTime>>1, voiceData.decayTime>>1);
+        env.Update(voiceData.AttackTime()>>1, voiceData.DecayTime()>>1);
         svf.set_frequency((voiceData.cutoff>>1) << 7);
         svf.set_resonance((voiceData.resonance>>1) << 7);
     }

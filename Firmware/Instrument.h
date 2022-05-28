@@ -42,7 +42,7 @@ enum SamplePlaybackSegment {
 class Instrument
 {
     public:
-        void Init(Midi *_midi);
+        void Init(Midi *_midi, int16_t *temp_buffer);
         void SetOscillator(uint8_t oscillator);
         void Render(const uint8_t* sync,int16_t* buffer,size_t size);
         void RenderGlobal(const uint8_t* sync,int16_t* buffer,size_t size);

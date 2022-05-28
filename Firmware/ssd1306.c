@@ -163,6 +163,13 @@ void ssd1306_clear_pixel(ssd1306_t *p, uint32_t x, uint32_t y) {
 }
 
 void ssd1306_draw_line(ssd1306_t *p, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
+    if(x1==x2)
+    {
+        for(int32_t i=y1; i<=y2; ++i) {
+            ssd1306_draw_pixel(p, (uint32_t)x1, (uint32_t) i);
+        }
+        return;
+    }
     if(x1>x2) {
         uint32_t t=x1;
         x1=x2;

@@ -5,7 +5,7 @@ int8_t VoiceData::GetOctave()
     return ((int8_t)(octave/51))-2;
 }
 
-uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed)
+uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
     if(param == 28)
     {
@@ -38,6 +38,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed)
         case 6: return octave;
         case 8: return attackTime;
         case 9: return decayTime;
+        case 24: return length[currentPattern];
+        case 25: return rate[currentPattern];
     }
     if(GetInstrumentType() == INSTRUMENT_MACRO)
     {
@@ -76,7 +78,44 @@ const char *voice_sampleparams[16] = {
     "?", "?", "FLTO", "TYPE"
 };
 
-void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed)
+const char *rates[7] = { 
+    "1/8",
+    "1/4",
+    "1/2",
+    "3/4",
+    "1",
+    "3/2",
+    "2"
+};
+uint8_t VoiceData::DelaySend()
+{
+    return delaySend;
+}
+uint8_t VoiceData::AttackTime()
+{
+    uint8_t value;
+    if(HasLockForStep(nextRequestedStep, 8, &value))
+    {
+        return value;
+    }
+    return attackTime;
+}
+uint8_t VoiceData::HoldTime()
+{
+
+}
+uint8_t VoiceData::DecayTime()
+{
+    uint8_t value;
+    if(HasLockForStep(nextRequestedStep, 9, &value))
+    {
+        printf("found lock for step %i, %i\n", nextRequestedStep&0x7f, value);
+        return value;
+    }
+    return decayTime;
+}
+
+void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
     int16_t vala = 0;
     int16_t valb = 0;
@@ -101,6 +140,27 @@ void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed)
                 break;
         }
     }
+    // shared non global params
+    bool needsReturn = false;
+    switch(param)
+    {
+        case 4:
+            vala = attackTime;
+            valb = decayTime;
+            needsReturn = true;
+            break;
+        case 12:
+            vala = length[currentPattern]/4+1;
+            valb = rate[currentPattern];
+            sprintf(str, "len %i", vala);//, valb); need to implement rate
+            return;
+    }
+    if(needsReturn)
+    {
+        sprintf(str, "%s %i %i", voice_macroparams[param], vala, valb);
+        return;
+    }
+
     if(GetInstrumentType() == INSTRUMENT_MIDI)
     {
         switch (param)
