@@ -23,6 +23,7 @@
     ],
     "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
-        "voice_data.h": "c"
+        "voice_data.h": "c",
+        "random": "cpp"
     }
 }

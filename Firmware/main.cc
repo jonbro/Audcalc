@@ -320,7 +320,10 @@ int main()
     gpio_put(BLINK_PIN_LED, true);
     sleep_ms(100);
     set_sys_clock_khz(200000, true); 
+    SetDisplay(&disp);
     stdio_init_all();
+    // TestVoiceData();
+    // return 1;
     ws2812_init();
 
     gpio_init(SUBSYSTEM_RESET_PIN);
@@ -339,7 +342,7 @@ int main()
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
 
-    // I2C Initialisation. Using it at 100Khz.
+    // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400*1000);
 
     multicore_launch_core1(draw_screen);

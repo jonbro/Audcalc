@@ -1,6 +1,9 @@
 #include "GrooveBox.h"
 #include <string.h>
+#include "m6x118pt7b.h"
+
 #define SAMPLES_PER_BUFFER 128
+#define VOICE_COUNT 8
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -81,7 +84,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
 
     if(!recording)
     {
-        for(int v=0;v<8;v++)
+        for(int v=0;v<VOICE_COUNT;v++)
         {
             memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
             memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
@@ -109,7 +112,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             if(requestedNote >= 0)
             {
                 patterns[currentVoice].ClearNextRequestedStep();
-                TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, true, patterns[currentVoice], currentVoice);
+                TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, 0, 0, true, patterns[currentVoice], currentVoice);
             }
             if(IsPlaying())
             {
@@ -122,7 +125,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         if(requestedNote >= 0)
                         {
                             patterns[v].SetNextRequestedStep(patternStep[v]);
-                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, false, patterns[v], v);
+                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
                         }
                         patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
                     }
@@ -171,12 +174,29 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         }
     }
 }
-void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData, int channel)
+void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {
     Instrument *nextPlay = &instruments[voiceCounter];
-    nextPlay->NoteOn(pitch, midi_note, livePlay, voiceData);
-    voiceChannel[voiceCounter] = channel;
-    voiceCounter = (++voiceCounter)%8;
+    // determine if any of the voices are done playing
+    bool foundVoice = false;
+    for (size_t i = 0; i < VOICE_COUNT; i++)
+    {
+        if(!instruments[i].IsPlaying())
+        {
+            nextPlay = &instruments[i];
+            foundVoice = true;
+            voiceChannel[i] = channel;
+            // printf("triggering voice on %i (finished)\n", i);
+            break;
+        }
+    }
+    nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
+    if(!foundVoice)
+    {
+        // printf("triggering voice on %i (counter)\n", voiceCounter);
+        voiceChannel[voiceCounter] = channel;
+        voiceCounter = (++voiceCounter)%VOICE_COUNT;
+    }
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
@@ -202,7 +222,7 @@ bool GrooveBox::IsPlaying()
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
-    char str[32];
+    char str[64];
     ssd1306_set_string_color(p, false);
         
     if(clearTime > 0 && holdingEscape)
@@ -221,6 +241,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             }
         }
         ssd1306_draw_string(p, 0, 8, 1, str);
+        return;
     }
     else if(shutdownTime > 0 && holdingEscape)
     {
@@ -233,16 +254,25 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             Serialize();
             reset_usb_boot(0, 0);
         }
+        return;
     }
     else if(clearTime == 0 && patternSelectMode && holdingEscape)
     {
         sprintf(str, "pat %i cleared", patternChain[0]+1);
         ssd1306_draw_string(p, 0, 8, 1, str);
+        return;
     }
     else if(!patternSelectMode)
     {
-        sprintf(str, "snd %i pat %i", currentVoice, patternChain[chainStep]);
-        ssd1306_draw_string(p, 0, 8, 1, str);
+        int width = 45;
+        sprintf(str, "Snd %i", currentVoice+1);
+        if(soundSelectMode)
+            ssd1306_draw_square_rounded(p, 0, 0, width, 15);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, !soundSelectMode, 1, 1, &m6x118pt7b);
+        // sprintf(str, "Snd %i", currentVoice);
+        sprintf(str, "Pat %i", patternChain[chainStep]+1);
+        // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
+        ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
     }
 
     // copy pattern
@@ -250,6 +280,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         sprintf(str, "copy pat %i to", patternChain[0]+1);
         ssd1306_draw_string(p, 0, 8, 1, str);
+        return;
     }
 
     if(patternSelectMode && clearTime < 0 && !holdingWrite)
@@ -280,10 +311,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else
     {
-        patterns[currentVoice].GetParamString(param, str, lastNotePlayed, GetCurrentPattern());
-        // ssd1306_draw_square(p, 0, 24, 40, 12);
-        // ssd1306_set_string_color(p, true);
-        ssd1306_draw_string(p, 0, 24, 1, str);
+        patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), storingParamLockForStep);
     }
     // grid
     for(int i=0;i<16;i++)
@@ -362,16 +390,18 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     hardware_set_amp(globalParams->amp_enabled>0x7f);
     playThroughEnabled = hardware_line_in_detected();
     hardware_set_mic(!playThroughEnabled);
-    ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
+    
+    // input level monitor
+    // ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
     // draw the current page within the pattern that we are editing 
     for (size_t i = 0; i < 4; i++)
     {
         if((i+1) > ((patterns[currentVoice].GetLength(GetCurrentPattern())-1)/16+1))
             break;
-        ssd1306_draw_empty_square(p, 100+i*7, 0, 4, 4);
-        if(editPage[currentVoice] == i)
+        ssd1306_draw_square_rounded(p, 48, i*8+1, 6, 6);
+        if(editPage[currentVoice] != i)
         {
-            ssd1306_draw_empty_square(p, 101+i*7, 1, 2, 2);
+            ssd1306_clear_square(p, 48+1, i*8+1+1, 4, 4);
         }
     }
     
@@ -427,12 +457,14 @@ void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
         if(paramSetA)
         {
             lastAdcValA = a;
-            patterns[currentVoice].StoreParamLock(param*2, storingParamLockForStep&0x7f, a);
+            patterns[currentVoice].StoreParamLock(param*2, storingParamLockForStep&0x7f, GetCurrentPattern(), a);
+            parameterLocked = true;
         }
         if(paramSetB)
         {
             lastAdcValB = b;
-            patterns[currentVoice].StoreParamLock(param*2+1, storingParamLockForStep&0x7f, b);
+            patterns[currentVoice].StoreParamLock(param*2+1, storingParamLockForStep&0x7f, GetCurrentPattern(), b);
+            parameterLocked = true;
         }
         return;
     }
@@ -517,7 +549,8 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             ResetADCLatch();
             if(GetTrigger(currentVoice, sequenceStep+editPage[currentVoice]*16)>=0)
             {
-                patterns[currentVoice].notes[patternChain[chainStep]*64+sequenceStep+editPage[currentVoice]*16] = 0;
+                if(!parameterLocked)
+                    patterns[currentVoice].notes[patternChain[chainStep]*64+sequenceStep+editPage[currentVoice]*16] = 0;
             }
             else
             {
@@ -587,6 +620,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         else // writing
         {
             ResetADCLatch();
+            parameterLocked = false;
             // see if we are going to commit a param lock
             storingParamLockForStep = (0x7f&(sequenceStep+editPage[currentVoice]*16))|0x80;
         }
@@ -694,7 +728,7 @@ void GrooveBox::Serialize()
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     // version
-    s.AddData(3);
+    s.AddData(4);
 
     // save pattern data
     uint8_t *patternReader = (uint8_t*)patterns;
@@ -703,7 +737,9 @@ void GrooveBox::Serialize()
         s.AddData(*patternReader);
         patternReader++;
     }
-     
+    // save the parameter locks
+    VoiceData::SerializeStatic(s);
+
     s.Finish();
     printf("serialized file size %i\n", s.writeFile.filesize);
 }
@@ -715,7 +751,7 @@ void GrooveBox::Deserialize()
     if(!s.writeFile.initialized)
         return;
     // save version
-    if(s.GetNextValue() != 4)
+    if(s.GetNextValue() != 5)
         return;
 
     // load pattern data
@@ -725,6 +761,7 @@ void GrooveBox::Deserialize()
         *patternReader = s.GetNextValue();
         patternReader++;
     }
+    VoiceData::DeserializeStatic(s);
     printf("loaded filesize %i\n", s.writeFile.filesize);
 
     // // reload the trigger settings

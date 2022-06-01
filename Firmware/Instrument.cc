@@ -91,6 +91,13 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
         if(filesize == 0 || sampleSegment == SMP_COMPLETE)
             return;
+        int16_t wave[128];
+
+        // this is too slow to do in the loop - which unfortunately makes
+        // handling higher octaves quite difficult
+        // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
+        ffs_seek(GetFilesystem(), file, sampleOffset*2);
+        ffs_read(GetFilesystem(), file, wave, 2*128);
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             if(sampleOffset > sampleEnd - 1)
@@ -109,18 +116,19 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 }
             }
             
-            int16_t wave = 0;
-
-            ffs_seek(GetFilesystem(), file, sampleOffset*2);
-            ffs_read(GetFilesystem(), file, &wave, 2);
-
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
             phase_-=(phase_&(0xff<<25));
 
-            buffer[i] = wave;
+            buffer[i] = wave[i];
+            q15_t envval = env.Render() >> 1;
+            if(enable_env)
+            {
+                buffer[i] = mult_q15(buffer[i], envval);
+            }
+            buffer[i] = svf.Process(buffer[i]);
+            buffer[i] = mult_q15(buffer[i], volume);
         }
-        RenderGlobal(sync, buffer, size);
         return;
     }
     osc.Render(sync, buffer, size);
@@ -131,9 +139,6 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         q15_t envval = env.Render() >> 1;
-
-        uint32_t mult = 0;
-        uint32_t phase = 0;
         if(enable_env)
         {
             buffer[i] = mult_q15(buffer[i], envval);
@@ -142,6 +147,15 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         buffer[i] = mult_q15(buffer[i], volume);
     }
 }
+bool Instrument::IsPlaying()
+{
+    if(env.segment() == ADSR_ENV_SEGMENT_DEAD)
+        return false;
+    if(instrumentType == INSTRUMENT_SAMPLE && sampleSegment == SMP_COMPLETE)
+        return false;
+    return true;
+}
+
 void Instrument::SetOscillator(uint8_t oscillator)
 {
     osc.set_shape((MacroOscillatorShape)oscillator);
@@ -156,32 +170,33 @@ const int keyToMidi[16] = {
 
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
-    delaySend = voiceData.delaySend;
-    volume = ((q15_t)voiceData.volume)<<7;
+    delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
+    volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
+    if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
+    {
+        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
+        svf.set_frequency((voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7);
+        svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
+    }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
         // copy parameters from voice
-        osc.set_parameter_1(voiceData.timbre << 7);
-        osc.set_parameter_2(voiceData.color << 7);
-        env.Update(voiceData.AttackTime()>>1, voiceData.DecayTime()>>1);
-        svf.set_frequency((voiceData.cutoff>>1) << 7);
-        svf.set_resonance((voiceData.resonance>>1) << 7);
+        osc.set_parameter_1(voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7);
+        osc.set_parameter_2(voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
-        // copy parameters from voice
-        env.Update(voiceData.attackTime>>1, voiceData.decayTime>>1);
-        svf.set_frequency((voiceData.cutoff>>1) << 7);
-        svf.set_resonance((voiceData.resonance>>1) << 7);
     }
 }
-void Instrument::NoteOn(int16_t key, int16_t midinote, bool livePlay, VoiceData &voiceData)
+void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
     // used for editing values for specific keys
     if(livePlay)
     {
         lastPressedKey = key;
     }
+    playingStep = step;
+    playingPattern = pattern;
     int note = keyToMidi[key]+12*voiceData.GetOctave();
     if(midinote >= 0)
     {
@@ -215,6 +230,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, bool livePlay, VoiceData 
         osc.set_shape(voiceData.GetShape());
         enable_env = true;
         osc.set_pitch(note<<7);
+        instrumentType = voiceData.GetInstrumentType();
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }

@@ -33,6 +33,17 @@ SOFTWARE.
 #include "ssd1306.h"
 #include "font.h"
 
+ssd1306_t *display;
+
+void SetDisplay(ssd1306_t* display_)
+{
+    display = display_;
+}
+ssd1306_t* GetDisplay()
+{
+    return display;
+}
+
 inline static void fancy_write(i2c_inst_t *i2c, uint8_t addr, const uint8_t *src, size_t len, char *name) {
     // while possible, write non-blocking to the screen
     // while(!i2c_get_write_available(i2c))
@@ -192,11 +203,35 @@ void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, u
 		for(uint32_t j=0;j<height;++j)
 			ssd1306_draw_pixel(p, x+i, y+j);
 }
+void ssd1306_draw_square_rounded(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+    for(uint32_t i=0;i<width;++i)
+    {
+        for(uint32_t j=0;j<height;++j)
+        {
+            if((i==0||i==width-1)&&(j==0||j==height-1))
+                continue;
+            ssd1306_draw_pixel(p, x+i, y+j);
+        }
+    }
+}
 
 void ssd1306_clear_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height){
 	for(uint32_t i=0;i<width;++i)
 		for(uint32_t j=0;j<height;++j)
 			ssd1306_clear_pixel(p, x+i, y+j);
+}
+void ssd1306_clear_square_rounded(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+    for(uint32_t i=0;i<width;++i)
+    {
+        for(uint32_t j=0;j<height;++j)
+        {
+            if((i==0||i==width-1)&&(j==0||j==height-1))
+                continue;
+            ssd1306_clear_pixel(p, x+i, y+j);
+        }
+    }
 }
 
 void ssd1306_draw_empty_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height){
@@ -251,4 +286,137 @@ void ssd1306_show(ssd1306_t *p) {
 void ssd1306_set_string_color(ssd1306_t *p, bool invert)
 {
     p->string_invert = invert;
+}
+
+#ifndef pgm_read_byte
+#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#endif
+#ifndef pgm_read_word
+#define pgm_read_word(addr) (*(const unsigned short *)(addr))
+#endif
+#ifndef pgm_read_dword
+#define pgm_read_dword(addr) (*(const unsigned long *)(addr))
+#endif
+#if !defined(__INT_MAX__) || (__INT_MAX__ > 0xFFFF)
+#define pgm_read_pointer(addr) ((void *)pgm_read_dword(addr))
+#else
+#define pgm_read_pointer(addr) ((void *)pgm_read_word(addr))
+#endif
+
+inline GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c) {
+#ifdef __AVR__
+  return &(((GFXglyph *)pgm_read_pointer(&gfxFont->glyph))[c]);
+#else
+  // expression in __AVR__ section may generate "dereferencing type-punned
+  // pointer will break strict-aliasing rules" warning In fact, on other
+  // platforms (such as STM32) there is no need to do this pointer magic as
+  // program memory may be read in a usual way So expression may be simplified
+  return gfxFont->glyph + c;
+#endif //__AVR__
+}
+
+inline uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont) {
+#ifdef __AVR__
+  return (uint8_t *)pgm_read_pointer(&gfxFont->bitmap);
+#else
+  // expression in __AVR__ section generates "dereferencing type-punned pointer
+  // will break strict-aliasing rules" warning In fact, on other platforms (such
+  // as STM32) there is no need to do this pointer magic as program memory may
+  // be read in a usual way So expression may be simplified
+  return gfxFont->bitmap;
+#endif //__AVR__
+}
+
+void ssd1306_draw_string_gfxfont(ssd1306_t *p, int16_t x, int16_t y, const char *s,
+                            bool white, uint8_t size_x,
+                            uint8_t size_y, const GFXfont *gfxFont)
+{
+    int16_t cursor_x = x;
+    uint8_t first = pgm_read_byte(&gfxFont->first);
+    while(*s) {
+        if ((*s < first) || (*s > (uint8_t)pgm_read_byte(&gfxFont->last)))
+        {
+            s++;
+            continue;
+        }    
+        GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, *s - first);
+        uint8_t w = pgm_read_byte(&glyph->width),
+                h = pgm_read_byte(&glyph->height);
+        if ((w > 0) && (h > 0)) { // Is there an associated bitmap?
+            ssd1306_draw_char_gfxfont(p, cursor_x, y, *s,
+                        white, size_x,
+                        size_y, gfxFont);
+        }
+        cursor_x += (uint8_t)pgm_read_byte(&glyph->xAdvance);
+        s++;
+    }
+}
+
+void ssd1306_draw_char_gfxfont(ssd1306_t *p, int16_t x, int16_t y, unsigned char c,
+                            bool white, uint8_t size_x,
+                            uint8_t size_y, const GFXfont *gfxFont)
+{
+    // Character is assumed previously filtered by write() to eliminate
+    // newlines, returns, non-printable characters, etc.  Calling
+    // drawChar() directly with 'bad' characters of font may cause mayhem!
+
+    c -= (uint8_t)pgm_read_byte(&gfxFont->first);
+    GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c);
+    uint8_t *bitmap = pgm_read_bitmap_ptr(gfxFont);
+
+    uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
+    uint8_t w = pgm_read_byte(&glyph->width), h = pgm_read_byte(&glyph->height);
+    int8_t xo = pgm_read_byte(&glyph->xOffset),
+            yo = pgm_read_byte(&glyph->yOffset);
+    uint8_t xx, yy, bits = 0, bit = 0;
+    int16_t xo16 = 0, yo16 = 0;
+
+    if (size_x > 1 || size_y > 1) {
+        xo16 = xo;
+        yo16 = yo;
+    }
+
+    // Todo: Add character clipping here
+
+    // NOTE: THERE IS NO 'BACKGROUND' COLOR OPTION ON CUSTOM FONTS.
+    // THIS IS ON PURPOSE AND BY DESIGN.  The background color feature
+    // has typically been used with the 'classic' font to overwrite old
+    // screen contents with new data.  This ONLY works because the
+    // characters are a uniform size; it's not a sensible thing to do with
+    // proportionally-spaced fonts with glyphs of varying sizes (and that
+    // may overlap).  To replace previously-drawn text when using a custom
+    // font, use the getTextBounds() function to determine the smallest
+    // rectangle encompassing a string, erase the area with fillRect(),
+    // then draw new text.  This WILL infortunately 'blink' the text, but
+    // is unavoidable.  Drawing 'background' pixels will NOT fix this,
+    // only creates a new set of problems.  Have an idea to work around
+    // this (a canvas object type for MCUs that can afford the RAM and
+    // displays supporting setAddrWindow() and pushColors()), but haven't
+    // implemented this yet.
+
+    // startWrite();
+    for (yy = 0; yy < h; yy++) {
+        for (xx = 0; xx < w; xx++) {
+            if (!(bit++ & 7)) {
+                bits = pgm_read_byte(&bitmap[bo++]);
+            }
+            if (bits & 0x80) {
+                if (size_x == 1 && size_y == 1) {
+                    if(white)
+                        ssd1306_draw_pixel(p, x + xo + xx, y + yo + yy);
+                    else
+                        ssd1306_clear_pixel(p, x + xo + xx, y + yo + yy);
+                } else {
+                    if(white)
+                        ssd1306_draw_square(p, x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+                                size_x, size_y);
+                    else
+                        ssd1306_clear_square(p, x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+                                size_x, size_y);
+                }
+            }
+            bits <<= 1;
+        }
+    }
+    // endWrite();
 }

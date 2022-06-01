@@ -30,6 +30,7 @@ add_executable(tdm
         usb_descriptors.c
         GrooveBox.cc
         voice_data.cc
+        ParamLockPool.cpp
         Instrument.cc
         Midi.cc
         tlv320driver.c

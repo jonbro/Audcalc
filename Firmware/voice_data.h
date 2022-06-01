@@ -6,6 +6,13 @@
 #include "audio/macro_oscillator.h"
 #include "audio/quantizer_scales.h"
 #include "filesystem.h"
+#include "ParamLockPool.h"
+#include "Serializer.h"
+
+extern "C" {
+  #include "ssd1306.h"
+}
+
 using namespace braids;
 
 typedef enum {
@@ -16,13 +23,20 @@ typedef enum {
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 } InstrumentType;
 
-struct ParamLock
-{
-    uint8_t step;
-    uint8_t param;
-    uint8_t value;
+enum ParamType {
+    Timbre = 0,
+    SampleIn = 0,
+    Color = 1,
+    SampleOut = 1,
+    Cutoff = 2,
+    Resonance = 3,
+    Volume = 4,
+    Octave = 6,
+    AttackTime = 8,
+    DecayTime = 9,
+    Length = 24,
+    DelaySend = 28
 };
-
 
 class VoiceData
 {
@@ -32,14 +46,19 @@ class VoiceData
             for (size_t i = 0; i < 16; i++)
             {
                 length[i] = 15*4; // need to up this to fit into 0xff
+                locksForPattern[i] = ParamLockPool::NullLock();
             }
             for (size_t i = 0; i < 64*16; i++)
             {
                 notes[i] = 0;
             }
-            
         }
         void GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern);
+        void GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB);
+        void DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock);
+        bool CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
+        uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
+
         MacroOscillatorShape GetShape(){
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
         }
@@ -63,21 +82,27 @@ class VoiceData
         {
             return length[pattern]/4+1;
         }
-        void StoreParamLock(uint8_t param, uint8_t step, uint8_t value)
+        void StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
         {
-            // check to see if this step & param already has a lock 
-            for(int i=0;i<20;i++)
+            ParamLock *lock = GetLockForStep(0x80|step, pattern, param);
+            if(lock != ParamLockPool::NullLock())
             {
-                if(paramLocks[i].step == step && paramLocks[i].param == param)
-                {
-                    printf("updating param lock %i %i %i\n", step, param, value);
-                    paramLocks[i].value = value;
-                    return;
-                }
-            }
-            if(paramLockCount>=20)
+                lock->value = value;
+                printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
                 return;
-            paramLocks[paramLockCount++] = (ParamLock){ .step = step, .param = param, .value = value };
+            }
+            if(lockPool.GetParamLock(&lock))
+            {
+                printf("new address %x\n", lock);
+                lock->param = param;
+                lock->step = step;
+                lock->value = value;
+                lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
+                locksForPattern[pattern] = lock;
+                printf("added param lock step: %i param: %i value: %i\n", step, param, value);
+                return;
+            }
+            printf("failed to add param lock\n");
         }
         void SetNextRequestedStep(uint8_t step)
         {
@@ -87,34 +112,51 @@ class VoiceData
         {
             nextRequestedStep = 0;
         }
-        bool HasLockForStep(uint8_t step, uint8_t param, uint8_t *value)
+        bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
         {
             if(step>>7==0)
                 return false;
-            for(int i=0;i<20;i++)
+            ParamLock* lock = GetLockForStep(step, pattern, param);
+            if(lock != ParamLockPool::NullLock())
             {
-                if(paramLocks[i].step == (step&0x7f) && paramLocks[i].param == param)
-                {
-                    *value = paramLocks[i].value;
-                    return true;
-                }
+                value = lock->value;
+                return true;
             }
             return false;
         }
+
+        ParamLock* GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param)
+        {
+            if(step>>7==0)
+                return ParamLockPool::NullLock();
+            ParamLock* lock = locksForPattern[pattern];
+            while(lock != ParamLockPool::NullLock())
+            {
+                if(lock->param == param && lock->step == (step&0x7f))
+                {
+                    return lock;
+                }
+                lock = lockPool.GetLock(lock->next);
+            }
+            return ParamLockPool::NullLock();
+        }
+
+        bool LockableParam(uint8_t param);
+        
+        static void SerializeStatic(Serializer &s);
+        static void DeserializeStatic(Serializer &s);
+
+
+        ParamLock* locksForPattern[16];
+
         uint8_t nextRequestedStep;
         ffs_file *file;
         bool    global_instrument = false; // this ... should get shared somewhere, lots of nonsense to cart around
         uint8_t instrumentTypeBare = 0;
         uint8_t paramLockCount = 0;
-        ParamLock paramLocks[20];
 
-        uint8_t DelaySend();
         uint8_t delaySend;
-        uint8_t AttackTime();
         uint8_t attackTime = 0x20;
-        uint8_t HoldTime();
-        uint8_t holdTime;
-        uint8_t DecayTime();
         uint8_t decayTime = 0x20;
         uint8_t envTimbre;
         uint8_t envColor;
@@ -151,6 +193,10 @@ class VoiceData
         uint8_t sampleEnd; 
         uint8_t volume = 0x7f;
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
+    private:
+        static ParamLockPool lockPool;
 };
+
+void TestVoiceData();
 
 #endif // VOICEDATA_H_

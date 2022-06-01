@@ -50,7 +50,7 @@ class GrooveBox {
   }
  private:
   bool needsInitialADC; 
-  void TriggerInstrument(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData, int channel);
+  void TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   uint8_t voiceCounter;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];
@@ -86,6 +86,7 @@ class GrooveBox {
   int chainStep = 0;
   bool nextPatternSelected = false;
   uint8_t storingParamLockForStep = 0;
+  bool parameterLocked;
   VoiceData patterns[16];
   VoiceData *Editing;
   VoiceData *Playing;

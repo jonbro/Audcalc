@@ -47,8 +47,9 @@ class Instrument
         void Render(const uint8_t* sync,int16_t* buffer,size_t size);
         void RenderGlobal(const uint8_t* sync,int16_t* buffer,size_t size);
         void SetParameter(uint8_t param, uint8_t value);
-        void NoteOn(int16_t pitch, int16_t midi_note, bool livePlay, VoiceData &voiceData);
+        void NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData);
         void SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime);
+        bool IsPlaying();
         void UpdateVoiceData(VoiceData &voiceData);
         void SetType(InstrumentType type)
         {
@@ -64,12 +65,16 @@ class Instrument
         MacroOscillator osc;
         uint8_t delaySend = 0;
         GlobalParamSet *globalParamSet;
+        
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
         uint32_t phase_;
         int8_t lastPressedKey = 0;
         uint32_t envPhase;
+
+        // stores the step & pattern this voice was triggered on for looking up parameter locks
+        uint8_t playingStep, playingPattern;
         EnvelopeSegment currentSegment;
         uint8_t attackTime, holdTime, decayTime;
         int8_t envTimbre = 0, envColor = 0;

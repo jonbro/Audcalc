@@ -32,6 +32,7 @@ SOFTWARE.
 #define _inc_ssd1306
 #include <pico/stdlib.h>
 #include <hardware/i2c.h>
+#include "gfxfont.h"
 
 /**
 *	@brief defines commands used in ssd1306
@@ -71,6 +72,9 @@ typedef struct {
 	int dma_chan_output;
 	bool string_invert;
 } ssd1306_t;
+
+void SetDisplay(ssd1306_t* display_);
+ssd1306_t* GetDisplay();
 
 /**
 *	@brief initialize display
@@ -169,8 +173,10 @@ void ssd1306_draw_line(ssd1306_t *p, int32_t x1, int32_t y1, int32_t x2, int32_t
 	@param[in] height : height of square
 */
 void ssd1306_draw_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+void ssd1306_draw_square_rounded(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 void ssd1306_clear_square(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+void ssd1306_clear_square_rounded(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 /**
 	@brief draw empty square at given position with given size
@@ -237,5 +243,10 @@ void ssd1306_draw_string(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t scale, c
 */
 
 void ssd1306_set_string_color(ssd1306_t *p, bool invert);
-
+void ssd1306_draw_string_gfxfont(ssd1306_t *p, int16_t x, int16_t y, const char *s,
+                            bool white, uint8_t size_x,
+                            uint8_t size_y, const GFXfont *gfxFont);
+void ssd1306_draw_char_gfxfont(ssd1306_t *p, int16_t x, int16_t y, unsigned char c,
+                            bool white, uint8_t size_x,
+                            uint8_t size_y, const GFXfont *gfxFont);
 #endif
