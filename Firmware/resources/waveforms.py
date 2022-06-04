@@ -35,7 +35,7 @@ import numpy
 Waveforms for vowel synthesis
 ----------------------------------------------------------------------------"""
 
-SAMPLE_RATE = 44100
+SAMPLE_RATE = 32000
 
 waveforms = []
 # Create amplitude modulated sine/square tables for formants.

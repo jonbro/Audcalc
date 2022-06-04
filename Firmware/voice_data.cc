@@ -21,7 +21,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
             case Color: return HasLockForStep(step, pattern, Color, value)?value:color;
         }
     }
-    if(GetInstrumentType() == INSTRUMENT_MACRO)
+    if(GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         switch(param)
         {
@@ -95,8 +95,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return sampleStart[lastNotePlayed];
-            case 1: return sampleLength[lastNotePlayed];
+            case 0: return sampleStart[GetSampler()==SAMPLE_PLAYER_PITCH?0:lastNotePlayed];
+            case 1: return sampleLength[GetSampler()==SAMPLE_PLAYER_PITCH?0:lastNotePlayed];
+            case 31: return samplerTypeBare;
             default:
                 break;
         }
@@ -116,15 +117,14 @@ const char *voice_sampleparams[16] = {
     "lop", "?", "?", "?",
     "?", "?", "FLTO", "TYPE"
 };
-
 const char *rates[7] = { 
-    "1/8",
-    "1/4",
-    "1/2",
-    "3/4",
-    "1",
-    "3/2",
-    "2"
+    "2x",
+    "3/2x",
+    "1x",
+    "3/4x",
+    "1/2x",
+    "1/4x",
+    "1/8x"
 };
 
 void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern)
@@ -163,7 +163,7 @@ void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed,
             break;
         case 12:
             vala = length[currentPattern]/4+1;
-            valb = rate[currentPattern];
+            valb = (rate[currentPattern]*7)>>8;
             sprintf(str, "len %i", vala);//, valb); need to implement rate
             return;
     }
@@ -199,10 +199,17 @@ void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed,
         {
         // sample in point
         case 0:
-            vala = sampleStart[lastNotePlayed];
-            valb = sampleLength[lastNotePlayed];
+            if(GetSampler() == SAMPLE_PLAYER_SLICE)
+            {
+                vala = sampleStart[lastNotePlayed];
+                valb = sampleLength[lastNotePlayed];
+            }
+            else
+            {
+                vala = sampleStart[0];
+                valb = sampleLength[0];
+            }
             break;
-
         // volume / pan
         case 1:
             vala = cutoff;
@@ -294,9 +301,9 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     {
         case 12:
             sprintf(strA, "Len");
-            sprintf(strB, "");
+            sprintf(strB, "Rate");
             sprintf(pA, "%i", length[pattern]/4+1);
-            sprintf(pB, "");
+            sprintf(pB,rates[(rate[pattern]*7)>>8]);
             // valb = rate[currentPattern];
             // sprintf(str, "len %i", vala);//, valb); need to implement rate
             return;
@@ -373,14 +380,22 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 0:
                 sprintf(strA, "In");
                 sprintf(strB, "Len");
-                sprintf(pA, "%i", sampleStart[lastNotePlayed]);
-                sprintf(pB, "%i", sampleLength[lastNotePlayed]);
+                if(GetSampler() == SAMPLE_PLAYER_SLICE)
+                {
+                    sprintf(pA, "%i", sampleStart[lastNotePlayed]);
+                    sprintf(pB, "%i", sampleLength[lastNotePlayed]);
+                }
+                else
+                {
+                    sprintf(pA, "%i", sampleStart[0]);
+                    sprintf(pB, "%i", sampleLength[0]);
+                }
                 return;
             case 15:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Samp");
-                sprintf(pB, "");
+                sprintf(pB, samplerTypeBare<0x7f?"Slice":"Pitch");
                 return;
             default:
                 return;

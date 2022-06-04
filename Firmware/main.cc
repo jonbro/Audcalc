@@ -192,12 +192,12 @@ void configure_audio_driver()
     printf("loaded program at offset: %i\n", offset);
     sm = pio_claim_unused_sm(pio, true);
     printf("claimed sm: %i\n", sm); //I2S_DATA_PIN
-    int sample_freq = 44100;
+    int sample_freq = 32000;
     printf("setting pio freq %d\n", (int) sample_freq);
     uint32_t system_clock_frequency = clock_get_hz(clk_sys);
     assert(system_clock_frequency < 0x40000000);
 
-    uint32_t divider = system_clock_frequency * 2 / sample_freq; // avoid arithmetic overflow
+    uint32_t divider = system_clock_frequency*2 / sample_freq; // avoid arithmetic overflow
     // uint32_t divider = system_clock_frequency/(sample_freq*3*32);
     printf("System clock at %u, I2S clock divider 0x%x/256\n", (uint) system_clock_frequency, (uint)divider);
     assert(divider < 0x1000000);

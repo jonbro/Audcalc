@@ -2,7 +2,7 @@ import numpy
 
 lookup_tables_32 = []
 
-sample_rate = 44100
+sample_rate = 3200
 excursion = 65536 * 65536.0
 
 # Create table for pitch.
@@ -51,7 +51,7 @@ myNotes = numpy.arange(
     16)
 #print(pitches/128)
 increment = 1.0/sample_rate*pitches
-per_hertz_phase_inc = 44100.0 / 69 * 128
+per_hertz_phase_inc = 32000.0 / 69 * 128
 
 delays = sample_rate / pitches * 65536 * 4096
 

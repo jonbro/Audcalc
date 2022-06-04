@@ -17,7 +17,7 @@ extern "C" {
 #include "hardware.h"
 #include "voice_data.h"
 #include "usb_microphone.h"
-
+#include "audio/resources.h"
 class GrooveBox {
  public:
   GrooveBox(uint32_t *_color);
@@ -48,9 +48,18 @@ class GrooveBox {
   {
     paramSetA = paramSetB = false;
   }
+  void ResetPatternOffset()
+  {
+    for (size_t i = 0; i < 16; i++)
+    {
+       patternStep[i] = beatCounter[i] = 0;
+    }
+    
+  }
  private:
   bool needsInitialADC; 
   void TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
+  void CalculateTempoIncrement();
   uint8_t voiceCounter;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];
@@ -58,7 +67,8 @@ class GrooveBox {
   int drawY = 0;
   int lastNotePlayed = 0;
   bool paramSetA, paramSetB;
-
+  uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
+  uint8_t beatCounter[16] = {0};
   bool playing = false;
   bool writing = false;
   bool holdingWrite = false;
@@ -92,7 +102,6 @@ class GrooveBox {
   VoiceData *Playing;
 
   Midi midi;
-  uint32_t bpm = 125;
   uint16_t nextTrigger = 0;
   uint8_t lastAdcValA = 0;
   uint8_t lastAdcValB = 0;

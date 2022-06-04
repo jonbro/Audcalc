@@ -33,6 +33,7 @@ enum LoopMode {
   INSTRUMENT_LOOPMODE_NONE,
   INSTRUMENT_LOOPMODE_FWD,
 };
+
 enum SamplePlaybackSegment {
   SMP_PLAYING = 0,
   SMP_COMPLETE = 1,

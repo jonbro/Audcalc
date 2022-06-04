@@ -30,21 +30,21 @@
                      ;        /--- LRCLK
                      ;        |/-- BCLK
 bitloop1:            ;        ||
-    out pins, 1        side 0b10 [1]
+    out pins, 1        side 0b10
     in pins, 1         side 0b10
     nop                side 0b11
     jmp x-- bitloop1   side 0b11
-    out pins, 1        side 0b00 [1]
+    out pins, 1        side 0b00
     in pins, 1         side 0b00
     nop                side 0b01
     set x, 14          side 0b01
 
 bitloop0:
-    out pins, 1        side 0b00 [1]
+    out pins, 1        side 0b00
     in pins, 1         side 0b00
     nop                side 0b01
     jmp x-- bitloop0   side 0b01
-    out pins, 1        side 0b10 [1]
+    out pins, 1        side 0b10
     in pins, 1         side 0b10
     nop                side 0b11
 public entry_point:

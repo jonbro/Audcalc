@@ -19,12 +19,22 @@ static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
 
 int16_t temp_buffer[SAMPLES_PER_BUFFER];
 
+void GrooveBox::CalculateTempoIncrement()
+{
+    tempoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+    // 24ppq
+    tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+    // tempoPhaseIncrement >>= 1;
+    // 4 ppq
+    // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
+}
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     needsInitialADC = true;
     Delay_init(&delay, 10000);
     midi.Init();
     ResetADCLatch();
+    tempoPhase = 0;
     for(int i=0;i<16;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
@@ -32,7 +42,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         {
             patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);
             globalParams = &patterns[i];
-            globalParams->bpm = 104;
+            globalParams->bpm = 120;
         }
         else
         {
@@ -45,21 +55,23 @@ GrooveBox::GrooveBox(uint32_t *_color)
         }
     }
     Deserialize();
+    CalculateTempoIncrement();
     color = _color;
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
-int16_t workBuffer2[SAMPLES_PER_BUFFER];
+int32_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
 int16_t recordBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
 int16_t last_input;
+uint32_t counter = 0;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
-    memset(workBuffer2, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER);
     memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
@@ -81,7 +93,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         }
         last_input = input>last_input?input:last_input;
     }
-
+    CalculateTempoIncrement();
     if(!recording)
     {
         for(int v=0;v<VOICE_COUNT;v++)
@@ -92,9 +104,9 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)
             {
-                q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
-                workBuffer2[i] = add_q15(workBuffer2[i], workBuffer[i]);
-                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(instrument, ((int16_t)instruments[v].delaySend)<<6));
+                // q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
+                workBuffer2[i] += workBuffer[i];
+                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<6));
             }
         }
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -103,66 +115,97 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             //int16_t delay_feedback = 0;
             toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
             last_delay = Delay_process(&delay, toDelayBuffer[i]);
-            workBuffer2[i] = add_q15(workBuffer2[i], last_delay);
+            workBuffer2[i] += last_delay;
         }
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        // this can all be done outside this loop?
+        int requestedNote = GetNote();
+        if(requestedNote >= 0)
         {
-            // this can all be done outside this loop?
-            int requestedNote = GetNote();
-            if(requestedNote >= 0)
+            patterns[currentVoice].ClearNextRequestedStep();
+            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, 0, 0, true, patterns[currentVoice], currentVoice);
+        }
+        if(IsPlaying())
+        {
+            bool hadTrigger = false;
+            tempoPhase += tempoPhaseIncrement;
+            if((tempoPhase >> 31) > 0)
             {
-                patterns[currentVoice].ClearNextRequestedStep();
-                TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, 0, 0, true, patterns[currentVoice], currentVoice);
+                tempoPhase &= 0x7fffffff;
+                hadTrigger = true;
             }
-            if(IsPlaying())
+            if(hadTrigger)
             {
-                if(nextTrigger-- == 0)
+                // skip the last one, since the global can't be sequenced
+                for(int v=0;v<15;v++)
                 {
-                    // skip the last one, since the global can't be sequenced
-                    for(int v=0;v<15;v++)
+                    bool needsTrigger = beatCounter[v]==0;
+                    beatCounter[v]++;
+                    switch((patterns[v].rate[GetCurrentPattern()]*7)>>8)
                     {
-                        int requestedNote = GetTrigger(v, patternStep[v]);
-                        if(requestedNote >= 0)
-                        {
-                            patterns[v].SetNextRequestedStep(patternStep[v]);
-                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
-                        }
-                        patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                        case 0: // 2x
+                            beatCounter[v] = beatCounter[v]%3;
+                            break;
+                        case 1: // 3/2x
+                            beatCounter[v] = beatCounter[v]%4;
+                            break;
+                        case 2: // 1x
+                            beatCounter[v] = beatCounter[v]%6;
+                            break;
+                        case 3: // 3/4x
+                            beatCounter[v] = beatCounter[v]%8;
+                            break;
+                        case 4: // 1/2x
+                            beatCounter[v] = beatCounter[v]%12;
+                            break;
+                        case 5: // 1/4x
+                            beatCounter[v] = beatCounter[v]%24;
+                            break;
+                        case 6: // 1/8x
+                            beatCounter[v] = beatCounter[v]%48;
+                            break;
                     }
-                    // advance chain if the longest pattern just overflowed
-                    uint8_t longestPattern = 0;
-                    int8_t longestPatternSound = -1;
-                    for (size_t v = 0; v < 15; v++)
+                    if(!needsTrigger)
+                        continue;
+                    int requestedNote = GetTrigger(v, patternStep[v]);
+                    if(requestedNote >= 0)
                     {
-                        uint8_t len = patterns[v].GetLength(patternChain[chainStep]);
-                        if(len>longestPattern)
-                        {
-                            longestPatternSound = v;
-                            longestPattern = len;
-                        }
+                        patterns[v].SetNextRequestedStep(patternStep[v]);
+                        TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
                     }
-                    if(longestPatternSound >= 0 && patternStep[longestPatternSound] == 0 && patternChainLength>1)
+                    patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                }
+
+                // advance chain if the longest pattern just overflowed
+                uint8_t longestPattern = 0;
+                int8_t longestPatternSound = -1;
+                for (size_t v = 0; v < 15; v++)
+                {
+                    uint8_t len = patterns[v].GetLength(patternChain[chainStep]);
+                    if(len>longestPattern)
                     {
-                        uint8_t currentPattern = GetCurrentPattern();
-                        chainStep = (++chainStep)%patternChainLength;
-                        // if we are moving to a new pattern, reset all the steps to zero
-                        if(patternChain[chainStep]!=currentPattern)
-                        {
-                            for (size_t v = 0; v < 15; v++)
-                            {
-                                patternStep[v] = 0;
-                            }
-                        }
+                        longestPatternSound = v;
+                        longestPattern = len;
                     }
-                    nextTrigger = 60u*44100u/globalParams->bpm/4;
+                }
+                if(longestPatternSound >= 0 && patternStep[longestPatternSound] == 0 && patternChainLength>1)
+                {
+                    uint8_t currentPattern = GetCurrentPattern();
+                    chainStep = (++chainStep)%patternChainLength;
+                    // if we are moving to a new pattern, reset all the steps to zero
+                    if(patternChain[chainStep]!=currentPattern)
+                    {
+                         ResetPatternOffset();
+                    }
                 }
             }
-            int16_t* chan = (output_buffer+i*2);
-            chan[0] = workBuffer2[i];
-            chan[1] = workBuffer2[i];
         }
     }
-
+    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    {
+        int16_t* chan = (output_buffer+i*2);
+        chan[0] = workBuffer2[i]>>1;
+        chan[1] = workBuffer2[i]>>1;
+    }
     if(recording)
     {
         ffs_append(GetFilesystem(), &files[currentVoice], recordBuffer, SAMPLES_PER_BUFFER*2);
@@ -186,14 +229,12 @@ void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step
             nextPlay = &instruments[i];
             foundVoice = true;
             voiceChannel[i] = channel;
-            // printf("triggering voice on %i (finished)\n", i);
             break;
         }
     }
     nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
     if(!foundVoice)
     {
-        // printf("triggering voice on %i (counter)\n", voiceCounter);
         voiceChannel[voiceCounter] = channel;
         voiceCounter = (++voiceCounter)%VOICE_COUNT;
     }
@@ -219,12 +260,18 @@ bool GrooveBox::IsPlaying()
 {
     return playing;
 }
+int16_t screenCounter = 0;
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
     char str[64];
     ssd1306_set_string_color(p, false);
-        
+    if(++screenCounter == 62)
+    {
+        screenCounter = 0;
+        printf("audio counter %i\n",counter);
+        counter = 0;
+    }
     if(clearTime > 0 && holdingEscape)
     {
         sprintf(str, "clear pat %i in %i", patternChain[0]+1, clearTime/60);
@@ -311,7 +358,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else
     {
-        patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), storingParamLockForStep);
+        uint8_t paramLockSignal = storingParamLockForStep;
+        if(holdingWrite)
+            paramLockSignal = 0x80|(0x7f&patternStep[currentVoice]);
+        patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), paramLockSignal);
     }
     // grid
     for(int i=0;i<16;i++)
@@ -450,6 +500,23 @@ void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
                 paramSetB = true;
             }
         }
+    }
+    // live param recording
+    if(holdingWrite)
+    {
+        if(paramSetA)
+        {
+            lastAdcValA = a;
+            patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice]&0x7f, GetCurrentPattern(), a);
+            parameterLocked = true;
+        }
+        if(paramSetB)
+        {
+            lastAdcValB = b;
+            patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice]&0x7f, GetCurrentPattern(), b);
+            parameterLocked = true;
+        }
+        return;
     }
     // should use the distance from the parameter to trigger this
     if(storingParamLockForStep >> 7 == 1)
@@ -634,11 +701,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(!playing)
             {
                 playing = true;
-                for (size_t i = 0; i < 16; i++)
-                {
-                    patternStep[i] = 0;
-                }
-                CurrentStep = 0;
+                ResetPatternOffset();
             }
         }
         else if(liveWrite)
@@ -652,11 +715,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             playing = !playing;
             if(playing)
             {
-                for (size_t i = 0; i < 16; i++)
-                {
-                    patternStep[i] = 0;
-                }
-                CurrentStep = 0;
+                ResetPatternOffset();
             }
         }
         if(liveWrite)
@@ -728,7 +787,7 @@ void GrooveBox::Serialize()
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     // version
-    s.AddData(4);
+    s.AddData(5);
 
     // save pattern data
     uint8_t *patternReader = (uint8_t*)patterns;
@@ -763,10 +822,4 @@ void GrooveBox::Deserialize()
     }
     VoiceData::DeserializeStatic(s);
     printf("loaded filesize %i\n", s.writeFile.filesize);
-
-    // // reload the trigger settings
-    // for (size_t i = 0; i < 16; i++)
-    // {
-    //     color[i%4+(i/4)*5+5] = GetTrigger(currentVoice, i)?urgb_u32(3, 20, 7):urgb_u32(0,0,0);
-    // }
 }

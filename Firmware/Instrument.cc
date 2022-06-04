@@ -90,14 +90,18 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     {
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
         if(filesize == 0 || sampleSegment == SMP_COMPLETE)
+        {
+            memset(buffer, 0, SAMPLES_PER_BUFFER*2);
             return;
-        int16_t wave[128];
+        }
 
         // this is too slow to do in the loop - which unfortunately makes
         // handling higher octaves quite difficult
         // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
+        int16_t wave[128*5]; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
         ffs_seek(GetFilesystem(), file, sampleOffset*2);
-        ffs_read(GetFilesystem(), file, wave, 2*128);
+        ffs_read(GetFilesystem(), file, wave, 2*128*5);
+        uint32_t startingSampleOffset = sampleOffset;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             if(sampleOffset > sampleEnd - 1)
@@ -115,12 +119,15 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                     }
                 }
             }
-            
+            // int16_t wave;
+            // ffs_seek(GetFilesystem(), file, sampleOffset*2);
+            // ffs_read(GetFilesystem(), file, wave, 2);
+
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
             phase_-=(phase_&(0xff<<25));
 
-            buffer[i] = wave[i];
+            buffer[i] = wave[sampleOffset-startingSampleOffset];
             q15_t envval = env.Render() >> 1;
             if(enable_env)
             {
@@ -209,15 +216,24 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         file = voiceData.file;
         instrumentType = voiceData.GetInstrumentType();
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
+        if(voiceData.GetSampler() != SAMPLE_PLAYER_PITCH)
+        {
+            note = 69; // need to figure out a way to fine tune for non-pitched samples
+        }
+        else
+        {
+            // clamp it - what kind of wild person needs so many octaves anyways.
+            note = note>69+12*4?69+12*4:note;
+            key = 0;
+        }
         sampleOffset = (voiceData.sampleStart[key]) * (filesize>>9);
         sampleEnd = sampleOffset + (voiceData.sampleLength[key]) * (filesize>>9);
         if(sampleEnd*2 > filesize - 1)
         {
-            sampleEnd = filesize * 2 -1;
+            sampleEnd = filesize/2 -1;
         }
         printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
         // just hardcode note to 69 for now
-        note = 69;
         phase_increment = ComputePhaseIncrement(note<<7);
         sampleSegment = SMP_PLAYING;
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);

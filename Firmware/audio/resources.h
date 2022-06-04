@@ -78,6 +78,7 @@ extern const uint32_t lut_sample_increments[];
 extern const uint32_t lut_oscillator_increments[];
 extern const uint32_t lut_oscillator_delays[];
 extern const uint32_t lut_env_portamento_increments[];
+extern const uint32_t lut_tempo_phase_increment[];
 extern const int16_t wav_formant_sine[];
 extern const int16_t wav_formant_square[];
 extern const int16_t wav_sine[];
@@ -95,7 +96,6 @@ extern const int16_t wav_bandlimited_comb_10[];
 extern const int16_t wav_bandlimited_comb_11[];
 extern const int16_t wav_bandlimited_comb_12[];
 extern const int16_t wav_bandlimited_comb_13[];
-extern const int16_t wav_bandlimited_comb_14[];
 extern const int16_t ws_moderate_overdrive[];
 extern const int16_t ws_violent_overdrive[];
 extern const int16_t ws_sine_fold[];
@@ -120,11 +120,11 @@ extern const uint16_t chr_characters[];
 #define LUT_GRANULAR_ENVELOPE_RATE 6
 #define LUT_GRANULAR_ENVELOPE_RATE_SIZE 257
 #define LUT_BOWING_ENVELOPE 7
-#define LUT_BOWING_ENVELOPE_SIZE 362
+#define LUT_BOWING_ENVELOPE_SIZE 272
 #define LUT_BOWING_FRICTION 8
 #define LUT_BOWING_FRICTION_SIZE 257
 #define LUT_BLOWING_ENVELOPE 9
-#define LUT_BLOWING_ENVELOPE_SIZE 197
+#define LUT_BLOWING_ENVELOPE_SIZE 152
 #define LUT_FLUTE_BODY_FILTER 10
 #define LUT_FLUTE_BODY_FILTER_SIZE 128
 #define LUT_FM_FREQUENCY_QUANTIZER 11
@@ -145,6 +145,8 @@ extern const uint16_t chr_characters[];
 #define LUT_OSCILLATOR_DELAYS_SIZE 97
 #define LUT_ENV_PORTAMENTO_INCREMENTS 3
 #define LUT_ENV_PORTAMENTO_INCREMENTS_SIZE 128
+#define LUT_TEMPO_PHASE_INCREMENT 4
+#define LUT_TEMPO_PHASE_INCREMENT_SIZE 256
 #define WAV_FORMANT_SINE 0
 #define WAV_FORMANT_SINE_SIZE 256
 #define WAV_FORMANT_SQUARE 1

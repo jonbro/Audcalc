@@ -15,13 +15,13 @@ extern "C" {
 
 using namespace braids;
 
-typedef enum {
+enum InstrumentType {
   INSTRUMENT_MACRO,
   INSTRUMENT_SAMPLE,
   INSTRUMENT_MIDI,
   INSTRUMENT_DRUMS,
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
-} InstrumentType;
+};
 
 enum ParamType {
     Timbre = 0,
@@ -36,6 +36,12 @@ enum ParamType {
     DecayTime = 9,
     Length = 24,
     DelaySend = 28
+};
+
+enum SamplerPlayerType
+{
+  SAMPLE_PLAYER_SLICE,
+  SAMPLE_PLAYER_PITCH
 };
 
 class VoiceData
@@ -61,6 +67,9 @@ class VoiceData
 
         MacroOscillatorShape GetShape(){
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
+        }
+        SamplerPlayerType GetSampler(){
+            return (SamplerPlayerType)((samplerTypeBare*2)>>8);
         }
         int8_t GetOctave();
         uint8_t& GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern);
@@ -153,6 +162,7 @@ class VoiceData
         ffs_file *file;
         bool    global_instrument = false; // this ... should get shared somewhere, lots of nonsense to cart around
         uint8_t instrumentTypeBare = 0;
+        uint8_t samplerTypeBare = 0;
         uint8_t paramLockCount = 0;
 
         uint8_t delaySend;

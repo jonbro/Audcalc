@@ -332,7 +332,7 @@ static int ffs_load_blockheader(ffs_filesystem *fs, ffs_file *file, ffs_blockhea
     fs->read(file->current_block, sizeof(headerForSize), blockheader);
 }
 
-FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
+inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
 {
     // early out if logical read position already set correctly
     if(file->logical_read_offset == position)
@@ -399,7 +399,7 @@ FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     
 }
 
-FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
+inline FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
 {
     return file->filesize;
 }
