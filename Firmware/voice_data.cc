@@ -62,6 +62,7 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
             // 0
             case 0: return bpm;
             case 2: return amp_enabled;
+            case 4: return chromatic;
             default:
                 break;
         }
@@ -127,158 +128,6 @@ const char *rates[7] = {
     "1/8x"
 };
 
-void VoiceData::GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern)
-{
-    int16_t vala = 0;
-    int16_t valb = 0;
-
-    if(param == 14)
-    {
-        sprintf(str, "FX %i", delaySend);
-        return;
-    }
-
-    if(GetInstrumentType() == INSTRUMENT_GLOBAL)
-    {
-        switch (param)
-        {
-            case 0:
-                sprintf(str, "bpm %i", bpm);
-                return;
-                break;
-            case 1:
-                sprintf(str, amp_enabled>0x7f?"speaker on":"speaker off");
-                return;
-                break;
-        }
-    }
-    // shared non global params
-    bool needsReturn = false;
-    switch(param)
-    {
-        case 4:
-            vala = attackTime;
-            valb = decayTime;
-            needsReturn = true;
-            break;
-        case 12:
-            vala = length[currentPattern]/4+1;
-            valb = (rate[currentPattern]*7)>>8;
-            sprintf(str, "len %i", vala);//, valb); need to implement rate
-            return;
-    }
-    if(needsReturn)
-    {
-        sprintf(str, "%s %i %i", voice_macroparams[param], vala, valb);
-        return;
-    }
-
-    if(GetInstrumentType() == INSTRUMENT_MIDI)
-    {
-        switch (param)
-        {
-            case 15:
-                sprintf(str, "TYPE MIDI");
-                return;
-                break;
-        }
-    }
-    if(GetInstrumentType() == INSTRUMENT_DRUMS)
-    {
-        switch (param)
-        {
-            case 15:
-                sprintf(str, "TYPE DRUMS");
-                return;
-                break;
-        }
-    }
-    if(GetInstrumentType() == INSTRUMENT_SAMPLE)
-    {
-        switch (param)
-        {
-        // sample in point
-        case 0:
-            if(GetSampler() == SAMPLE_PLAYER_SLICE)
-            {
-                vala = sampleStart[lastNotePlayed];
-                valb = sampleLength[lastNotePlayed];
-            }
-            else
-            {
-                vala = sampleStart[0];
-                valb = sampleLength[0];
-            }
-            break;
-        // volume / pan
-        case 1:
-            vala = cutoff;
-            valb = resonance;
-            break;
-        // volume / pan
-        case 2:
-            vala = volume;
-            valb = 0x7f;
-            break;
-        case 3:
-            vala = GetOctave();
-            valb = 0x7f;
-            break;
-        case 4:
-            vala = attackTime;
-            valb = decayTime;
-            break;
-        case 8:
-            // sprintf(str, "LOOP_MODE %i", loopMode);
-            return;
-            break;
-        // sample out point
-        case 15:
-            sprintf(str, "TYPE SAMP");
-            return;
-            break;
-
-        default:
-            break;
-        }
-        sprintf(str, "%s %i %i", voice_sampleparams[param], vala, valb);
-    }
-    if(GetInstrumentType() == INSTRUMENT_MACRO)
-    {
-        switch (param)
-        {
-            // 0
-            case 0:
-                vala = timbre;
-                valb = color;
-                break;
-            case 1:
-                vala = cutoff;
-                valb = resonance;
-                break;
-            // volume / pan
-            case 2:
-                vala = volume;
-                valb = 0x7f;
-                break;
-            case 3:
-                vala = GetOctave();
-                valb = 0x7f;
-                break;
-            case 4:
-                vala = attackTime;
-                valb = decayTime;
-                break;
-            case 15:
-                sprintf(str, "TYPE SYNTH %s", algo_values[GetShape()]);
-                return;
-                break;
-            default:
-                break;
-        }
-        sprintf(str, "%s %i %i", voice_macroparams[param], vala, valb);
-    }
-}
 
 bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
 {
@@ -329,7 +178,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 1:
                 sprintf(strA, "Spkr");
                 sprintf(strB, "");
-                sprintf(pA, amp_enabled?"On":"Off");
+                sprintf(pA, amp_enabled>0x7f?"On":"Off");
+                sprintf(pB, "");
+                return;
+            case 2:
+                sprintf(strA, "chrom");
+                sprintf(strB, "");
+                sprintf(pA, chromatic>0x7f?"On":"Off");
                 sprintf(pB, "");
                 return;
             default:

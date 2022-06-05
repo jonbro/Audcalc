@@ -15,12 +15,6 @@ enum InstrumentParameter {
   INSTRUMENT_PARAM_MACRO_TIMBRE,
   INSTRUMENT_PARAM_MACRO_MODULATION
 };
-struct GlobalParamSet
-{
-  uint32_t bpm = 125;
-  uint8_t  input_fx_send = 0;
-  bool     amp_enabled;
-};
 enum EnvelopeSegment {
   ENV_SEGMENT_ATTACK = 0,
   ENV_SEGMENT_HOLD = 1,
@@ -65,7 +59,7 @@ class Instrument
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
         uint8_t delaySend = 0;
-        GlobalParamSet *globalParamSet;
+        VoiceData *globalParams;
         
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);

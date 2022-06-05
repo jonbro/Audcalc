@@ -38,6 +38,8 @@ GrooveBox::GrooveBox(uint32_t *_color)
     for(int i=0;i<16;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
+        instruments[i].globalParams = &patterns[15];
+
         if(i==15)
         {
             patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);

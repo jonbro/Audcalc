@@ -195,8 +195,12 @@ class VoiceData
             uint8_t shape = 0;
             uint8_t scale;
         };
+        union
+        {
+            uint8_t timbre = 0x7f;
+            uint8_t chromatic;
+        };
         
-        uint8_t timbre = 0x7f;
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
         uint8_t sampleOffset; 
