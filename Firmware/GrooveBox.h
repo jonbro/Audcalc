@@ -73,6 +73,8 @@ class GrooveBox {
   bool writing = false;
   bool holdingWrite = false;
   bool holdingEscape = false;
+  bool holdingArm = false;
+  uint8_t recordingTarget = 0;
   int clearTime = -1;
   int shutdownTime = -1;
   bool liveWrite = false;

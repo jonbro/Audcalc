@@ -210,7 +210,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
     if(recording)
     {
-        ffs_append(GetFilesystem(), &files[currentVoice], recordBuffer, SAMPLES_PER_BUFFER*2);
+        ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, SAMPLES_PER_BUFFER*2);
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t* chan = (output_buffer+i*2);
@@ -290,6 +290,20 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             }
         }
         ssd1306_draw_string(p, 0, 8, 1, str);
+        return;
+    }
+    else if(holdingArm && holdingEscape)
+    {
+        sprintf(str, "press 1-16 to erase sample");
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        return;
+    }
+    else if(holdingArm && !recording)
+    {
+        sprintf(str, "hold 1-16 to record");
+        // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        ssd1306_draw_square(p, 0, 17, last_input>>8, 32-17);
         return;
     }
     else if(shutdownTime > 0 && holdingEscape)
@@ -388,7 +402,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
         else
         {
-            if(patternStep[currentVoice]-editPage[currentVoice]*16 == i && IsPlaying())
+            if((patternStep[currentVoice]-1<0?patterns[currentVoice].GetLength(GetCurrentPattern())-1:patternStep[currentVoice]-1)-editPage[currentVoice]*16 == i && IsPlaying())
             {
                 color[key] = urgb_u32(250, 30, 80);
             }
@@ -569,21 +583,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     int x=key/5;
     int y=key%5;
     
-    // erase mode
-    if(x==4&&y==1)
-    {
-        erasing = true;
-        erasing = false;
-    }
     // record mode
     if(x==4&&y==0)
     {
-        if(pressed)
-        {
-            recordingLength = 0;
-            recording = true;
-        }
-        else
+        holdingArm = pressed;
+        if(!holdingArm && recording)
         {
             // finish recording
             recording = false;
@@ -631,7 +635,32 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(x<4 && y>0 && pressed)
     {
         int sequenceStep = x+(y-1)*4;
-        if(soundSelectMode)
+        if(holdingEscape && holdingArm)
+        {
+            if(pressed)
+            {
+                erasing = true;
+                holdingEscape = false;
+                holdingArm = false;
+                ffs_erase(GetFilesystem(), &files[sequenceStep]);
+                erasing = false;
+            }
+        }
+        if(holdingArm)
+        {
+            if(pressed && !recording)
+            {
+                recordingLength = 0;
+                recordingTarget = sequenceStep;
+                recording = true;
+            }
+            else
+            {
+                // finish recording
+                recording = false;
+            }
+        }
+        else if(soundSelectMode)
         {
             if(sequenceStep != currentVoice)
                 ResetADCLatch();

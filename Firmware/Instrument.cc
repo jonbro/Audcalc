@@ -99,6 +99,8 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         // handling higher octaves quite difficult
         // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
         int16_t wave[128*5]; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
+        if(sampleSegment == SMP_COMPLETE)
+            return;
         ffs_seek(GetFilesystem(), file, sampleOffset*2);
         ffs_read(GetFilesystem(), file, wave, 2*128*5);
         uint32_t startingSampleOffset = sampleOffset;
