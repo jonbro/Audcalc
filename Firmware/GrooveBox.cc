@@ -686,6 +686,9 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                     }
                     // copy the pattern lengths as well
                     patterns[voice].length[sequenceStep] = patterns[voice].length[currentPattern];
+                    patterns[voice].rate[sequenceStep] = patterns[voice].rate[currentPattern];
+                    // copy any parameter locks the pattern has
+                    patterns[voice].CopyParameterLocks(currentPattern, sequenceStep);
                 }
             }
             else

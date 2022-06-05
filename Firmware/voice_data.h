@@ -113,6 +113,15 @@ class VoiceData
             }
             printf("failed to add param lock\n");
         }
+        void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
+        {
+            ParamLock* lock = locksForPattern[fromPattern];
+            while(lock != ParamLockPool::NullLock())
+            {
+                StoreParamLock(lock->param, lock->step, toPattern, lock->value);
+                lock = lockPool.GetLock(lock->next);
+            }
+        }
         void SetNextRequestedStep(uint8_t step)
         {
             nextRequestedStep = step | 0x80;
