@@ -41,11 +41,11 @@ ffs_filesystem* GetFilesystem()
     return &filesystem;
 }
 
-void InitializeFilesystem()
+void InitializeFilesystem(bool fullClear)
 {
     // file system should be sound, don't need to erase
-    
-    //file_erase(0, 16*1024*1024-0x40000);
+    if(fullClear)
+        file_erase(0, 16*1024*1024-0x40000);
     ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,

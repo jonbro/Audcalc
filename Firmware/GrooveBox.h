@@ -18,6 +18,10 @@ extern "C" {
 #include "voice_data.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
+
+#define VOICE_COUNT 8
+
+
 class GrooveBox {
  public:
   GrooveBox(uint32_t *_color);
@@ -32,7 +36,7 @@ class GrooveBox {
   uint8_t GetInstrumentParamB(int voice);
   void Serialize();
   void Deserialize(); 
-  Instrument instruments[16];
+  Instrument instruments[VOICE_COUNT];
   int CurrentStep = 0;
   uint8_t currentVoice = 0;
   bool recording = false;
@@ -60,7 +64,7 @@ class GrooveBox {
   bool needsInitialADC; 
   void TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
-  uint8_t voiceCounter;
+  uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];
   int needsNoteTrigger = -1;

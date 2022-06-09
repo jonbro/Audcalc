@@ -52,16 +52,16 @@ class Instrument
           if(type == INSTRUMENT_DRUMS)
             osc.set_shape(MACRO_OSC_SHAPE_KICK);
         }
-        void SetFile(ffs_file *_file)
-        {
-          file = _file;
-        }
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
         uint8_t delaySend = 0;
         VoiceData *globalParams;
         
     private: 
+        void SetFile(ffs_file *_file)
+        {
+          file = _file;
+        }
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
         uint32_t phase_;

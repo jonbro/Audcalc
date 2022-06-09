@@ -244,6 +244,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         }
         printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
         // just hardcode note to 69 for now
+        phase_ = 0;
         phase_increment = ComputePhaseIncrement(note<<7);
         sampleSegment = SMP_PLAYING;
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);

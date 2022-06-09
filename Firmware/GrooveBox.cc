@@ -3,7 +3,6 @@
 #include "m6x118pt7b.h"
 
 #define SAMPLES_PER_BUFFER 128
-#define VOICE_COUNT 8
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -35,11 +34,13 @@ GrooveBox::GrooveBox(uint32_t *_color)
     midi.Init();
     ResetADCLatch();
     tempoPhase = 0;
-    for(int i=0;i<16;i++)
+    for(int i=0;i<VOICE_COUNT;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
         instruments[i].globalParams = &patterns[15];
-
+    }
+    for(int i=0;i<16;i++)
+    {
         if(i==15)
         {
             patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);
@@ -51,9 +52,6 @@ GrooveBox::GrooveBox(uint32_t *_color)
             ffs_open(GetFilesystem(), &files[i], i);
             patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
             patterns[i].SetFile(&files[i]);
-            instruments[i].SetType(INSTRUMENT_MACRO);
-            instruments[i].SetOscillator(MACRO_OSC_SHAPE_CSAW);
-            instruments[i].SetAHD(4000, 1000, 20000);
         }
     }
     Deserialize();
@@ -221,25 +219,32 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
 }
 void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {
+    // lets just simplify - gang together the instruments that are above each other
+    // 1+5, 2+6, 9+13 etc
+    voiceCounter = channel%4+(channel/8)*4;
     Instrument *nextPlay = &instruments[voiceCounter];
-    // determine if any of the voices are done playing
-    bool foundVoice = false;
-    for (size_t i = 0; i < VOICE_COUNT; i++)
-    {
-        if(!instruments[i].IsPlaying())
-        {
-            nextPlay = &instruments[i];
-            foundVoice = true;
-            voiceChannel[i] = channel;
-            break;
-        }
-    }
+    voiceChannel[voiceCounter] = channel;
     nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
-    if(!foundVoice)
-    {
-        voiceChannel[voiceCounter] = channel;
-        voiceCounter = (++voiceCounter)%VOICE_COUNT;
-    }
+    return;    
+    // Instrument *nextPlay = &instruments[voiceCounter];
+    // // determine if any of the voices are done playing
+    // bool foundVoice = false;
+    // for (size_t i = 0; i < VOICE_COUNT; i++)
+    // {
+    //     if(!instruments[i].IsPlaying())
+    //     {
+    //         nextPlay = &instruments[i];
+    //         foundVoice = true;
+    //         voiceChannel[i] = channel;
+    //         break;
+    //     }
+    // }
+    // nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
+    // if(!foundVoice)
+    // {
+    //     voiceChannel[voiceCounter] = channel;
+    //     voiceCounter = (++voiceCounter)%VOICE_COUNT;
+    // }
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
@@ -368,7 +373,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(recording)
     {
-        int filesize = ffs_file_size(GetFilesystem(), &files[currentVoice]);
+        int filesize = ffs_file_size(GetFilesystem(), &files[recordingTarget]);
         sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-filesize)/88100);
         ssd1306_draw_string(p, 0, 0, 1, str);
     }
