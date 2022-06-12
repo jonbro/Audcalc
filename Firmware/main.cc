@@ -319,11 +319,12 @@ int main()
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
     gpio_put(BLINK_PIN_LED, true);
     sleep_ms(100);
-    set_sys_clock_khz(200000, true); 
+    set_sys_clock_khz(240000, true);
     SetDisplay(&disp);
     stdio_init_all();
+    // TestFileSystem();
     // TestVoiceData();
-    // return 1;
+    // return 0;
     ws2812_init();
 
     gpio_init(SUBSYSTEM_RESET_PIN);
@@ -348,13 +349,7 @@ int main()
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
-    InitializeFilesystem();
-
-    adc_init();
-    adc_gpio_init(26);
-    adc_gpio_init(27);
-    bool rev8 = true;
-    if(rev8)
+    
     {
         // power hold on
         gpio_init(23);
@@ -367,13 +362,34 @@ int main()
 
         gpio_init(HEADPHONE_DETECT);
         gpio_set_dir(HEADPHONE_DETECT, GPIO_IN);
-        gpio_pull_down(HEADPHONE_DETECT);
+        gpio_pull_up(HEADPHONE_DETECT);
         
         //enable amp
         hardware_init();
         hardware_set_amp_force(false, true);
     }
 
+    // setup the rows / colums for input
+    for (size_t i = 0; i < 5; i++)
+    {
+        gpio_init(col_pin_base+i);
+        gpio_set_dir(col_pin_base+i, GPIO_OUT);
+        gpio_disable_pulls(col_pin_base+i);
+        gpio_init(row_pin_base+i);
+        gpio_set_dir(row_pin_base+i, GPIO_IN);
+        gpio_pull_down(row_pin_base+i);
+    }
+    gpio_put_masked(0x7c0, 1<<(col_pin_base));
+    bool key13 = gpio_get(row_pin_base+4);
+    gpio_put_masked(0x7c0, 1<<(col_pin_base+3));
+    bool key16 = gpio_get(row_pin_base+4);
+    printf("keys held %x %x\n", key13, key16);
+    // if the user is holding down 13 & 16 during startup, then clear filesystem
+    InitializeFilesystem(key13&&key16);
+
+    adc_init();
+    adc_gpio_init(26);
+    adc_gpio_init(27);
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
@@ -395,16 +411,6 @@ int main()
     uint32_t keyState = 0;
     uint32_t lastKeyState = 0;
 
-    // setup the rows / colums for input
-    for (size_t i = 0; i < 5; i++)
-    {
-        gpio_init(col_pin_base+i);
-        gpio_set_dir(col_pin_base+i, GPIO_OUT);
-        gpio_disable_pulls(col_pin_base+i);
-        gpio_init(row_pin_base+i);
-        gpio_set_dir(row_pin_base+i, GPIO_IN);
-        gpio_pull_down(row_pin_base+i);
-    }
     struct repeating_timer timer;
      add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
     struct repeating_timer timer2;
@@ -480,6 +486,7 @@ int main()
             // }
                     //color[10] = gpio_get(24)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             // }
+
             touchCounter--;
             if(touchCounter <= 0)
             {
@@ -493,7 +500,6 @@ int main()
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
             // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-            // color[11] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
             //hardware_set_mic(!gpio_get(LINE_IN_DETECT));
             if(!screen_flip_ready)
             {
@@ -509,6 +515,8 @@ int main()
                 gbox->UpdateDisplay(&disp);
                 screen_flip_ready = true;
             }
+            // color[8] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
+
             ws2812_setColors(color+5);
             needsScreenupdate = false;
             ws2812_trigger();
