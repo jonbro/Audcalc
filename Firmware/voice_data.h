@@ -212,8 +212,6 @@ class VoiceData
         
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
-        uint8_t sampleOffset; 
-        uint8_t sampleEnd; 
         uint8_t volume = 0x7f;
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
     private:

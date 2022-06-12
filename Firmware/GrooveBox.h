@@ -36,6 +36,7 @@ class GrooveBox {
   uint8_t GetInstrumentParamB(int voice);
   void Serialize();
   void Deserialize(); 
+  void OnFinishRecording();
   Instrument instruments[VOICE_COUNT];
   int CurrentStep = 0;
   uint8_t currentVoice = 0;

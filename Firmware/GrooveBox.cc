@@ -582,7 +582,19 @@ void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
         }
     }
 }
-
+void GrooveBox::OnFinishRecording()
+{
+        // determine how the file should be split
+    if(patterns[recordingTarget].GetSampler() == SAMPLE_PLAYER_SLICE)
+    {
+        for (size_t i = 0; i < 16; i++)
+        {
+            patterns[recordingTarget].sampleLength[i] = 16;
+            patterns[recordingTarget].sampleStart[i] = i*16;
+        }
+    }
+   
+}
 void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 {
     int x=key/5;
@@ -596,6 +608,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             // finish recording
             recording = false;
+            OnFinishRecording();
         }
     }
     if(x==3&&y==0)
@@ -663,6 +676,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             {
                 // finish recording
                 recording = false;
+                OnFinishRecording();
             }
         }
         else if(soundSelectMode)

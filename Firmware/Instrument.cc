@@ -95,7 +95,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             return;
         }
         // double check the file length
-        if(sampleOffset*2 > file->filesize)
+        if(!file->initialized || sampleOffset*2 > file->filesize)
             sampleSegment = SMP_COMPLETE;
         if(sampleSegment == SMP_COMPLETE)
             return;
@@ -103,9 +103,12 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         // this is too slow to do in the loop - which unfortunately makes
         // handling higher octaves quite difficult
         // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
-        int16_t wave[128*5]; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
+        int16_t wave[128*5] = {0}; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
         ffs_seek(GetFilesystem(), file, sampleOffset*2);
-        ffs_read(GetFilesystem(), file, wave, 2*128*5);
+        // clamp the read amount to the maximum filesize
+        // todo: add a ffs_read that takes a per read stride, so I can fill this more easily, and don't need to load more than necessary
+        uint16_t readAmount = (sampleOffset*2+2*128*5)>filesize?filesize-sampleOffset*2:2*128*5;
+        ffs_read(GetFilesystem(), file, wave, readAmount);
         uint32_t startingSampleOffset = sampleOffset;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
