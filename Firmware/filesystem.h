@@ -441,7 +441,7 @@ int file_read(uint32_t offset, size_t size, void *buffer);
 int file_write(uint32_t offset, size_t size, void *buffer);
 int file_erase(uint32_t offset, size_t size);
 
-void TestFS();
+void TestFileSystem();
 void InitializeFilesystem(bool fullClear);
 
 ffs_filesystem* GetFilesystem();

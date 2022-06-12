@@ -12,25 +12,27 @@ int file_read(uint32_t offset, size_t size, void *buffer)
 }
 int file_write(uint32_t offset, size_t size, void *buffer)
 {
-    multicore_lockout_start_timeout_us(500);
+    bool lockedOut = multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + offset, buffer, size);
     restore_interrupts(ints);
-    multicore_lockout_end_timeout_us(500);
+    if(lockedOut)
+        multicore_lockout_end_timeout_us(500);
     return 0;
 }
 
 int file_erase(uint32_t offset, size_t size)
 {
     //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
-    multicore_lockout_start_timeout_us(500);
+    bool lockedout = multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
     // // re-enable the audio related interrupts so we don't mess up the dac
     irq_set_enabled(DMA_IRQ_0, true);
     irq_set_enabled(DMA_IRQ_1, true);
     flash_range_erase(FS_START + offset,size);
     restore_interrupts(ints);
-    multicore_lockout_end_timeout_us(500);
+    if(lockedout)
+        multicore_lockout_end_timeout_us(500);
     return 0;
 }
 ffs_filesystem filesystem;
@@ -62,9 +64,33 @@ void InitializeFilesystem(bool fullClear)
     //     ffs_erase(&filesystem, &f0);
     // }
 }
-void TestFS()
+void TestFileSystem()
 {
-    //file_erase(0, 0xfff*32);
+    printf("starting filesystem test\n");
+
+    if(0)
+    {
+        absolute_time_t startTime = get_absolute_time();
+        file_erase(0, 16*1024*1024-0x40000);
+        printf("full erase timing ms: %lld\n", absolute_time_diff_us(startTime, get_absolute_time())/1000);
+    }
+
+    {
+        // write a single sector, erase, and time that
+        uint8_t worstCaseSector[4096] = {1};
+        file_write(0, 4096, worstCaseSector);
+        absolute_time_t startTime = get_absolute_time();
+        file_erase(0, 4096);
+        printf("single sector erase us: %lld\n", absolute_time_diff_us(startTime, get_absolute_time()));
+    }
+
+    // clean up enough space for the test
+    {
+        absolute_time_t startTime = get_absolute_time();
+        file_erase(0, 0x1000*32);
+        printf("32 sectors erase us: %lld\n", absolute_time_diff_us(startTime, get_absolute_time()));
+    }
+
     // lets just confirm that reading works the way we expect
     ffs_blockheader header;
     file_read(0, sizeof(ffs_blockheader), &header);
@@ -74,7 +100,7 @@ void TestFS()
         .erase = file_erase,
         .read = file_read,
         .write = file_write,
-        .size = 0xfff*32
+        .size = 0x1000*32
     };
     ffs_filesystem fs;
     ffs_file file0;
@@ -108,11 +134,14 @@ void TestFS()
     {
         assert(compare[i] == test[i]);
     }
-    
-    // erase file
-    if(ffs_erase(&fs, &file0))
     {
-        printf("error in erase 1\n");
+        absolute_time_t startTime = get_absolute_time();
+        // erase file
+        if(ffs_erase(&fs, &file0))
+        {
+            printf("error in erase 1\n");
+        }
+        printf("file erase time: %lld\n", absolute_time_diff_us(startTime, get_absolute_time()));
     }
     
     // confirm file erased
