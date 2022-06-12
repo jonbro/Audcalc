@@ -94,13 +94,16 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             memset(buffer, 0, SAMPLES_PER_BUFFER*2);
             return;
         }
+        // double check the file length
+        if(sampleOffset*2 > file->filesize)
+            sampleSegment = SMP_COMPLETE;
+        if(sampleSegment == SMP_COMPLETE)
+            return;
 
         // this is too slow to do in the loop - which unfortunately makes
         // handling higher octaves quite difficult
         // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
         int16_t wave[128*5]; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
-        if(sampleSegment == SMP_COMPLETE)
-            return;
         ffs_seek(GetFilesystem(), file, sampleOffset*2);
         ffs_read(GetFilesystem(), file, wave, 2*128*5);
         uint32_t startingSampleOffset = sampleOffset;
@@ -130,13 +133,26 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             phase_-=(phase_&(0xff<<25));
 
             buffer[i] = wave[sampleOffset-startingSampleOffset];
-            q15_t envval = env.Render() >> 1;
-            if(enable_env)
+            
+            if(microFade < 0xfa)
             {
-                buffer[i] = mult_q15(buffer[i], envval);
+                buffer[i] = (((int32_t)buffer[i]*microFade)>>8) + (((int32_t)(0xff-microFade)*(int32_t)lastSample)>>8);
+                microFade += 0xa;
             }
+            else
+            {
+                lastSample = buffer[i];
+            }
+        }
+        // I think this might be better for cache locality?
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
             buffer[i] = svf.Process(buffer[i]);
-            buffer[i] = mult_q15(buffer[i], volume);
+        }
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            q15_t envval = env.Render() >> 1;
+            buffer[i] = mult_q15(buffer[i], mult_q15(volume, envval));
         }
         return;
     }
@@ -221,6 +237,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
+        microFade = 0;
         UpdateVoiceData(voiceData);
         playingSlice = key;
         file = voiceData.file;
@@ -242,7 +259,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         {
             sampleEnd = filesize/2 -1;
         }
-        printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
+        // printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
         // just hardcode note to 69 for now
         phase_ = 0;
         phase_increment = ComputePhaseIncrement(note<<7);

@@ -67,7 +67,8 @@ class Instrument
         uint32_t phase_;
         int8_t lastPressedKey = 0;
         uint32_t envPhase;
-
+        int16_t lastSample; 
+        uint8_t microFade;
         // stores the step & pattern this voice was triggered on for looking up parameter locks
         uint8_t playingStep, playingPattern;
         EnvelopeSegment currentSegment;
