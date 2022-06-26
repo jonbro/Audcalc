@@ -49,12 +49,20 @@ GrooveBox::GrooveBox(uint32_t *_color)
         }
         else
         {
-            ffs_open(GetFilesystem(), &files[i], i);
             patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
-            patterns[i].SetFile(&files[i]);
         }
     }
     Deserialize();
+
+    // we do this in a second pass so the
+    // deserialized pointers aren't pointing to the wrong places
+    for(int i=0;i<16;i++)
+    {
+        if(i==15)
+            continue;
+        ffs_open(GetFilesystem(), &files[i], i);
+        patterns[i].SetFile(&files[i]);
+    }
     CalculateTempoIncrement();
     color = _color;
 }
@@ -126,14 +134,14 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         }
         if(IsPlaying())
         {
-            bool hadTrigger = false;
+            bool tempoPulse = false;
             tempoPhase += tempoPhaseIncrement;
             if((tempoPhase >> 31) > 0)
             {
                 tempoPhase &= 0x7fffffff;
-                hadTrigger = true;
+                tempoPulse = true;
             }
-            if(hadTrigger)
+            if(tempoPulse)
             {
                 // skip the last one, since the global can't be sequenced
                 for(int v=0;v<15;v++)
@@ -169,8 +177,12 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     int requestedNote = GetTrigger(v, patternStep[v]);
                     if(requestedNote >= 0)
                     {
-                        patterns[v].SetNextRequestedStep(patternStep[v]);
-                        TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
+                        hadTrigger = hadTrigger|(1<<v);
+                        if((allowPlayback>>v)&0x1)
+                        {
+                            patterns[v].SetNextRequestedStep(patternStep[v]);
+                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
+                        }
                     }
                     patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
                 }
@@ -224,6 +236,8 @@ void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step
     voiceCounter = channel%4+(channel/8)*4;
     Instrument *nextPlay = &instruments[voiceCounter];
     voiceChannel[voiceCounter] = channel;
+    printf("playing file for voice: %i %x\n", channel, voiceData.GetFile());
+
     nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
     return;    
     // Instrument *nextPlay = &instruments[voiceCounter];
@@ -267,18 +281,11 @@ bool GrooveBox::IsPlaying()
 {
     return playing;
 }
-int16_t screenCounter = 0;
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     ssd1306_clear(p);
     char str[64];
     ssd1306_set_string_color(p, false);
-    if(++screenCounter == 62)
-    {
-        screenCounter = 0;
-        printf("audio counter %i\n",counter);
-        counter = 0;
-    }
     if(clearTime > 0 && holdingEscape)
     {
         sprintf(str, "clear pat %i in %i", patternChain[0]+1, clearTime/60);
@@ -384,13 +391,29 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             paramLockSignal = 0x80|(0x7f&patternStep[currentVoice]);
         patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), paramLockSignal);
     }
+    uint8_t fade_speed = 0xaf;
+    if(holdingMute)
+    {
+        fade_speed = 0xcf;
+    }
     // grid
     for(int i=0;i<16;i++)
     {
         int x = i%4;
         int y = i/4;
         int key = x+(y+1)*5;
-        if(patternSelectMode)
+        if(holdingMute)
+        {
+            if(allowPlayback>>i & 0x1)
+            {
+                color[key] = urgb_u32(30, 120, 250);
+            }
+            if(hadTrigger & (1<<i))
+            {
+                color[key] = urgb_u32(30, 80, 250);
+            }
+        }
+        else if(patternSelectMode)
         {
             if(patternChain[chainStep] == i)
             {
@@ -421,7 +444,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             // fade to black
             uint8_t r,g,b;
             u32_urgb(color[key], &r, &g, &b);
-            const uint8_t fade_speed = 0xaf; 
             color[key] = urgb_u32(((uint16_t)r*fade_speed)>>8, ((uint16_t)g*fade_speed)>>8, ((uint16_t)b*fade_speed)>>8);
         }
     }
@@ -475,7 +497,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             ssd1306_clear_square(p, 48+1, i*8+1+1, 4, 4);
         }
     }
-    
+    hadTrigger = 0;
 }
 
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
@@ -620,6 +642,20 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             shutdownTime = -1;
         }
     }
+    if(x==4&&y==1)
+    {
+        holdingMute = pressed;
+    }
+    if(x==4&&y==0)
+    {
+        holdingArm = pressed;
+        if(!holdingArm && recording)
+        {
+            // finish recording
+            recording = false;
+            OnFinishRecording();
+        }
+    }
     // page select
     if(x==4&&y==2 && pressed)
     {
@@ -664,7 +700,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                 erasing = false;
             }
         }
-        if(holdingArm)
+        else if(holdingArm)
         {
             if(pressed && !recording)
             {
@@ -690,6 +726,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(sequenceStep != param)
                 paramSetA = paramSetB = false;
             param = sequenceStep;
+        }
+        else if(holdingMute)
+        {
+            // toggle the mute state of this channel
+            allowPlayback ^= 1 << sequenceStep;
         }
         else if(patternSelectMode)
         {
@@ -840,7 +881,7 @@ void GrooveBox::Serialize()
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     // version
-    s.AddData(5);
+    s.AddData(6);
 
     // save pattern data
     uint8_t *patternReader = (uint8_t*)patterns;
@@ -863,7 +904,7 @@ void GrooveBox::Deserialize()
     if(!s.writeFile.initialized)
         return;
     // save version
-    if(s.GetNextValue() != 5)
+    if(s.GetNextValue() != 6)
         return;
 
     // load pattern data

@@ -87,6 +87,10 @@ class VoiceData
         {
           file = _file;
         }
+        ffs_file* GetFile()
+        {
+          return file;
+        }
         uint8_t GetLength(uint8_t pattern)
         {
             return length[pattern]/4+1;
@@ -168,7 +172,6 @@ class VoiceData
         ParamLock* locksForPattern[16];
 
         uint8_t nextRequestedStep;
-        ffs_file *file;
         bool    global_instrument = false; // this ... should get shared somewhere, lots of nonsense to cart around
         uint8_t instrumentTypeBare = 0;
         uint8_t samplerTypeBare = 0;
@@ -216,6 +219,7 @@ class VoiceData
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
     private:
         static ParamLockPool lockPool;
+        ffs_file *file;
 };
 
 void TestVoiceData();

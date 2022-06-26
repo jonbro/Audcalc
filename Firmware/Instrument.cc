@@ -89,7 +89,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     if(instrumentType == INSTRUMENT_SAMPLE)
     {
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
-        if(filesize == 0 || sampleSegment == SMP_COMPLETE)
+        if(!file || filesize == 0 || sampleSegment == SMP_COMPLETE)
         {
             memset(buffer, 0, SAMPLES_PER_BUFFER*2);
             return;
@@ -243,7 +243,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         microFade = 0;
         UpdateVoiceData(voiceData);
         playingSlice = key;
-        file = voiceData.file;
+        file = voiceData.GetFile();
         instrumentType = voiceData.GetInstrumentType();
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
         if(voiceData.GetSampler() != SAMPLE_PLAYER_PITCH)

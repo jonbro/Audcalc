@@ -78,6 +78,7 @@ class GrooveBox {
   bool writing = false;
   bool holdingWrite = false;
   bool holdingEscape = false;
+  bool holdingMute = false;
   bool holdingArm = false;
   uint8_t recordingTarget = 0;
   int clearTime = -1;
@@ -89,6 +90,9 @@ class GrooveBox {
   
   uint8_t param = 0;
   uint32_t *color;
+  uint16_t hadTrigger = 0;
+  // defaults to allow all playback
+  uint16_t allowPlayback = 0xffff;
   // each sound can be on a different step through the pattern, we should track these
   uint8_t patternStep[16] = {0};
 

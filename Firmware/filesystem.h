@@ -311,18 +311,27 @@ FFS_DEF int ffs_erase(ffs_filesystem *fs, ffs_file *file)
         {
             fs->erase(block_offset, BLOCK_SIZE);
             // use jumps to erase the rest
-            while(blockHeader.jump_page != 0xffffffff)
+            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
             {
                 block_offset = blockHeader.jump_page;
                 fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
                 fs->erase(block_offset, BLOCK_SIZE);
             }
+
             file->initialized = false;
+            file->inblock_read_offset   = 0;
+            file->logical_read_offset   = 0; 
+            file->filesize              = 0;
             return 0;
         }
         block_offset+=BLOCK_SIZE;
     }
     // couldn't find the file
+    // lets just make sure its all unitialized anyways
+    file->initialized = false;
+    file->inblock_read_offset   = 0;
+    file->logical_read_offset   = 0; 
+    file->filesize              = 0;
     return -1;
 }
 

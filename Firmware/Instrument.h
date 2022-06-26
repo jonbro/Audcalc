@@ -58,16 +58,12 @@ class Instrument
         VoiceData *globalParams;
         
     private: 
-        void SetFile(ffs_file *_file)
-        {
-          file = _file;
-        }
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
         uint32_t phase_;
         int8_t lastPressedKey = 0;
         uint32_t envPhase;
-        int16_t lastSample; 
+        int16_t lastSample;
         uint8_t microFade;
         // stores the step & pattern this voice was triggered on for looking up parameter locks
         uint8_t playingStep, playingPattern;
@@ -91,7 +87,7 @@ class Instrument
         uint8_t resonance;
         uint32_t sampleOffset; 
         uint32_t sampleEnd; 
-        ffs_file *file;
+        ffs_file *file = 0;
         // stored in the displayed param values (since the user doesn't have access to more than this anyways)
         // (maybe I add a fine tune?)
         uint32_t sampleStart[16];

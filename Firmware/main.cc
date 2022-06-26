@@ -112,8 +112,9 @@ void __not_in_flash_func(dma_input_handler)() {
         }
         else
         {
-            // do monitor / passthrough here
-            
+            // todo monitor / passthrough here
+            // for now, just clear it
+            memset(output, 0, SAMPLES_PER_BUFFER*4);
         }
         capture_buf_offset = (capture_buf_offset+1)%2;
     }
