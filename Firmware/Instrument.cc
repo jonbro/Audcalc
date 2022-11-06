@@ -1,4 +1,5 @@
 #include "Instrument.h"
+#include "AudioSampleSecondbloop.h"
 
 static const uint16_t kPitchTableStart = 128 * 128;
 static const uint16_t kOctave = 12 * 128;
@@ -24,6 +25,8 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     // }
     env.Init();
     env.Trigger(ADSR_ENV_SEGMENT_DEAD);
+    env2.Init();
+    env2.Trigger(ADSR_ENV_SEGMENT_DEAD);
 }
 
 const char *macroparams[16] = { 
@@ -133,7 +136,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 
             phase_ += phase_increment;
             sampleOffset+=(phase_>>25);
-            phase_-=(phase_&(0xff<<25));
+            phase_-=(phase_&(0xfe<<24));
 
             buffer[i] = wave[sampleOffset-startingSampleOffset];
             
@@ -147,6 +150,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 lastSample = buffer[i];
             }
         }
+        svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         // I think this might be better for cache locality?
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
@@ -154,19 +158,35 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         }
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
+            lastenv2val = env2.Render();
             q15_t envval = env.Render() >> 1;
             buffer[i] = mult_q15(buffer[i], mult_q15(volume, envval));
         }
         return;
     }
+    // could alternately use tick rate stuff. might be way better
+    // fast 4bf0000
+    // slow fffff
+    lfo_phase += ((lfo_rate*(0x8bf0000-0xfffff))>>6)+0xfffff;
+    q15_t lfo = Interpolate824(wav_sine, lfo_phase);
+    q15_t param1_withlfo = add_q15(mult_q15(lfo, lfo_depth), param1Base);
+    if(param1_withlfo < 0)
+    {
+        param1_withlfo = 0;
+    }
+    osc.set_parameter_1(param1_withlfo);
     osc.Render(sync, buffer, size);
     RenderGlobal(sync, buffer, size);
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
 {
+    svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
+
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-        q15_t envval = env.Render() >> 1;
+        lastenv2val = env2.Render();
+        lastenvval = env.Render();
+        q15_t envval = lastenvval >> 1;
         if(enable_env)
         {
             buffer[i] = mult_q15(buffer[i], envval);
@@ -203,13 +223,17 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
     {
         env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
-        svf.set_frequency((voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7);
+        env2.Update(voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)>>1);
+        lfo_depth = (voiceData.GetParamValue(LFODepth, lastPressedKey, playingStep, playingPattern)>>1)<<7;
+        lfo_rate = (voiceData.GetParamValue(LFORate, lastPressedKey, playingStep, playingPattern)>>1)<<7;
+        mainCutoff = (voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7;
+        svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
         // copy parameters from voice
-        osc.set_parameter_1(voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7);
+        param1Base = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7;
         osc.set_parameter_2(voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -256,18 +280,54 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
             note = note>69+12*4?69+12*4:note;
             key = 0;
         }
-        sampleOffset = (voiceData.sampleStart[key]) * (filesize>>9);
-        sampleEnd = sampleOffset + (voiceData.sampleLength[key]) * (filesize>>9);
-        if(sampleEnd*2 > filesize - 1)
+        if(voiceData.GetSampler() == SAMPLE_PLAYER_SEQL)
         {
-            sampleEnd = filesize/2 -1;
+            sampleOffset = (voiceData.sampleStart[0]) * (filesize>>9);
+            sampleEnd = sampleOffset + (voiceData.sampleLength[0]) * (filesize>>9);
+            if(sampleEnd*2 > filesize - 1)
+            {
+                sampleEnd = filesize/2 -1;
+            }
+            // compute the phase increment so it loops in 16 beats
+            // first we need to know the number of samples in the loop?
+            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+            // 24ppq
+            tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+            uint32_t tempoPhase = 0;
+            uint32_t sampleCount = 0;
+            uint8_t beatCount = 0;
+            while(beatCount < 6*16)
+            {
+                tempoPhase += tempoPhaseIncrement;
+                sampleCount+=128;
+                if((tempoPhase >> 31) > 0)
+                {
+                    tempoPhase &= 0x7fffffff;
+                    beatCount++;
+                }
+            }
+            sampleCount-=256;
+            phase_increment = (uint32_t)(((uint64_t)(sampleEnd-sampleOffset)<<31)/((uint64_t)sampleCount)); // q32?
+            phase_increment = phase_increment>>6; // q25 our overflow value
+            // calculate the actual sample offset based on the pressed key
+            sampleOffset = (sampleEnd-sampleOffset)/16*key+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
+        }
+        else
+        {
+            sampleOffset = (voiceData.sampleStart[key]) * (filesize>>9);
+            sampleEnd = sampleOffset + (voiceData.sampleLength[key]) * (filesize>>9);
+            if(sampleEnd*2 > filesize - 1)
+            {
+                sampleEnd = filesize/2 -1;
+            }
+            phase_increment = ComputePhaseIncrement(note<<7);
         }
         // printf("sample points in %i out %i filesize %i\n", sampleOffset, sampleEnd, filesize);
         // just hardcode note to 69 for now
         phase_ = 0;
-        phase_increment = ComputePhaseIncrement(note<<7);
         sampleSegment = SMP_PLAYING;
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
@@ -280,6 +340,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         instrumentType = voiceData.GetInstrumentType();
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
     else if(instrumentType == INSTRUMENT_DRUMS)
     {

@@ -191,11 +191,16 @@ void tlvDriverInit()
     // Set the HPL gain to 0dB
     write(1, 0x10, 0x00);
     write(1, 0x11, 0x00);
+    write(1, 0x10, 0x0);
+    write(1, 0x11, 0x0);
     
     // set lineout gain to 0  db
-    write(1, 0x12, 0xa);
-    write(1, 0x13, 0xa);
-    
+    write(1, 0x12, 0x0);
+    write(1, 0x13, 0x0);
+    // set lineout gain to 20 db
+    write(1, 0x12, 10);
+    write(1, 0x13, 10);
+
     // power up headphones & mixer amp
     write(1, 0x09, 0x33);
 
@@ -231,6 +236,8 @@ void driver_set_mic(bool mic_state)
         write(1, 0x3b, 0x24); // Left MICPGA Volume Control 
         write(1, 0x3c, 0x24);
         // lower the adc digital volume control?!?
+        write(0, 0x53, 0x0c);
+        write(0, 0x54, 0x0c);
         write(0, 0x53, 0x0c);
         write(0, 0x54, 0x0c);
     }

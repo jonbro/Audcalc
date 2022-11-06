@@ -81,11 +81,16 @@ class Instrument
         int8_t playingSlice = -1;
         int16_t *sample;
         q15_t volume = 0x7fff;
-        q15_t color;
+        q15_t param1Base;
         q15_t timbre;
-        uint8_t cutoff;
+        q15_t mainCutoff;
         uint8_t resonance;
         uint32_t sampleOffset; 
+        uint32_t lfo_phase = 0;
+        uint32_t lfo_phase_increment = 0;
+        q15_t lfo_depth = 0;
+        q15_t lfo_rate = 0;
+        
         uint32_t sampleEnd; 
         ffs_file *file = 0;
         // stored in the displayed param values (since the user doesn't have access to more than this anyways)
@@ -93,7 +98,8 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
         uint32_t fullSampleLength;
-        ADSREnvelope env;
+        ADSREnvelope env, env2;
+        uint16_t lastenvval = 0, lastenv2val = 0;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
         LoopMode loopMode = INSTRUMENT_LOOPMODE_NONE;
         SamplePlaybackSegment sampleSegment = SMP_COMPLETE;

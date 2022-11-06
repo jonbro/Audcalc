@@ -33,6 +33,10 @@ class ParamLockPool
         {
             return &nullLock;
         }
+        bool validLock(ParamLock *lock)
+        {
+            return GetLockPosition(lock) < LOCKCOUNT;
+        }
     private:
         ParamLock locks[LOCKCOUNT];
         ParamLock *freeLocks;

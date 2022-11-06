@@ -32,3 +32,37 @@ q8          q4
 (44100<<8)/(60<<4) = q4
 
 60*32 = 1920
+
+
+
+
+        // simplify, lets load from a known good source
+        uint32_t filesize = ((uint32_t*)AudioSampleSecondbloop)[0]&0xffffff;
+        int16_t* wave = ((int16_t*)AudioSampleSecondbloop)+2;
+        if(filesize == 0 || sampleSegment == SMP_COMPLETE)
+        {
+            memset(buffer, 0, SAMPLES_PER_BUFFER*2);
+            return;
+        }
+        if(sampleOffset > filesize)
+            sampleSegment = SMP_COMPLETE;
+        if(sampleSegment == SMP_COMPLETE)
+            return;
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            if(sampleOffset > filesize - 1)
+            {
+                sampleSegment = SMP_COMPLETE;
+            }
+            // int16_t wave;
+            // ffs_seek(GetFilesystem(), file, sampleOffset*2);
+            // ffs_read(GetFilesystem(), file, wave, 2);
+
+            phase_ += phase_increment;
+            sampleOffset+=(phase_>>25);
+            phase_-=(phase_&(0xfe<<24));
+
+            buffer[i] = wave[sampleOffset];
+            
+        }
+        return;

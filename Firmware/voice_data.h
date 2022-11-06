@@ -34,6 +34,10 @@ enum ParamType {
     Octave = 6,
     AttackTime = 8,
     DecayTime = 9,
+    AttackTime2 = 10,
+    DecayTime2 = 11,
+    LFORate = 12,
+    LFODepth = 13,
     Length = 24,
     DelaySend = 28
 };
@@ -41,7 +45,8 @@ enum ParamType {
 enum SamplerPlayerType
 {
   SAMPLE_PLAYER_SLICE,
-  SAMPLE_PLAYER_PITCH
+  SAMPLE_PLAYER_PITCH,
+  SAMPLE_PLAYER_SEQL // slice, with even cuts
 };
 
 class VoiceData
@@ -69,7 +74,7 @@ class VoiceData
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
         }
         SamplerPlayerType GetSampler(){
-            return (SamplerPlayerType)((samplerTypeBare*2)>>8);
+            return (SamplerPlayerType)((samplerTypeBare*3)>>8);
         }
         int8_t GetOctave();
         uint8_t& GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern);
@@ -152,7 +157,7 @@ class VoiceData
             if(step>>7==0)
                 return ParamLockPool::NullLock();
             ParamLock* lock = locksForPattern[pattern];
-            while(lock != ParamLockPool::NullLock())
+            while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
             {
                 if(lock->param == param && lock->step == (step&0x7f))
                 {
@@ -180,6 +185,12 @@ class VoiceData
         uint8_t delaySend;
         uint8_t attackTime = 0x20;
         uint8_t decayTime = 0x20;
+        uint8_t attackTime2 = 0x20;
+        uint8_t decayTime2 = 0x20;
+        uint8_t lfoRate = 0;
+        uint8_t lfoDepth = 0;
+
+
         uint8_t envTimbre;
         uint8_t envColor;
 

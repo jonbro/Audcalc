@@ -45,6 +45,7 @@ add_executable(tdm
         audio/digital_oscillator.cc
         audio/resources.cc
         audio/random.cc
+        AudioSampleSecondbloop.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)

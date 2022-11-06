@@ -313,12 +313,11 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
-
 int main()
 {
     gpio_init(BLINK_PIN_LED);
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
-    gpio_put(BLINK_PIN_LED, true);
+    gpio_put(BLINK_PIN_LED, true);    
     sleep_ms(100);
     set_sys_clock_khz(240000, true);
     SetDisplay(&disp);

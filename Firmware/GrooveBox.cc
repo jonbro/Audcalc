@@ -76,6 +76,7 @@ int16_t recordBuffer[SAMPLES_PER_BUFFER];
 int16_t last_delay = 0;
 int16_t last_input;
 uint32_t counter = 0;
+uint32_t countToHalfSecond = 0;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
@@ -83,6 +84,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
+    
     //printf("input %i\n", workBuffer2[0]);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -143,6 +145,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
             if(tempoPulse)
             {
+                midi.TimingClock();
                 // skip the last one, since the global can't be sequenced
                 for(int v=0;v<15;v++)
                 {
@@ -795,6 +798,8 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(!playing)
             {
                 playing = true;
+                midi.StopSequence();
+                midi.StartSequence();
                 ResetPatternOffset();
             }
         }
@@ -809,7 +814,12 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             playing = !playing;
             if(playing)
             {
+                midi.StartSequence();
                 ResetPatternOffset();
+            }
+            else
+            {
+                midi.StopSequence();
             }
         }
         if(liveWrite)
@@ -881,7 +891,7 @@ void GrooveBox::Serialize()
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     // version
-    s.AddData(6);
+    s.AddData(7);
 
     // save pattern data
     uint8_t *patternReader = (uint8_t*)patterns;
@@ -904,7 +914,7 @@ void GrooveBox::Deserialize()
     if(!s.writeFile.initialized)
         return;
     // save version
-    if(s.GetNextValue() != 6)
+    if(s.GetNextValue() != 7)
         return;
 
     // load pattern data

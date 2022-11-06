@@ -37,6 +37,10 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case Octave: return HasLockForStep(step, pattern, Octave, value)?value:octave;
         case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:attackTime;
         case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:decayTime;
+        case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:attackTime2;
+        case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:decayTime2;
+        case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
+        case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
     }
@@ -78,6 +82,10 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 6: return octave;
         case 8: return attackTime;
         case 9: return decayTime;
+        case 10: return attackTime2;
+        case 11: return decayTime2;
+        case 12: return lfoRate;
+        case 13: return lfoDepth;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
     }
@@ -96,8 +104,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return sampleStart[GetSampler()==SAMPLE_PLAYER_PITCH?0:lastNotePlayed];
-            case 1: return sampleLength[GetSampler()==SAMPLE_PLAYER_PITCH?0:lastNotePlayed];
+            case 0: return sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 1: return sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
             case 31: return samplerTypeBare;
             default:
                 break;
@@ -172,7 +180,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 0:
                 sprintf(strA, "Bpm");
                 sprintf(strB, "");
-                sprintf(pA, "%i", bpm);
+                sprintf(pA, "%i", (bpm+1));
                 sprintf(pB, "");
                 return;
             case 1:
@@ -225,6 +233,18 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 lockA = CheckLockAndSetDisplay(step, pattern, 8, attackTime, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 9, decayTime, pB);
                 return;
+            case 5:
+                sprintf(strA, "Atk");
+                sprintf(strB, "Dcy");
+                lockA = CheckLockAndSetDisplay(step, pattern, 10, attackTime2, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 11, decayTime2, pB);
+                return;
+            case 6:
+                sprintf(strA, "Rate");
+                sprintf(strB, "Dpth");
+                lockA = CheckLockAndSetDisplay(step, pattern, 12, lfoRate, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 13, lfoDepth, pB);
+                return;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -250,7 +270,17 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Samp");
-                sprintf(pB, samplerTypeBare<0x7f?"Slice":"Pitch");
+                switch(GetSampler())
+                {
+                    case 0:
+                        sprintf(pB, "Slice");
+                        break;
+                    case 1:
+                        sprintf(pB, "Pitch");
+                        break;
+                    default:
+                        sprintf(pB, "S-Eql");
+                }
                 return;
             default:
                 return;

@@ -77,3 +77,16 @@ void Midi::NoteOff(int16_t pitch)
     uart_putc_raw(UART_ID, pitch); // middle c
     uart_putc_raw(UART_ID, 0); // velocity
 }
+
+void Midi::StartSequence()
+{
+    uart_putc_raw(UART_ID, 0xFA);
+}
+void Midi::StopSequence()
+{
+    uart_putc_raw(UART_ID, 0xFC);
+}
+void Midi::TimingClock()
+{
+    uart_putc_raw(UART_ID, 0xF8);
+}
