@@ -256,11 +256,11 @@ void driver_set_mic(bool mic_state)
         write(1, 0x39, 0x80);
         write(1, 0x3e, 0x03);
         // might need 0x3b / 0x3c gain control for MICPGA - leaving it at 0 gain for now
-        write(1, 0x3b, 0x00);
-        write(1, 0x3c, 0x00);
+        write(1, 0x3b, 0x08);
+        write(1, 0x3c, 0x08);
 
         // digital volume control (this should turn it down a bit)
-        write(0, 0x53, 0x00);
-        write(0, 0x54, 0x00);
+        write(0, 0x53, 0x20);
+        write(0, 0x54, 0x20);
     }
 }

@@ -28,6 +28,7 @@ enum ParamType {
     SampleIn = 0,
     Color = 1,
     SampleOut = 1,
+    PlayingMidiNotes = 1,
     Cutoff = 2,
     Resonance = 3,
     Volume = 4,
@@ -217,6 +218,7 @@ class VoiceData
         {
             uint8_t shape = 0;
             uint8_t scale;
+            uint8_t midiChannel;
         };
         union
         {

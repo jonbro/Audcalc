@@ -64,11 +64,11 @@ int Midi::GetNote()
     buf_count = 0;
     return -1;
 }
-void Midi::NoteOn(int16_t pitch)
+void Midi::NoteOn(int16_t pitch, uint8_t velocity)
 {
     uart_putc_raw(UART_ID, 0x90); // note on / channel
     uart_putc_raw(UART_ID, pitch); // middle c
-    uart_putc_raw(UART_ID, 0x40); // velocity
+    uart_putc_raw(UART_ID, velocity); // velocity
 }
 
 void Midi::NoteOff(int16_t pitch)

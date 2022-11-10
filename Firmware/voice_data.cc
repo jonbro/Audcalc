@@ -21,6 +21,14 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
             case Color: return HasLockForStep(step, pattern, Color, value)?value:color;
         }
     }
+    if(GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        switch(param)
+        {
+            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:timbre;
+            case PlayingMidiNotes: return HasLockForStep(step, pattern, PlayingMidiNotes, value)?value:color;
+        }
+    }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         switch(param)
@@ -96,6 +104,16 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
             case 0: return timbre;
             case 1: return color;
             case 31: return shape;
+            default:
+                break;
+        }
+    }    
+    if(GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        switch (param)
+        {
+            case 0: return timbre;
+            case 1: return color;
             default:
                 break;
         }
@@ -310,6 +328,28 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 }
                 else
                     sprintf(pB, "%s", algo_values[GetShape()]);
+                return;
+            default:
+                return;
+        }
+        // sprintf(str, "%s", voice_macroparams[param]);
+    }
+    if(GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        switch (param)
+        {
+            case 0:
+                sprintf(strA, "Vel");
+                sprintf(strB, "NNte");
+                lockA = CheckLockAndSetDisplay(step, pattern, 0, timbre, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 1, color, pB);
+                return;
+            // 0
+            case 15:
+                sprintf(strA, "Type");
+                sprintf(strB, "");
+                sprintf(pA, "Midi");
+                sprintf(pB, "%s", ((((uint16_t)valB)*16) >> 8)+1);
                 return;
             default:
                 return;

@@ -10,7 +10,7 @@ class Midi
         void StartSequence();
         void StopSequence();
         void TimingClock();
-        void NoteOn(int16_t pitch);
+        void NoteOn(int16_t pitch, uint8_t velocity);
         void NoteOff(int16_t pitch);
         int GetNote();
 };

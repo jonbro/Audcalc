@@ -97,6 +97,8 @@ class Instrument
         // (maybe I add a fine tune?)
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
+        int8_t playingMidiNotes[16];
+        uint8_t currentMidiNote;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2;
         uint16_t lastenvval = 0, lastenv2val = 0;
