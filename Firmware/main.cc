@@ -312,7 +312,68 @@ uint8_t adc2_prev;
 
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
+extern "C" {
+#include "uxn.h"
+}
 
+/*
+( color write )
+|10 @Console [ &vector $2 &read $1 &pad $5 &write $1 &error $1 ]
+|20 @Screen  [ &vector $2 &width $2 &height $2 &auto $1 &pad $1 &x $2 &y $2 &addr $2 &pixel $1 &sprite $1 ]
+
+|0100 
+;on-screen .Screen/vector DEO2
+
+BRK
+
+@on-screen ( -> )
+    ( set  x,y coordinates )
+    #0002 .Screen/x DEO2
+    #0002 .Screen/y DEO2
+    ;color LDA INC ;color STA ;color LDA .Screen/pixel DEO
+BRK
+
+@color 00
+*/
+
+uint8_t uxnrom[] = {
+    0xA0, 0x01, 0x07, 0x80, 0x20, 0x37, 0x00, 0xA0, 0x00, 0x02, 0x80, 0x28, 0x37, 0xA0, 0x00, 0x02, 
+0x80, 0x2A, 0x37, 0xA0, 0x01, 0x24, 0x14, 0x01, 0xA0, 0x01, 0x24, 0x15, 0xA0, 0x01, 0x24, 0x14, 
+0x80, 0x2E, 0x17, 0x00, 0x00
+};
+static Device *devscreen;
+Uint8 screen_dei(Device *d, Uint8 port)
+{
+
+}
+    uint32_t color[25];
+void screen_deo(Device *d, Uint8 port)
+{
+	switch(port) {
+	case 0x3:
+		break;
+	case 0x5:
+		break;
+	case 0xe: {
+		Uint16 x, y;
+		Uint8 layer = d->dat[0xe] & 0x40;
+		DEVPEEK16(x, 0x8);
+		DEVPEEK16(y, 0xa);
+        // RRRGGGBB encoding
+        uint32_t drawColor = urgb_u32(d->dat[0xe]&0xe0, (d->dat[0xe]&0x1c)<<3, (d->dat[0xe]&0x3)<<6);
+        if(x > 4) x = 4;
+        if(y > 4) y = 4;
+		if(d->dat[0x6] & 0x01) DEVPOKE16(0x8, x + 1); /* auto x+1 */
+		if(d->dat[0x6] & 0x02) DEVPOKE16(0xa, y + 1); /* auto y+1 */
+        uint8_t offset = (uint8_t)x*5+(uint8_t)y;
+        color[offset] = drawColor;
+		break;
+	}
+	case 0xf: {
+        break;
+	}
+	}
+}
 int main()
 {
     gpio_init(BLINK_PIN_LED);
@@ -390,42 +451,23 @@ int main()
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
-    uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
+    struct repeating_timer timer;
+     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
+    struct repeating_timer timer2;
 
-    gbox = new GrooveBox(color);
-    //gbox->Deserialize();
-    // fill the silence buffer so we get something out
-    for(int i=0;i<128;i++)
-    {
-        uint16_t* chan = (uint16_t*)(silence_buf+i);
-        chan[0] = 0;
-        chan[1] = 0;
-    }
-
-    configure_audio_driver();
-
-    tlvDriverInit();
+	Uxn u = {0};
+    free(u.ram);
+	if(!uxn_boot(&u, (Uint8*)calloc(0x10000, 1)))
+		return 0;
+    // copy rom into uxn rom space
+    memcpy(u.ram+PAGE_PROGRAM, uxnrom, 37);
+    devscreen = uxn_port(&u, 0x2, screen_dei, screen_deo);
+    uxn_eval(&u, PAGE_PROGRAM);
 
     int step = 0;
     uint32_t keyState = 0;
     uint32_t lastKeyState = 0;
-
-    struct repeating_timer timer;
-     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
-    struct repeating_timer timer2;
-    //add_repeating_timer_us(-50,usb_timer_callback, NULL, &timer2);
-    // Select ADC input 0 (GPIO26)
-    adc_select_input(0);
-    int16_t touchCounter = 0x7fff;
-    int16_t headphoneCheck = 60;
-    uint8_t brightnesscount = 0;
-   // usbaudio_init();
-    bool requestSerialize = false;
-    bool requestDeserialize = false;
-
-      // initialize the USB microphone interface
-    // usb_microphone_set_tx_ready_handler(on_usb_microphone_tx_ready);
 
     while(true)
     {
@@ -457,49 +499,18 @@ int main()
             uint32_t s = keyState & (1ul<<i);
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
-                touchCounter = 0x7fff;
-                touchCounter = 0x1f4;
-                gbox->OnKeyUpdate(i, s>0); 
-                if(s>0)
-                {
-                    printf("keypressed %i\n", i);
-                    requestSerialize = i==21;
-                    requestDeserialize = i==22;
-                } 
+                // gbox->OnKeyUpdate(i, s>0); 
             }
         }
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
-            // headphoneCheck--;
-            // if(headphoneCheck <= 0)
-            // {
-            //     gpio_put(BLINK_PIN_LED, true);
-            //     uint8_t rxdata;
-            //     if(readRegister(0, 0x2e, &rxdata))
-            //     {
-            //         printf("headphone register 0x%x\n", rxdata);
-            //         //color[10] = (rxdata&0x10)?urgb_u32(rxdata, 30, 80):urgb_u32(0,0,0);
-            //     }
-            //     headphoneCheck = 5;
-
-            // }
-                    //color[10] = gpio_get(24)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-            // }
-
-            touchCounter--;
-            if(touchCounter <= 0)
-            {
-                // store song here
-                // gbox->Serialize();
-                //gpio_set_pulls(23, false, true);
-            }
             adc_select_input(1);
             uint16_t adc_val = adc_read();
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
-            gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
-            // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
+            // gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
+            // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u  32(250, 30, 80):urgb_u32(0,0,0);
             //hardware_set_mic(!gpio_get(LINE_IN_DETECT));
             if(!screen_flip_ready)
             {
@@ -512,7 +523,8 @@ int main()
                 //     gbox->Deserialize();
                 //     requestDeserialize = false;
                 // }
-                gbox->UpdateDisplay(&disp);
+                //gbox->UpdateDisplay(&disp);
+                uxn_eval(&u, GETVECTOR(devscreen));
                 screen_flip_ready = true;
             }
             // color[8] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
