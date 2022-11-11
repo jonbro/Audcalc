@@ -22,7 +22,13 @@ enum InstrumentType {
   INSTRUMENT_DRUMS,
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 };
-
+enum EnvTargets {
+    Target_Volume = 0,
+    Target_Timbre = 1,
+    Target_Color = 2,
+    Target_Cutoff = 3,
+    Target_Resonance = 4
+};
 enum ParamType {
     Timbre = 0,
     SampleIn = 0,
@@ -39,6 +45,8 @@ enum ParamType {
     DecayTime2 = 11,
     LFORate = 12,
     LFODepth = 13,
+    Env1Target = 16,
+    Env2Target = 18,
     Length = 24,
     DelaySend = 28
 };
@@ -229,7 +237,10 @@ class VoiceData
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
         uint8_t volume = 0x7f;
+        uint8_t env1Target = 0; // should default to "volume"
+        uint8_t env2Target = 0;
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
+
     private:
         static ParamLockPool lockPool;
         ffs_file *file;

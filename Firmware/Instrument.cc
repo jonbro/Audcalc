@@ -169,18 +169,37 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     lfo_phase += ((lfo_rate*(0x8bf0000-0xfffff))>>6)+0xfffff;
     q15_t lfo = Interpolate824(wav_sine, lfo_phase);
     q15_t param1_withlfo = add_q15(mult_q15(lfo, lfo_depth), param1Base);
+    q15_t param2_withMods = param2Base;
+    switch (env1Target)
+    {
+        case Target_Volume:
+            break;
+        case Target_Timbre:
+            param1_withlfo = add_q15(param1_withlfo, lastenv2val >> 1);
+            break;
+        case Target_Color:
+            param2_withMods = add_q15(param2_withMods, lastenv2val >> 1);
+            break;
+        default:
+            break;
+    }
+
     if(param1_withlfo < 0)
     {
         param1_withlfo = 0;
     }
+    if(param2_withMods < 0)
+    {
+        param2_withMods = 0;
+    }
     osc.set_parameter_1(param1_withlfo);
+    osc.set_parameter_2(param2_withMods);
     osc.Render(sync, buffer, size);
     RenderGlobal(sync, buffer, size);
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
-
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         lastenv2val = env2.Render();
@@ -228,12 +247,13 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         mainCutoff = (voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7;
         svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
+        env1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env1Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
         // copy parameters from voice
         param1Base = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7;
-        osc.set_parameter_2(voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7);
+        param2Base = voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {

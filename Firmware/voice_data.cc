@@ -47,6 +47,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:decayTime;
         case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:attackTime2;
         case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:decayTime2;
+        case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:env1Target;
+        case Env2Target: return HasLockForStep(step, pattern, Env2Target, value)?value:env2Target;
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Length: return length[pattern];
@@ -94,6 +96,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 11: return decayTime2;
         case 12: return lfoRate;
         case 13: return lfoDepth;
+        case 16: return env1Target;
+        case 18: return env2Target;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
     }
@@ -132,18 +136,6 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     return nothing;
 }
 
-const char *voice_macroparams[16] = { 
-    "timb", "filt", "vlpn", "ptch",
-    "env ", "?", "?", "?",
-    "?", "?", "?", "?",
-    "?", "?", "FLTO", "TYPE"
-};
-const char *voice_sampleparams[16] = { 
-    "I/O", "FILT", "VlPn", "Ptch",
-    "Env", "EnvF", "EnvP", "EnvT",
-    "lop", "?", "?", "?",
-    "?", "?", "FLTO", "TYPE"
-};
 const char *rates[7] = { 
     "2x",
     "3/2x",
@@ -154,6 +146,13 @@ const char *rates[7] = {
     "1/8x"
 };
 
+const char *envTargets[5] = { 
+    "Vol",
+    "Timb",
+    "Col",
+    "Cut",
+    "Res",
+};
 
 bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
 {
@@ -263,6 +262,32 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 lockA = CheckLockAndSetDisplay(step, pattern, 12, lfoRate, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 13, lfoDepth, pB);
                 return;
+            case 8:
+                sprintf(strA, "Trgt");
+                sprintf(strB, "Dpth");
+                sprintf(pB, "");
+                if(HasLockForStep(step, pattern, 16, valB))
+                {
+                    sprintf(pA, "%s", envTargets[(((uint16_t)valB)*5) >> 8]);
+                    lockB = true;
+                }
+                else
+                    sprintf(pA, "%s", envTargets[(((uint16_t)env1Target)*5)>>8]);
+                return;
+            case 9:
+                sprintf(strA, "Trgt");
+                sprintf(strB, "Dpth");
+                sprintf(pB, "");
+                if(HasLockForStep(step, pattern, 16, valB))
+                {
+                    sprintf(pA, "%s", envTargets[(((uint16_t)valB)*5) >> 8]);
+                    lockB = true;
+                }
+                else
+                    sprintf(pA, "%s", envTargets[(((uint16_t)env2Target)*5)>>8]);
+                return;
+
+                return;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -303,7 +328,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             default:
                 return;
         }
-        // sprintf(str, "%s", voice_macroparams[param]);
     }
 
     if(GetInstrumentType() == INSTRUMENT_MACRO)
@@ -332,7 +356,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             default:
                 return;
         }
-        // sprintf(str, "%s", voice_macroparams[param]);
     }
     if(GetInstrumentType() == INSTRUMENT_MIDI)
     {
@@ -354,7 +377,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             default:
                 return;
         }
-        // sprintf(str, "%s", voice_macroparams[param]);
     }
 }
 

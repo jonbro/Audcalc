@@ -82,6 +82,7 @@ class Instrument
         int16_t *sample;
         q15_t volume = 0x7fff;
         q15_t param1Base;
+        q15_t param2Base;
         q15_t timbre;
         q15_t mainCutoff;
         uint8_t resonance;
@@ -98,6 +99,7 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
         int8_t playingMidiNotes[16];
+        EnvTargets env1Target;
         uint8_t currentMidiNote;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2;
