@@ -56,7 +56,8 @@ class Instrument
         MacroOscillator osc;
         uint8_t delaySend = 0;
         VoiceData *globalParams;
-        
+        q15_t pWithMods;
+
     private: 
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
@@ -99,7 +100,8 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
         int8_t playingMidiNotes[16];
-        EnvTargets env1Target;
+        EnvTargets env1Target, env2Target;
+        q15_t env1Depth, env2Depth;
         uint8_t currentMidiNote;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2;

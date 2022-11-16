@@ -73,8 +73,11 @@ class ADSREnvelope {
     }
     return value_;
   }
-  
+  // returns the last exponential value
   inline uint16_t value() const { return value_; }
+  inline uint16_t valueLin() const {
+    return Mix(a_, b_, phase_>>16);
+  }
 
  private:
   // Phase increments for each segment.

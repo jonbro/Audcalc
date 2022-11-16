@@ -435,7 +435,7 @@ int main()
         {
             // the mask here are the gpio pins for the colums
             gpio_put_masked(0x7c0, 1<<(col_pin_base+i));
-            sleep_us(3);
+            sleep_us(2); // should put this on 
             for (size_t j = 0; j < 5; j++)
             {
                 int index = (i*5+j);
@@ -462,7 +462,6 @@ int main()
                 gbox->OnKeyUpdate(i, s>0); 
                 if(s>0)
                 {
-                    printf("keypressed %i\n", i);
                     requestSerialize = i==21;
                     requestDeserialize = i==22;
                 } 

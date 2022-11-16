@@ -114,19 +114,42 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)
             {
-                // q15_t instrument = mult_q15(workBuffer[i], 0x4fff);
+                // scale everything down
+                // workBuffer[i] = mult_q15(workBuffer[i], 0x4fff);
                 workBuffer2[i] += workBuffer[i];
-                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<6));
+                toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
             }
         }
+        bool clipping = false;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            int16_t delay_feedback = mult_q15(last_delay, 0x4fff);
+            //int16_t delay_feedback = mult_q15(last_delay, 0x4fff);
             //int16_t delay_feedback = 0;
-            toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
-            last_delay = Delay_process(&delay, toDelayBuffer[i]);
-            workBuffer2[i] += last_delay;
+            //toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
+            // last_delay = Delay_process(&delay, toDelayBuffer[i]);
+            // workBuffer2[i] += last_delay;
+            int16_t* chan = (output_buffer+i*2);
+            int32_t mainL = 0;
+            int32_t mainR = 0;
+            mainL = workBuffer2[i];
+            mainR = workBuffer2[i];
+
+            int16_t l = 0;
+            int16_t r = 0;
+            chorus.process(toDelayBuffer[i], l, r);
+            mainL += l;
+            mainR += r;
+            verb.process(toDelayBuffer[i], l, r);
+            mainL += l;
+            mainR += r;
+            mainL >>= 3;
+            mainR >>= 3;
+            if(mainL<0&&-mainL>0xffff || mainR<0&&-mainR>0xffff||mainL>0&&mainL>0xffff||mainR>0&&mainR>0xffff)
+                clipping = true;
+            chan[0] = mainL; // this should be our final mix stage. We are just hackin aka dividing by 2 for now until we put a main volume control in place
+            chan[1] = mainR;
         }
+        if(clipping) printf("clipping.");
         // this can all be done outside this loop?
         int requestedNote = GetNote();
         if(requestedNote >= 0)
@@ -217,9 +240,9 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
-        int16_t* chan = (output_buffer+i*2);
-        chan[0] = workBuffer2[i]>>1;
-        chan[1] = workBuffer2[i]>>1;
+        // int16_t* chan = (output_buffer+i*2);
+        // chan[0] = workBuffer2[i]>>1;
+        // chan[1] = workBuffer2[i]>>1;
     }
     if(recording)
     {
@@ -231,6 +254,14 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             chan[1] = workBuffer2[i];
         }
     }
+    absolute_time_t renderEndTime = get_absolute_time();
+    int64_t currentRender = absolute_time_diff_us(renderStartTime, renderEndTime);
+    // if(currentRender > 4000)
+    // {
+    //     printf("underrun!\n");
+    // }
+    renderTime += currentRender;
+    sampleCount++;
 }
 void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {
@@ -239,7 +270,7 @@ void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step
     voiceCounter = channel%4+(channel/8)*4;
     Instrument *nextPlay = &instruments[voiceCounter];
     voiceChannel[voiceCounter] = channel;
-    printf("playing file for voice: %i %x\n", channel, voiceData.GetFile());
+    //printf("playing file for voice: %i %x\n", channel, voiceData.GetFile());
 
     nextPlay->NoteOn(pitch, midi_note, step, pattern, livePlay, voiceData);
     return;    
@@ -286,6 +317,14 @@ bool GrooveBox::IsPlaying()
 }
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
+    // if(sampleCount > 500)
+    // {
+    //     renderTime /= sampleCount;
+    //     printf("renderTime us: %i\n", (int)renderTime);
+    //     renderTime = 0;
+    //     sampleCount = 0;
+    // }
+
     ssd1306_clear(p);
     char str[64];
     ssd1306_set_string_color(p, false);
@@ -501,6 +540,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
     }
     hadTrigger = 0;
+    
+    uint16_t param = instruments[currentVoice%4+(currentVoice/8)*4].pWithMods;
+
+    ssd1306_draw_square(p, 0, 0, param>>8, 1);
 }
 
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
@@ -880,7 +923,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-
+#define SAVE_VERSION 8
 void GrooveBox::Serialize()
 {
     Serializer s;
@@ -891,7 +934,7 @@ void GrooveBox::Serialize()
     ffs_erase(GetFilesystem(), &writefile);
     s.Init();
     // version
-    s.AddData(7);
+    s.AddData(SAVE_VERSION);
 
     // save pattern data
     uint8_t *patternReader = (uint8_t*)patterns;
@@ -914,7 +957,7 @@ void GrooveBox::Deserialize()
     if(!s.writeFile.initialized)
         return;
     // save version
-    if(s.GetNextValue() != 7)
+    if(s.GetNextValue() != SAVE_VERSION)
         return;
 
     // load pattern data

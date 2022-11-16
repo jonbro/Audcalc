@@ -18,6 +18,8 @@ extern "C" {
 #include "voice_data.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
+#include "Chorus.h"
+#include "Reverb2.h"
 
 #define VOICE_COUNT 8
 
@@ -117,7 +119,11 @@ class GrooveBox {
   uint8_t lastAdcValA = 0;
   uint8_t lastAdcValB = 0;
   Delay delay;
+  Chorus chorus;
+  Reverb2 verb;
   ffs_file files[16];
   VoiceData *globalParams;
+  int64_t renderTime = 0;
+  int64_t sampleCount = 0;
 };
 #endif // GROOVEBOX_H_

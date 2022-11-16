@@ -434,7 +434,7 @@ void DigitalOscillator::RenderVowel(
   uint16_t formant_shift = (200 + (parameter_[1] >> 6));
   if (strike_) {
     strike_ = false;
-    state_.vow.consonant_frames = 160;
+    state_.vow.consonant_frames = 20; // this was orginally 160, but thats with 24 sample frame size - we are at 128 samples per frame, so switching and (32000 instead of 48000)
     uint16_t index = (Random::GetSample() + 1) & 7;
     for (size_t i = 0; i < 3; ++i) {
       state_.vow.formant_increment[i] = \

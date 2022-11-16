@@ -48,7 +48,9 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:attackTime2;
         case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:decayTime2;
         case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:env1Target;
+        case Env1Depth: return HasLockForStep(step, pattern, Env1Depth, value)?value:env1Depth;
         case Env2Target: return HasLockForStep(step, pattern, Env2Target, value)?value:env2Target;
+        case Env2Depth: return HasLockForStep(step, pattern, Env2Depth, value)?value:env2Depth;
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Length: return length[pattern];
@@ -97,7 +99,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 12: return lfoRate;
         case 13: return lfoDepth;
         case 16: return env1Target;
+        case 17: return env1Depth;
         case 18: return env2Target;
+        case 19: return env2Depth;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
     }
@@ -265,26 +269,26 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 8:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                sprintf(pB, "");
                 if(HasLockForStep(step, pattern, 16, valB))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valB)*5) >> 8]);
-                    lockB = true;
+                    lockA = true;
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)env1Target)*5)>>8]);
+                lockB = CheckLockAndSetDisplay(step, pattern, 17, env1Depth, pB);
                 return;
             case 9:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                sprintf(pB, "");
-                if(HasLockForStep(step, pattern, 16, valB))
+                if(HasLockForStep(step, pattern, 18, valB))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valB)*5) >> 8]);
-                    lockB = true;
+                    lockA = true;
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)env2Target)*5)>>8]);
+                lockB = CheckLockAndSetDisplay(step, pattern, 19, env2Depth, pB);
                 return;
 
                 return;

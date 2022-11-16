@@ -46,7 +46,9 @@ enum ParamType {
     LFORate = 12,
     LFODepth = 13,
     Env1Target = 16,
+    Env1Depth = 17,
     Env2Target = 18,
+    Env2Depth = 19,
     Length = 24,
     DelaySend = 28
 };
@@ -199,9 +201,10 @@ class VoiceData
         uint8_t lfoRate = 0;
         uint8_t lfoDepth = 0;
 
-
-        uint8_t envTimbre;
-        uint8_t envColor;
+        uint8_t env1Target = 0;
+        uint8_t env1Depth = 0;
+        uint8_t env2Target = 0;
+        uint8_t env2Depth = 0;
 
         // these are per pattern
         uint8_t rate[16];
@@ -237,8 +240,7 @@ class VoiceData
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
         uint8_t volume = 0x7f;
-        uint8_t env1Target = 0; // should default to "volume"
-        uint8_t env2Target = 0;
+        
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
 
     private:

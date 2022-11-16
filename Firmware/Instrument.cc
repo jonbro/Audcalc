@@ -163,43 +163,63 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         }
         return;
     }
+
     // could alternately use tick rate stuff. might be way better
     // fast 4bf0000
     // slow fffff
+    // holy hell what the fuck is this code, seriously :0
+    // should like, maybe, move this into some class or something :P 
     lfo_phase += ((lfo_rate*(0x8bf0000-0xfffff))>>6)+0xfffff;
-    q15_t lfo = Interpolate824(wav_sine, lfo_phase);
-    q15_t param1_withlfo = add_q15(mult_q15(lfo, lfo_depth), param1Base);
-    q15_t param2_withMods = param2Base;
-    switch (env1Target)
-    {
-        case Target_Volume:
-            break;
-        case Target_Timbre:
-            param1_withlfo = add_q15(param1_withlfo, lastenv2val >> 1);
-            break;
-        case Target_Color:
-            param2_withMods = add_q15(param2_withMods, lastenv2val >> 1);
-            break;
-        default:
-            break;
-    }
+    q15_t lfo = mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
 
-    if(param1_withlfo < 0)
+    q15_t param1_withMods = param1Base;
+    param1_withMods = add_q15(lfo, param1Base);
+    q15_t param2_withMods = param2Base;
+    q15_t cutoffWithMods = mainCutoff;
+    for (size_t i = 0; i < 2; i++)
     {
-        param1_withlfo = 0;
+        EnvTargets t = i==0?env1Target:env2Target;
+        q15_t depth = i==0?env1Depth:env2Depth;
+        ADSREnvelope* e = i==0?&env:&env2;
+        switch (t)
+        {
+            case Target_Volume:
+                break;
+            case Target_Timbre:
+                param1_withMods = add_q15(param1_withMods, mult_q15(depth, e->valueLin()>>1));
+                break;
+            case Target_Color:
+                param2_withMods = add_q15(param2_withMods, mult_q15(depth, e->valueLin()>>1));
+                break;
+            case Target_Cutoff:
+                cutoffWithMods = add_q15(cutoffWithMods, mult_q15(depth, e->valueLin()>>1));
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if(param1_withMods < 0)
+    {
+        param1_withMods = 0;
     }
     if(param2_withMods < 0)
     {
         param2_withMods = 0;
     }
-    osc.set_parameter_1(param1_withlfo);
+    if(cutoffWithMods < 0)
+    {
+        cutoffWithMods = 0;
+    }
+    pWithMods = cutoffWithMods;
+    osc.set_parameter_1(param1_withMods);
     osc.set_parameter_2(param2_withMods);
     osc.Render(sync, buffer, size);
+    svf.set_frequency(cutoffWithMods);
     RenderGlobal(sync, buffer, size);
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
 {
-    svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         lastenv2val = env2.Render();
@@ -248,6 +268,9 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
         env1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env1Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
+        env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
+        env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
+        env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
