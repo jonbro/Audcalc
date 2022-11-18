@@ -228,18 +228,25 @@ void driver_set_mic(bool mic_state)
     // return;
     if(mic_state)
     {
-        write(1, 0x33, 0x74); // micbias enable, powersupply
+        write(1, 0x33, 0x78); // micbias enable, powersupply
+        int8_t digitalVol = -30;
+        int8_t analogVol = 60; // max 96
 
         // mic in
-        write(1, 0x34, 0x11); // IN2L to MicPGAL pos with 10k input impedance
-        write(1, 0x36, 0x11); // IN2r to MicPGAL Neg with 10k input impedance
-        write(1, 0x3b, 0x24); // Left MICPGA Volume Control 
-        write(1, 0x3c, 0x24);
-        // lower the adc digital volume control?!?
-        write(0, 0x53, 0x0c);
-        write(0, 0x54, 0x0c);
-        write(0, 0x53, 0x0c);
-        write(0, 0x54, 0x0c);
+        write(1, 0x34, 0x10); // IN2L to MicPGAL pos with 10k input impedance
+        write(1, 0x36, 0x10); // IN2r to MicPGAL Neg with 10k input impedance
+        // write(1, 0x3b, 0x2c); // Left MICPGA Volume Control 
+        // write(1, 0x3c, 0x2c);
+        write(1, 0x3b, analogVol); // Left MICPGA Volume Control 
+        write(1, 0x3c, analogVol);
+        // boost the adc digital volume control
+        // write(0, 0x53, 0x00);
+        // write(0, 0x54, 0x00);
+        // lower the adc digital volume control
+        write(0, 0x53, digitalVol);
+        write(0, 0x54, digitalVol);
+        // write(0, 0x53, 0x0c);
+        // write(0, 0x54, 0x0c);
     }
     else
     {
