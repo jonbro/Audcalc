@@ -2,7 +2,6 @@
 #include "audio/dsp.h"
 #include "audio/resources.h"
 #include "pico/stdlib.h"
-#include "reverb.h"
 
 using namespace braids;
 #define VERB_LENGTH 8203

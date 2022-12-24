@@ -30,7 +30,6 @@ void GrooveBox::CalculateTempoIncrement()
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     needsInitialADC = true;
-    Delay_init(&delay, 10000);
     midi.Init();
     ResetADCLatch();
     tempoPhase = 0;
@@ -95,7 +94,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         if(playThroughEnabled)
         {
             workBuffer2[i] = input;
-            toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParams->delaySend)<<6);
+            // toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParams->delaySend)<<6);
         }
         if(input<0)
         {
@@ -136,21 +135,28 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
 
             int16_t l = 0;
             int16_t r = 0;
+            delay.process(toDelayBuffer[i], l, r);
+            mainL += l;
+            mainR += r;
+
             chorus.process(toDelayBuffer[i], l, r);
             mainL += l;
             mainR += r;
+
             verb.process(toDelayBuffer[i], l, r);
             mainL += l;
             mainR += r;
-            mainL >>= 3;
-            mainR >>= 3;
-            if(mainL<0&&-mainL>0xffff || mainR<0&&-mainR>0xffff||mainL>0&&mainL>0xffff||mainR>0&&mainR>0xffff)
-                clipping = true;
+            // mainL >>= 2;
+            // mainR >>= 2;
+            // if(mainL<0&&-mainL>0xffff || mainR<0&&-mainR>0xffff||mainL>0&&mainL>0xffff||mainR>0&&mainR>0xffff)
+            //     clipping = true;
             chan[0] = mainL; // this should be our final mix stage. We are just hackin aka dividing by 2 for now until we put a main volume control in place
             chan[1] = mainR;
         }
-        if(clipping) printf("clipping.");
+
+        // if(clipping) printf("clipping.");
         // this can all be done outside this loop?
+        
         int requestedNote = GetNote();
         if(requestedNote >= 0)
         {
@@ -523,9 +529,16 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     // update various slow hardware things
     hardware_set_amp(globalParams->amp_enabled>0x7f);
-    playThroughEnabled = hardware_line_in_detected();
-    hardware_set_mic(!playThroughEnabled);
+    playThroughEnabled = true;
+    hardware_set_mic(!hardware_line_in_detected());
     
+    // if(hardware_line_in_detected()){
+    //     ssd1306_draw_square(p, 0, 0, 10, 10);
+    // }
+    // if(hardware_headphone_detected()){
+    //     ssd1306_draw_square(p, 10, 0, 10, 10);
+    // }
+
     // input level monitor
     // ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
     // draw the current page within the pattern that we are editing 
@@ -923,7 +936,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-#define SAVE_VERSION 8
+#define SAVE_VERSION 9
 void GrooveBox::Serialize()
 {
     Serializer s;

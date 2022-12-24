@@ -2,6 +2,7 @@
 
 #define AMP_CONTROL 29
 #define LINE_IN_DETECT 24
+#define HEADPHONE_DETECT 16
 
 void hardware_init()
 {
@@ -37,4 +38,8 @@ void hardware_set_mic(bool mic_state)
 bool hardware_line_in_detected()
 {
     return !gpio_get(LINE_IN_DETECT);
+}
+bool hardware_headphone_detected()
+{
+    return !gpio_get(HEADPHONE_DETECT);
 }

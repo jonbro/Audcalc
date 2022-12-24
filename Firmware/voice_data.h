@@ -50,7 +50,9 @@ enum ParamType {
     Env2Target = 18,
     Env2Depth = 19,
     Length = 24,
-    DelaySend = 28
+    DelaySend = 28, // all three of these are on the same location
+    ChorusSend = 29,
+    ReverbSend = 30
 };
 
 enum SamplerPlayerType
@@ -194,6 +196,8 @@ class VoiceData
         uint8_t paramLockCount = 0;
 
         uint8_t delaySend;
+        uint8_t chorusSend;
+        uint8_t reverbSend;
         uint8_t attackTime = 0x20;
         uint8_t decayTime = 0x20;
         uint8_t attackTime2 = 0x20;

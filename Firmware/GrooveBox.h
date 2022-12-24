@@ -13,13 +13,13 @@ extern "C" {
 #include "q15.h"
 #include "Midi.h"
 #include "Serializer.h"
-#include "reverb.h"
 #include "hardware.h"
 #include "voice_data.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
 #include "Chorus.h"
 #include "Reverb2.h"
+#include "Delay.h"
 
 #define VOICE_COUNT 8
 
@@ -45,7 +45,7 @@ class GrooveBox {
   bool recording = false;
   uint32_t recordingLength;
   bool erasing = false;
-  bool playThroughEnabled = false;
+  bool playThroughEnabled = true;
 
   uint8_t GetCurrentPattern()
   {
@@ -118,7 +118,7 @@ class GrooveBox {
   uint16_t nextTrigger = 0;
   uint8_t lastAdcValA = 0;
   uint8_t lastAdcValB = 0;
-  Delay delay;
+  Delay2 delay;
   Chorus chorus;
   Reverb2 verb;
   ffs_file files[16];

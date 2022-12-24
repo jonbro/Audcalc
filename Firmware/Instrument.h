@@ -102,6 +102,7 @@ class Instrument
         int8_t playingMidiNotes[16];
         EnvTargets env1Target, env2Target;
         q15_t env1Depth, env2Depth;
+        q15_t distortionAmount;
         uint8_t currentMidiNote;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2;

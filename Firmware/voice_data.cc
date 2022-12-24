@@ -55,6 +55,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
+        case ChorusSend: return HasLockForStep(step, pattern, ChorusSend, value)?value:chorusSend;
+        case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
     }
     return 0;
 }
@@ -65,6 +67,14 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     if(param == 28)
     {
         return delaySend;
+    }
+    if(param == 29)
+    {
+        return chorusSend;
+    }
+    if(param == 30)
+    {
+        return reverbSend;
     }
     if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
     {
@@ -186,12 +196,23 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             // sprintf(str, "len %i", vala);//, valb); need to implement rate
             return;
         case 14:
-            sprintf(strA, "Dely");
-            sprintf(strB, "");
-            lockA = CheckLockAndSetDisplay(step, pattern, 28, delaySend, pA);
-            sprintf(pB, "");
-            // valb = rate[currentPattern];
-            // sprintf(str, "len %i", vala);//, valb); need to implement rate
+            sprintf(strA, "FX");
+            sprintf(strB, "Snd");
+            switch(valA/85)
+            {
+                case 0:
+                    sprintf(pA, "Dely");
+                    lockB = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pB);
+                    break;
+                case 1:
+                    sprintf(pA, "Chrs");
+                    lockB = CheckLockAndSetDisplay(step, pattern, ChorusSend, chorusSend, pB);
+                    break;
+                case 2:
+                    sprintf(pA, "Verb");
+                    lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
+                    break;
+            }
             return;
     }
     if(instrumentType == INSTRUMENT_GLOBAL)

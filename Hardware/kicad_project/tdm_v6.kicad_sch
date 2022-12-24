@@ -2923,7 +2923,7 @@
     (property "Datasheet" "~" (id 3) (at 124.46 119.38 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC" "C97242" (id 4) (at 124.46 119.38 0)
+    (property "LCSC" "C5332006" (id 4) (at 124.46 119.38 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "checked" "1" (id 5) (at 124.46 119.38 0)
@@ -3489,13 +3489,13 @@
     (uuid 00000000-0000-0000-0000-000061fc97e2)
     (property "Reference" "SW26" (id 0) (at 96.52 75.184 0))
     (property "Value" "spst_4_pin_internal" (id 1) (at 96.52 77.4954 0))
-    (property "Footprint" "RandomJunk:ts1102_smallerpads_buttonhole" (id 2) (at 95.25 85.09 0)
+    (property "Footprint" "MyLibrary:SKSCLDE010" (id 2) (at 95.25 85.09 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (id 3) (at 95.25 85.09 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC" "C480275" (id 4) (at 96.52 85.09 0)
+    (property "LCSC" "C115362" (id 4) (at 96.52 85.09 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid d3150394-3287-4bd0-b139-4045d2d426ca))
@@ -3504,7 +3504,7 @@
     (pin "4" (uuid 0d2554c6-3c96-43c3-a33e-d419e73dd089))
   )
 
-  (symbol (lib_id "Device:LED") (at 267.97 137.16 180)
+  (symbol (lib_id "Device:LED") (at 267.97 137.16 180) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-00006262bf3c)
     (property "Reference" "D2" (id 0) (at 268.1478 142.6464 0))
@@ -3515,14 +3515,14 @@
     (property "Datasheet" "~" (id 3) (at 267.97 137.16 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC" "c2286" (id 4) (at 267.97 137.16 0)
+    (property "LCSC" "C2286" (id 4) (at 267.97 137.16 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 25ff24aa-87bd-4c79-a984-f6a0df08ed33))
     (pin "2" (uuid 4438cb85-f2fb-4c64-9023-a013420fa289))
   )
 
-  (symbol (lib_id "Device:R_US") (at 275.59 137.16 90)
+  (symbol (lib_id "Device:R_US") (at 275.59 137.16 90) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-00006262bf43)
     (property "Reference" "R31" (id 0) (at 275.59 142.367 90))
@@ -3631,13 +3631,13 @@
     (uuid 00000000-0000-0000-0000-000062a1a01f)
     (property "Reference" "SW27" (id 0) (at 171.45 118.364 0))
     (property "Value" "spst_4_pin_internal" (id 1) (at 171.45 120.6754 0))
-    (property "Footprint" "RandomJunk:ts1102_smallerpads_buttonhole" (id 2) (at 170.18 128.27 0)
+    (property "Footprint" "MyLibrary:SKSCLDE010" (id 2) (at 170.18 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (id 3) (at 170.18 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC" "C480275" (id 4) (at 171.45 128.27 0)
+    (property "LCSC" "C115362" (id 4) (at 171.45 128.27 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 651f6af6-6985-4abb-b1b2-b278af6f9a87))
@@ -3908,17 +3908,17 @@
     (path "/00000000-0000-0000-0000-000061927579"
       (reference "#PWR0105") (unit 1) (value "GND") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000623fd893"
+    (path "/00000000-0000-0000-0000-000062e6c628/fec80b43-8aab-4aa1-9b91-191e0ad4414d"
       (reference "#PWR0106") (unit 1) (value "GND") (footprint "")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000061f86489"
       (reference "#PWR0107") (unit 1) (value "GND") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000620b1264"
-      (reference "#PWR0108") (unit 1) (value "GND") (footprint "")
+    (path "/00000000-0000-0000-0000-0000631ee57a/79ca39f3-a885-4f34-be1f-1e74976079c1"
+      (reference "#PWR0108") (unit 1) (value "VSYS") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000620b0a34"
-      (reference "#PWR0109") (unit 1) (value "+3.3V") (footprint "")
+    (path "/00000000-0000-0000-0000-0000631ee57a/0222a36e-b5da-4269-a4df-1575d2831633"
+      (reference "#PWR0109") (unit 1) (value "GND") (footprint "")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062205c51"
       (reference "#PWR0110") (unit 1) (value "GND") (footprint "")
@@ -3932,23 +3932,17 @@
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006214aa48"
       (reference "#PWR0113") (unit 1) (value "+3V3A") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006216619e"
-      (reference "#PWR0114") (unit 1) (value "+3V3A") (footprint "")
+    (path "/00000000-0000-0000-0000-000062e6c628/1a488ea2-70c8-4f12-acad-f27699b29c43"
+      (reference "#PWR0114") (unit 1) (value "GND") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006217b78b"
-      (reference "#PWR0115") (unit 1) (value "+3V3A") (footprint "")
+    (path "/00000000-0000-0000-0000-000062e6c628/3ed0c8ee-f71e-453c-80f4-81229808306b"
+      (reference "#PWR0115") (unit 1) (value "GND") (footprint "")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006219b18e"
       (reference "#PWR0116") (unit 1) (value "+3V3A") (footprint "")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000621bb971"
       (reference "#PWR0117") (unit 1) (value "+3V3A") (footprint "")
-    )
-    (path "/00000000-0000-0000-0000-000063637e58/00000000-0000-0000-0000-0000620f1c50"
-      (reference "#PWR0118") (unit 1) (value "GND") (footprint "")
-    )
-    (path "/00000000-0000-0000-0000-000063637e58/00000000-0000-0000-0000-0000620f1c56"
-      (reference "#PWR0119") (unit 1) (value "+3.3V") (footprint "")
     )
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-000061fbfae0"
       (reference "#PWR0120") (unit 1) (value "GND") (footprint "")
@@ -3971,9 +3965,6 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-0000621f2459"
       (reference "#PWR0126") (unit 1) (value "VSYS") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000624d6e27"
-      (reference "#PWR0127") (unit 1) (value "GND") (footprint "")
-    )
     (path "/00000000-0000-0000-0000-000062633279"
       (reference "#PWR0128") (unit 1) (value "GND") (footprint "")
     )
@@ -3986,8 +3977,8 @@
     (path "/00000000-0000-0000-0000-000061a2ab3f"
       (reference "C3") (unit 1) (value "100n") (footprint "Capacitors_SMD:C_0402_NoSilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006247d8e3"
-      (reference "C4") (unit 1) (value "1u") (footprint "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow")
+    (path "/00000000-0000-0000-0000-0000631ee57a/4875678c-80bd-4d0e-979b-7b12ca1e320e"
+      (reference "C4") (unit 1) (value "10u") (footprint "Capacitors_SMD:C_0402_NoSilk")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062205c45"
       (reference "C5") (unit 1) (value "100n") (footprint "Capacitors_SMD:C_0402_NoSilk")
@@ -4169,14 +4160,8 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-0000621ea12e"
       (reference "C64") (unit 1) (value "1u") (footprint "Capacitors_SMD:C_0402_NoSilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062414229"
-      (reference "C65") (unit 1) (value "470nf") (footprint "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow")
-    )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000624f3b04"
-      (reference "C66") (unit 1) (value "1u") (footprint "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow")
-    )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006245c34f"
-      (reference "C67") (unit 1) (value "470nf") (footprint "Capacitors_Tantalum_SMD:CP_Tantalum_Case-A_EIA-3216-18_Reflow")
+    (path "/00000000-0000-0000-0000-0000631ee57a/af9f59d5-6fcb-4d75-9b6c-42fe015d5d6d"
+      (reference "C65") (unit 1) (value "100u") (footprint "Capacitor_Tantalum_SMD:CP_EIA-3528-21_Kemet-B")
     )
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-000061fb59fa"
       (reference "D1") (unit 1) (value "BAT54C") (footprint "TO_SOT_Packages_SMD:SOT-23")
@@ -4184,65 +4169,77 @@
     (path "/00000000-0000-0000-0000-00006262bf3c"
       (reference "D2") (unit 1) (value "LED") (footprint "LEDs:LED_0603")
     )
+    (path "/00000000-0000-0000-0000-000062e6c628/ac2edd9a-51e8-4c53-9f80-120ab8424046"
+      (reference "D3") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SOD-323F")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/516c1522-ced6-4dae-8272-163c4e0afed3"
+      (reference "D4") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SOD-323F")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/a6453886-89c7-4d8c-9923-727347d7e78f"
+      (reference "D5") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SOD-323F")
+    )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2e1b"
-      (reference "D6") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D6") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d88"
-      (reference "D7") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D7") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d6f"
-      (reference "D8") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D8") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d56"
-      (reference "D9") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D9") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d3d"
-      (reference "D10") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D10") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d30"
-      (reference "D11") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D11") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2d16"
-      (reference "D12") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D12") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2cfd"
-      (reference "D13") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D13") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ce4"
-      (reference "D14") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D14") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ccb"
-      (reference "D15") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D15") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2cbd"
-      (reference "D16") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D16") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ca3"
-      (reference "D17") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D17") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c8a"
-      (reference "D18") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D18") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c71"
-      (reference "D19") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D19") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c58"
-      (reference "D20") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D20") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c4b"
-      (reference "D21") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D21") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c31"
-      (reference "D22") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D22") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2c18"
-      (reference "D23") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D23") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2bff"
-      (reference "D24") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D24") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2be6"
-      (reference "D25") (unit 1) (value "WS2812B") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+      (reference "D25") (unit 1) (value "WS2812C-v1") (footprint "RandomJunk:ws2812b-2020-lightpipe")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/b3807f61-c880-419d-a848-701463e0ca88"
+      (reference "D26") (unit 1) (value "D_Zener") (footprint "Diode_SMD:D_SOD-323F")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2efa"
       (reference "D27") (unit 1) (value "D") (footprint "RandomJunk:D_SOD-323F_less_silk")
@@ -4358,8 +4355,8 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-000063689357"
       (reference "J7") (unit 1) (value "battery") (footprint "Connectors_JST:JST_PH_S2B-PH-SM4-TB_02x2.00mm_Angled")
     )
-    (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-000062366851"
-      (reference "J8") (unit 1) (value "Conn_01x03_Male") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal")
+    (path "/00000000-0000-0000-0000-0000631ee57a/ee0d4169-0ae4-45a7-92f6-f1dd4b28d1c4"
+      (reference "J9") (unit 1) (value "Conn_01x02_Female") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000061f7d00a"
       (reference "JP1") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
@@ -4379,17 +4376,44 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-00006235d57f"
       (reference "JP6") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000625815b3"
-      (reference "JP7") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    (path "/00000000-0000-0000-0000-0000631ee57a/8fdc149d-32d4-4da7-833c-27c6bf608587"
+      (reference "JP7") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000625730b7"
-      (reference "JP8") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    (path "/00000000-0000-0000-0000-0000631ee57a/f9876123-3bd9-41a3-b91b-dca683872946"
+      (reference "JP8") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/f442dd8f-4ef7-41e9-9940-751f464b8260"
+      (reference "JP9") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/311e1089-2b19-4d47-8b02-ae72b4a49d4d"
+      (reference "JP10") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/ebe1db5b-601d-46dd-90c6-cac34683ced9"
+      (reference "JP11") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/464978bc-d156-4afb-9a4d-6d3bc09ed039"
+      (reference "JP12") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/22391bc9-fe6e-45c9-80c4-a30dd76e9eed"
+      (reference "JP13") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-0000631ee57a/c464f9f4-9f45-4e93-b843-920369d9c057"
+      (reference "JP14") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/75bbc27b-3f73-4cce-b410-5e2f33c98da8"
+      (reference "JP15") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/fa037034-51bf-4afe-8337-26cf6a6ef5cb"
+      (reference "JP16") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/9efaf426-4dc4-4e31-b192-c0c9e02d8f6a"
+      (reference "JP17") (unit 1) (value "SolderJumper_2_Open") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/ca398235-386a-45ff-99a9-87e9379c5948"
+      (reference "JP18") (unit 1) (value "SolderJumper_2_Bridged") (footprint "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm")
     )
     (path "/00000000-0000-0000-0000-000063637e58/00000000-0000-0000-0000-00006364f37e"
       (reference "LCD1") (unit 1) (value "128x32OLED") (footprint "RandomJunk:oled_ssd1306_14pin_91")
-    )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062046175"
-      (reference "LS1") (unit 1) (value "Speaker") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal")
     )
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-00006368939b"
       (reference "Q1") (unit 1) (value "DMG2305UX-13") (footprint "digikey-footprints:SOT-23-3")
@@ -4463,14 +4487,14 @@
     (path "/00000000-0000-0000-0000-00006184ba51"
       (reference "R20") (unit 1) (value "5.1k") (footprint "Resistors_SMD:R_0402_NoSilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062040227"
-      (reference "R21") (unit 1) (value "20k") (footprint "Resistors_SMD:R_0402_NoSilk")
+    (path "/00000000-0000-0000-0000-0000631ee57a/dac6f449-2176-4bdc-ab59-e9bbbfff3338"
+      (reference "R21") (unit 1) (value "10") (footprint "Resistors_SMD:R_0402_NoSilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006204554e"
-      (reference "R22") (unit 1) (value "20k") (footprint "Resistors_SMD:R_0402_NoSilk")
+    (path "/00000000-0000-0000-0000-0000631ee57a/5533e6ba-969e-451e-9c6e-bdb324e41cf6"
+      (reference "R22") (unit 1) (value "33") (footprint "Resistors_SMD:R_0402_NoSilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062478755"
-      (reference "R23") (unit 1) (value "20k") (footprint "Resistors_SMD:R_0402_NoSilk")
+    (path "/00000000-0000-0000-0000-0000631ee57a/5496300d-e0b3-4ef2-a81a-8eeb31a02e4d"
+      (reference "R23") (unit 1) (value "33") (footprint "Resistors_SMD:R_0402_NoSilk")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000061d6fe54"
       (reference "R24") (unit 1) (value "10k") (footprint "Resistors_SMD:R_0402_NoSilk")
@@ -4490,11 +4514,17 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-0000620755ce"
       (reference "R29") (unit 1) (value "750k") (footprint "RandomJunk:C_0603_nosilk")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006245c348"
-      (reference "R30") (unit 1) (value "20k") (footprint "Resistors_SMD:R_0402_NoSilk")
+    (path "/00000000-0000-0000-0000-0000631ee57a/2a8d1dfc-dca7-4c46-a239-58b75642920a"
+      (reference "R30") (unit 1) (value "33") (footprint "Resistors_SMD:R_0402_NoSilk")
     )
     (path "/00000000-0000-0000-0000-00006262bf43"
       (reference "R31") (unit 1) (value "1k") (footprint "Resistors_SMD:R_0402_NoSilk")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/5f119573-1b63-4dfb-97c3-f0d9e540c910"
+      (reference "R32") (unit 1) (value "100") (footprint "Resistor_SMD:R_01005_0402Metric")
+    )
+    (path "/00000000-0000-0000-0000-000062e6c628/6c4b1cb5-28fe-4a21-b673-57689cec7a0f"
+      (reference "R33") (unit 1) (value "100") (footprint "Resistor_SMD:R_01005_0402Metric")
     )
     (path "/00000000-0000-0000-0000-00006195645c"
       (reference "RV1") (unit 1) (value "R_POT_US") (footprint "Potentiometers:Potentiometer_Alps_RK09K_Horizontal")
@@ -4503,85 +4533,85 @@
       (reference "RV2") (unit 1) (value "R_POT_US") (footprint "Potentiometers:Potentiometer_Alps_RK09K_Horizontal")
     )
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-000061fba740"
-      (reference "SW1") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW1") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b8c"
-      (reference "SW2") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW2") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b85"
-      (reference "SW3") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW3") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b7e"
-      (reference "SW4") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW4") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b77"
-      (reference "SW5") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW5") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b6b"
-      (reference "SW6") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW6") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b63"
-      (reference "SW7") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW7") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b5b"
-      (reference "SW8") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW8") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b53"
-      (reference "SW9") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW9") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b4b"
-      (reference "SW10") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW10") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b44"
-      (reference "SW11") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW11") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b3c"
-      (reference "SW12") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW12") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b34"
-      (reference "SW13") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW13") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b2c"
-      (reference "SW14") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW14") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b23"
-      (reference "SW15") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW15") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b1b"
-      (reference "SW16") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW16") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b13"
-      (reference "SW17") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW17") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b0b"
-      (reference "SW18") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW18") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2b03"
-      (reference "SW19") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW19") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2afb"
-      (reference "SW20") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW20") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2af3"
-      (reference "SW21") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW21") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2aec"
-      (reference "SW22") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW22") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ae5"
-      (reference "SW23") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW23") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ade"
-      (reference "SW24") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW24") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-0000631ee57a/00000000-0000-0000-0000-0000617d2ad7"
-      (reference "SW25") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW25") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:ts1187")
     )
     (path "/00000000-0000-0000-0000-000061fc97e2"
-      (reference "SW26") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW26") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:SKSCLDE010")
     )
     (path "/00000000-0000-0000-0000-000062a1a01f"
-      (reference "SW27") (unit 1) (value "spst_4_pin_internal") (footprint "RandomJunk:ts1102_smallerpads_buttonhole")
+      (reference "SW27") (unit 1) (value "spst_4_pin_internal") (footprint "MyLibrary:SKSCLDE010")
     )
     (path "/00000000-0000-0000-0000-000061dd7e7a"
       (reference "U1") (unit 1) (value "W25Q32JVSS") (footprint "Housings_SOIC:SOIJ-8_5.3x5.3mm_Pitch1.27mm")
@@ -4601,17 +4631,8 @@
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-00006368937d"
       (reference "U6") (unit 1) (value "MCP73831T-2ATI_OT") (footprint "TO_SOT_Packages_SMD:SOT-23-5")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000620a2350"
-      (reference "U7") (unit 1) (value "apx804SR") (footprint "TO_SOT_Packages_SMD:SOT-23")
-    )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-00006203ac48"
-      (reference "U8") (unit 1) (value "LM4890") (footprint "Housings_SSOP:MSOP-8_3x3mm_Pitch0.65mm")
-    )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062205c65"
       (reference "U9") (unit 1) (value "ME6211C") (footprint "TO_SOT_Packages_SMD:SOT-23-5")
-    )
-    (path "/00000000-0000-0000-0000-000063637e58/00000000-0000-0000-0000-0000620f1c46"
-      (reference "U10") (unit 1) (value "apx804SR") (footprint "TO_SOT_Packages_SMD:SOT-23")
     )
     (path "/00000000-0000-0000-0000-00006366865e/00000000-0000-0000-0000-0000621d1e2b"
       (reference "U11") (unit 1) (value "ME6211C") (footprint "TO_SOT_Packages_SMD:SOT-23-5")

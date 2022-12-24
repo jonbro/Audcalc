@@ -36,7 +36,6 @@ add_executable(tdm
         tlv320driver.c
         ssd1306.c
         ws2812.c
-        reverb.c
         hardware.c
         Serializer.cc
         filesystem.c

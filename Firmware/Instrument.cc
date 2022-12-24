@@ -230,6 +230,12 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
             buffer[i] = mult_q15(buffer[i], envval);
         }
         buffer[i] = svf.Process(buffer[i]);
+        
+        // not sure why distortion isn't working, revisit at some point
+        // int32_t shiftedSample = mult_q15(buffer[i], f32_to_q15(0.5));// + distortionAmount; // I think this is the overdrive amount? 
+        // buffer[i] = Interpolate88(ws_moderate_overdrive, shiftedSample);
+        // buffer[i] = mult_q15(buffer[i], f32_to_q15(1));
+
         buffer[i] = mult_q15(buffer[i], volume);
     }
 }
@@ -271,6 +277,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
         env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
         env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
+        distortionAmount = (voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern))<<7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {

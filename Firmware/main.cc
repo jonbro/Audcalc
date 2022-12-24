@@ -23,7 +23,6 @@ extern "C" {
 #include "ssd1306.h"
 //#include "usb_audio.h"
 }
-#include "reverb.h"
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 

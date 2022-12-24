@@ -14,6 +14,7 @@ void hardware_set_amp_force(bool amp_state, bool force);
 
 void hardware_set_mic(bool mic_state);
 bool hardware_line_in_detected();
+bool hardware_headphone_detected();
 
 #ifdef __cplusplus
 }
