@@ -4,28 +4,36 @@
 #include "pico/stdlib.h"
 
 using namespace braids;
-#define CHORUS_LENGTH 1000
+#define CHORUS_LENGTH 3000
 class Chorus {
  public:
-    void process(int16_t in, int16_t& l, int16_t& r)
+    inline void process(int16_t in, int16_t& l, int16_t& r)
     {
-        //in = Mix(in, feedback, 0x1fff);
+        // in = Mix(in, feedback, 0x1fff);
         DelayProcess(in);
+        int32_t mainL = 0;
+        int32_t mainR = 0;
+
         for(int i=0;i<4;i++)
         {
+            // there is a bug in this chorus somewhere that is making everything run too slow - look at the reverb code for doing "chorus" style effects for a potential fix
             phase[i] += phaseOffset[i];
-            int16_t lfo = Interpolate824(wav_sine, phase[i]);            
+            int16_t lfo = Interpolate824(wav_sine, phase[i]);
             int32_t offset = ((int32_t)CHORUS_LENGTH*(int32_t)(lfo>>1));
             int16_t a = DelayTap(offset>>16);
             int16_t b = DelayTap((offset>>16)+1);
             int16_t o = Mix(a, b, offset&0xffff);
-            l = Mix(0, o, position[i]);
-            r = Mix(0, o, 0xffff-position[i]);
+            mainL += Mix(0, o, position[i]);
+            mainR += Mix(0, o, 0xffff-position[i]);
         }
+        l = mainL >> 2;
+        r = mainR >> 2;
+        // l = 0;//Mix(0, o, position[i]);
+        // r = 0;//Mix(0, o, 0xffff-position[i]);
         //feedback = Mix(l, r, 0x7fff);
     }
  private:
-    int16_t DelayProcess(int16_t in)
+    inline int16_t DelayProcess(int16_t in)
     {
         int16_t delayed = buf[count];
         buf[count] = in;
@@ -33,16 +41,12 @@ class Chorus {
             count = 0;
         return delayed;
     }
-    int16_t DelayTap(int tap)
+    inline int16_t DelayTap(int16_t tap)
     {
         int offset = tap+count;
         while (offset < 0)
             offset += length;
-        while(offset > length-1)
-        {
-            offset -= length;
-        }
-        return buf[offset];
+        return buf[offset%(length-1)];
     }
     int16_t buf[CHORUS_LENGTH];
     int count = 0;

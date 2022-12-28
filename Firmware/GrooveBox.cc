@@ -2,7 +2,7 @@
 #include <string.h>
 #include "m6x118pt7b.h"
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -70,6 +70,8 @@ int16_t workBuffer[SAMPLES_PER_BUFFER];
 int32_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
+int16_t toChorusBuffer[SAMPLES_PER_BUFFER];
+int16_t toReverbBuffer[SAMPLES_PER_BUFFER];
 int16_t recordBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
@@ -81,6 +83,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     absolute_time_t renderStartTime = get_absolute_time();
     memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER);
     memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(toChorusBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(toReverbBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
     
@@ -94,7 +98,6 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         if(playThroughEnabled)
         {
             workBuffer2[i] = input;
-            // toDelayBuffer[i] = mult_q15(workBuffer2[i], ((int16_t)globalParams->delaySend)<<6);
         }
         if(input<0)
         {
@@ -117,16 +120,12 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                 // workBuffer[i] = mult_q15(workBuffer[i], 0x4fff);
                 workBuffer2[i] += workBuffer[i];
                 toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
+                toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].reverbSend)<<7));
             }
         }
         bool clipping = false;
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
-            //int16_t delay_feedback = mult_q15(last_delay, 0x4fff);
-            //int16_t delay_feedback = 0;
-            //toDelayBuffer[i] = add_q15(delay_feedback, toDelayBuffer[i]);
-            // last_delay = Delay_process(&delay, toDelayBuffer[i]);
-            // workBuffer2[i] += last_delay;
             int16_t* chan = (output_buffer+i*2);
             int32_t mainL = 0;
             int32_t mainR = 0;
@@ -139,18 +138,11 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             mainL += l;
             mainR += r;
 
-            chorus.process(toDelayBuffer[i], l, r);
+            verb.process(toReverbBuffer[i], l, r);
             mainL += l;
             mainR += r;
 
-            verb.process(toDelayBuffer[i], l, r);
-            mainL += l;
-            mainR += r;
-            // mainL >>= 2;
-            // mainR >>= 2;
-            // if(mainL<0&&-mainL>0xffff || mainR<0&&-mainR>0xffff||mainL>0&&mainL>0xffff||mainR>0&&mainR>0xffff)
-            //     clipping = true;
-            chan[0] = mainL; // this should be our final mix stage. We are just hackin aka dividing by 2 for now until we put a main volume control in place
+            chan[0] = mainL;
             chan[1] = mainR;
         }
 
@@ -529,9 +521,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     // update various slow hardware things
     hardware_set_amp(globalParams->amp_enabled>0x7f);
-    playThroughEnabled = true;
-    hardware_set_mic(!hardware_line_in_detected());
-    
+    playThroughEnabled = hardware_line_in_detected();
+    hardware_set_mic(!playThroughEnabled);
+        
     // if(hardware_line_in_detected()){
     //     ssd1306_draw_square(p, 0, 0, 10, 10);
     // }
@@ -936,7 +928,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-#define SAVE_VERSION 9
+#define SAVE_VERSION 10
 void GrooveBox::Serialize()
 {
     Serializer s;

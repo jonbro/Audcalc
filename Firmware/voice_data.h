@@ -71,6 +71,7 @@ class VoiceData
             {
                 length[i] = 15*4; // need to up this to fit into 0xff
                 locksForPattern[i] = ParamLockPool::NullLock();
+                rate[i] = 2; // 1x 
             }
             for (size_t i = 0; i < 64*16; i++)
             {
@@ -194,7 +195,7 @@ class VoiceData
         uint8_t instrumentTypeBare = 0;
         uint8_t samplerTypeBare = 0;
         uint8_t paramLockCount = 0;
-
+        uint8_t effectEditTarget = 0;
         uint8_t delaySend;
         uint8_t chorusSend;
         uint8_t reverbSend;

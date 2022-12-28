@@ -15,7 +15,7 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     svf.Init();
     midi = _midi;
     phase_ = 0;    
-    
+    chorusSend = 0;
     sampleOffset = 0;
     for(int i=0;i<16;i++)
     {
@@ -73,7 +73,7 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
   return phase_increment;
 }
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     if(instrumentType == INSTRUMENT_MIDI)
@@ -229,6 +229,7 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             buffer[i] = mult_q15(buffer[i], envval);
         }
+        // buffer[i] = (buffer[i]>>(chorusSend>>4))<<(chorusSend>>4);
         buffer[i] = svf.Process(buffer[i]);
         
         // not sure why distortion isn't working, revisit at some point
@@ -263,6 +264,8 @@ const int keyToMidi[16] = {
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
     delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
+    chorusSend = voiceData.GetParamValue(ChorusSend, lastPressedKey, playingStep, playingPattern);
+    reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
     volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
     if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
     {
@@ -348,7 +351,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
             while(beatCount < 6*16)
             {
                 tempoPhase += tempoPhaseIncrement;
-                sampleCount+=128;
+                sampleCount+=SAMPLES_PER_BUFFER;
                 if((tempoPhase >> 31) > 0)
                 {
                     tempoPhase &= 0x7fffffff;

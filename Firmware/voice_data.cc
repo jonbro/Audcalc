@@ -66,16 +66,22 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
 {
     if(param == 28)
     {
-        return delaySend;
+        return effectEditTarget;
     }
     if(param == 29)
     {
-        return chorusSend;
+        switch((effectEditTarget-1)/127)
+        {
+            case 0:
+                return delaySend;
+            default:
+                return reverbSend;
+        }
     }
-    if(param == 30)
-    {
-        return reverbSend;
-    }
+    // if(param == 30)
+    // {
+    //     return reverbSend;
+    // }
     if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
     {
         return instrumentTypeBare;
@@ -198,17 +204,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 14:
             sprintf(strA, "FX");
             sprintf(strB, "Snd");
-            switch(valA/85)
+            switch((effectEditTarget-1)/127)
             {
                 case 0:
                     sprintf(pA, "Dely");
                     lockB = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pB);
                     break;
-                case 1:
-                    sprintf(pA, "Chrs");
-                    lockB = CheckLockAndSetDisplay(step, pattern, ChorusSend, chorusSend, pB);
-                    break;
-                case 2:
+                default:
                     sprintf(pA, "Verb");
                     lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
                     break;

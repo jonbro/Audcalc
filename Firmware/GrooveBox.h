@@ -45,7 +45,7 @@ class GrooveBox {
   bool recording = false;
   uint32_t recordingLength;
   bool erasing = false;
-  bool playThroughEnabled = true;
+  bool playThroughEnabled = false;
 
   uint8_t GetCurrentPattern()
   {

@@ -8,6 +8,7 @@
 #include "hardware/adc.h"
 #include "hardware/flash.h"
 #include "pico/multicore.h"
+#include "pico/util/queue.h"
 #include "hardware/structs/scb.h"
 #include "hardware/rosc.h"
 
@@ -53,7 +54,7 @@ using namespace braids;
 #define TLV_REG_RESET   	    1
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 #define USING_DEMO_BOARD 0
 // TDM board defines
 #if USING_DEMO_BOARD
@@ -86,7 +87,7 @@ int capture_buf_offset = 0;
 int output_buf_offset = 0;
 
 uint32_t output_buf[SAMPLES_PER_BUFFER*3];
-uint32_t silence_buf[256];
+uint32_t silence_buf[SAMPLES_PER_BUFFER*2];
 bool flipFlop = false;
 int dmacount = 0;
 extern uint32_t __flash_binary_end;
@@ -161,6 +162,12 @@ bool usb_timer_callback(struct repeating_timer *t) {
 bool screen_flip_ready = false;
 ssd1306_t disp;
 int drawY = 0;
+typedef struct
+{
+    bool screen_flip_ready;
+} queue_entry_t;
+queue_t signal_queue;
+queue_t complete_queue;
 void draw_screen()
 {
     // this needs to be called here, because the multicore launch relies on
@@ -174,19 +181,22 @@ void draw_screen()
     ssd1306_clear(&disp);
     while(true)
     {
-        if(screen_flip_ready)
+        queue_entry_t entry;
+        // this should spinlock here
+        queue_remove_blocking(&signal_queue, &entry);
+        if(entry.screen_flip_ready)
         {
             ssd1306_show(&disp);
-            screen_flip_ready = false;
+            bool result = true;
+            queue_add_blocking(&complete_queue, &result);
         }
-        tight_loop_contents();
     }
 }
 
 
 void configure_audio_driver()
 {
-        /**/
+    /**/
     PIO pio = pio1;
     uint offset = pio_add_program(pio, &input_output_copy_i2s_program);
     printf("loaded program at offset: %i\n", offset);
@@ -219,7 +229,7 @@ void configure_audio_driver()
         &c,
         capture_buf, // Destination pointer
         &pio->rxf[sm], // Source pointer
-        128, // Number of transfers
+        SAMPLES_PER_BUFFER, // Number of transfers
         true// Start immediately
     );
     // Tell the DMA to raise IRQ line 0 when the channel finishes a block
@@ -241,7 +251,7 @@ void configure_audio_driver()
         &cc,
         &pio->txf[sm], // Destination pointer
         silence_buf, // Source pointer
-        128, // Number of transfers
+        SAMPLES_PER_BUFFER, // Number of transfers
         true// Start immediately
     );
     dma_channel_set_irq0_enabled(dma_chan_output, true);
@@ -344,7 +354,10 @@ int main()
 
     // I2C Initialisation. Using it at 400Khz.
     i2c_init(I2C_PORT, 400*1000);
-
+    queue_init(&signal_queue, sizeof(queue_entry_t), 2);
+    queue_init(&complete_queue, sizeof(bool), 2);
+    bool r = true;
+    queue_add_blocking(&complete_queue, &r);
     multicore_launch_core1(draw_screen);
     multicore_lockout_start_timeout_us(500);
     multicore_lockout_end_timeout_us(500);
@@ -395,7 +408,7 @@ int main()
     gbox = new GrooveBox(color);
     //gbox->Deserialize();
     // fill the silence buffer so we get something out
-    for(int i=0;i<128;i++)
+    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
         uint16_t* chan = (uint16_t*)(silence_buf+i);
         chan[0] = 0;
@@ -497,23 +510,13 @@ int main()
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
-            // color[10] = gpio_get(LINE_IN_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-            //hardware_set_mic(!gpio_get(LINE_IN_DETECT));
-            if(!screen_flip_ready)
+            bool flip_complete = false;
+            if(queue_try_remove(&complete_queue, &flip_complete))
             {
-                // if(requestSerialize){
-                //     gbox->Serialize();
-                //     requestSerialize = false;
-                // }
-                // if(requestDeserialize)
-                // {
-                //     gbox->Deserialize();
-                //     requestDeserialize = false;
-                // }
                 gbox->UpdateDisplay(&disp);
-                screen_flip_ready = true;
+                queue_entry_t entry = {true};
+                queue_add_blocking(&signal_queue, &entry);
             }
-            // color[8] = gpio_get(HEADPHONE_DETECT)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
 
             ws2812_setColors(color+5);
             needsScreenupdate = false;

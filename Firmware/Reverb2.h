@@ -131,16 +131,12 @@ class Reverb2 {
             d->count = 0;
         return delayed;
     }
-    inline int16_t DelayTap(int tap, AllPassFilter *d)
+    inline int16_t DelayTap(int16_t tap, AllPassFilter *d)
     {
         int offset = tap+d->count;
         while (offset < 0)
             offset += d->length;
-        while(offset > d->length-1)
-        {
-            offset -= d->length;
-        }
-        return d->buf[offset];
+        return d->buf[offset%(d->length-1)];
     }
 
     // int16_t TapAp(int tap, AllPassFilter *ap)

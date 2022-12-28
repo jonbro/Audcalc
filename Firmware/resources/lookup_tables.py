@@ -270,7 +270,7 @@ lookup_tables.append(('bell', bell(256, 16)))
 Envelope increments.
 ----------------------------------------------------------------------------"""
 
-control_rate = sample_rate / 128.0
+control_rate = sample_rate / 64.0
 max_time = 12.0  # seconds
 min_time = 3.0 / control_rate  # seconds
 gamma = 0.175
@@ -299,7 +299,7 @@ Tempo
 
 tempo_values = numpy.arange(1.0, 257.0)
 width = 1 << 32
-control_rate = 32000/128.0 # 344.53125 # 44100 / 128
+control_rate = 32000/64.0 # 344.53125 # 44100 / 128
 
 tempo_phase_increment = width * (tempo_values/60.0) * 8.0 / control_rate
 lookup_tables_32.append(
