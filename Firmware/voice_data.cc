@@ -193,14 +193,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     
     switch(param)
     {
-        case 12:
-            sprintf(strA, "Len");
-            sprintf(strB, "Rate");
-            sprintf(pA, "%i", length[pattern]/4+1);
-            sprintf(pB,rates[(rate[pattern]*7)>>8]);
-            // valb = rate[currentPattern];
-            // sprintf(str, "len %i", vala);//, valb); need to implement rate
-            return;
         case 14:
             sprintf(strA, "FX");
             sprintf(strB, "Snd");
@@ -239,6 +231,12 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pA, chromatic>0x7f?"On":"Off");
                 sprintf(pB, "");
                 return;
+            case 12:
+                sprintf(strA, "Chng");
+                sprintf(strB, "Swng");
+                sprintf(pA, "%i", length[pattern]/4+1);
+                sprintf(pB,"");//rates[(rate[pattern]*7)>>8]);
+                return;
             default:
                 sprintf(strA, "");
                 sprintf(strB, "");
@@ -246,6 +244,17 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pB, "");
                 return;
         }
+    }
+    
+    // all non global instruments
+    switch (param)
+    {
+        case 12:
+            sprintf(strA, "Len");
+            sprintf(strB, "Rate");
+            sprintf(pA, "%i", length[pattern]/4+1);
+            sprintf(pB,rates[(rate[pattern]*7)>>8]);
+            return;
     }
 
     if(instrumentType == INSTRUMENT_MACRO || instrumentType == INSTRUMENT_SAMPLE)
@@ -313,7 +322,11 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     sprintf(pA, "%s", envTargets[(((uint16_t)env2Target)*5)>>8]);
                 lockB = CheckLockAndSetDisplay(step, pattern, 19, env2Depth, pB);
                 return;
-
+            case 12:
+                sprintf(strA, "Len");
+                sprintf(strB, "Rate");
+                sprintf(pA, "%i", length[pattern]/4+1);
+                sprintf(pB,rates[(rate[pattern]*7)>>8]);
                 return;
         }
     }

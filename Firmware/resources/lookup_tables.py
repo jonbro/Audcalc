@@ -299,7 +299,7 @@ Tempo
 
 tempo_values = numpy.arange(1.0, 257.0)
 width = 1 << 32
-control_rate = 32000/64.0 # 344.53125 # 44100 / 128
+control_rate = 32000/128.0 # 344.53125 # 44100 / 128
 
 tempo_phase_increment = width * (tempo_values/60.0) * 8.0 / control_rate
 lookup_tables_32.append(

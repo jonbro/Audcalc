@@ -54,7 +54,7 @@ using namespace braids;
 #define TLV_REG_RESET   	    1
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
-#define SAMPLES_PER_BUFFER 64
+#define SAMPLES_PER_BUFFER 128
 #define USING_DEMO_BOARD 0
 // TDM board defines
 #if USING_DEMO_BOARD
@@ -482,22 +482,6 @@ int main()
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
-            // headphoneCheck--;
-            // if(headphoneCheck <= 0)
-            // {
-            //     gpio_put(BLINK_PIN_LED, true);
-            //     uint8_t rxdata;
-            //     if(readRegister(0, 0x2e, &rxdata))
-            //     {
-            //         printf("headphone register 0x%x\n", rxdata);
-            //         //color[10] = (rxdata&0x10)?urgb_u32(rxdata, 30, 80):urgb_u32(0,0,0);
-            //     }
-            //     headphoneCheck = 5;
-
-            // }
-                    //color[10] = gpio_get(24)?urgb_u32(250, 30, 80):urgb_u32(0,0,0);
-            // }
-
             touchCounter--;
             if(touchCounter <= 0)
             {

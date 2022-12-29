@@ -73,7 +73,7 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
   return phase_increment;
 }
 
-#define SAMPLES_PER_BUFFER 64
+#define SAMPLES_PER_BUFFER 128
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     if(instrumentType == INSTRUMENT_MIDI)

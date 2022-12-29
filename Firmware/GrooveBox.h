@@ -49,7 +49,7 @@ class GrooveBox {
 
   uint8_t GetCurrentPattern()
   {
-    return patternChain[chainStep];
+    return playingPattern;//patternChain[chainStep];
   }
   void ResetADCLatch()
   {
@@ -61,7 +61,6 @@ class GrooveBox {
     {
        patternStep[i] = beatCounter[i] = 0;
     }
-    
   }
  private:
   bool needsInitialADC; 
@@ -101,7 +100,7 @@ class GrooveBox {
   // the page we are currently editing for each sound
   // clamped to the length of this pattern / sound
   uint8_t editPage[16] = {0};
-  
+  uint8_t playingPattern = 0;
   int patternChain[16] = {0};
   int8_t voiceChannel[16] = {-1};
   

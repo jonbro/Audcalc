@@ -2,7 +2,7 @@
 #include <string.h>
 #include "m6x118pt7b.h"
 
-#define SAMPLES_PER_BUFFER 64
+#define SAMPLES_PER_BUFFER 128
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -70,7 +70,6 @@ int16_t workBuffer[SAMPLES_PER_BUFFER];
 int32_t workBuffer2[SAMPLES_PER_BUFFER];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
-int16_t toChorusBuffer[SAMPLES_PER_BUFFER];
 int16_t toReverbBuffer[SAMPLES_PER_BUFFER];
 int16_t recordBuffer[SAMPLES_PER_BUFFER];
 //absolute_time_t lastRenderTime = -1;
@@ -83,7 +82,6 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     absolute_time_t renderStartTime = get_absolute_time();
     memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER);
     memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-    memset(toChorusBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(toReverbBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
@@ -167,12 +165,29 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             if(tempoPulse)
             {
                 midi.TimingClock();
+                
+                // advance chain if the global pattern just overflowed on the last beat counter
+                if(beatCounter[15]==0 && patternStep[15] == 0)
+                {
+                    chainStep = (++chainStep)%patternChainLength;
+                    // if we are moving to a new pattern, reset all the steps to zero
+                    if(patternChain[chainStep]!=playingPattern)
+                    {
+                        playingPattern = patternChain[chainStep];
+                        ResetPatternOffset();
+                    }
+                }
+
                 // skip the last one, since the global can't be sequenced
-                for(int v=0;v<15;v++)
+                for(int v=0;v<16;v++)
                 {
                     bool needsTrigger = beatCounter[v]==0;
                     beatCounter[v]++;
-                    switch((patterns[v].rate[GetCurrentPattern()]*7)>>8)
+
+                    // global pattern always uses 16th notes
+                    uint8_t rate = (v==15)?2:((patterns[v].rate[GetCurrentPattern()]*7)>>8);
+
+                    switch(rate)
                     {
                         case 0: // 2x
                             beatCounter[v] = beatCounter[v]%3;
@@ -198,7 +213,9 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     }
                     if(!needsTrigger)
                         continue;
-                    int requestedNote = GetTrigger(v, patternStep[v]);
+                    
+                    // never trigger for the global pattern
+                    int requestedNote = (v==15)?-1:GetTrigger(v, patternStep[v]);
                     if(requestedNote >= 0)
                     {
                         hadTrigger = hadTrigger|(1<<v);
@@ -209,29 +226,6 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         }
                     }
                     patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
-                }
-
-                // advance chain if the longest pattern just overflowed
-                uint8_t longestPattern = 0;
-                int8_t longestPatternSound = -1;
-                for (size_t v = 0; v < 15; v++)
-                {
-                    uint8_t len = patterns[v].GetLength(patternChain[chainStep]);
-                    if(len>longestPattern)
-                    {
-                        longestPatternSound = v;
-                        longestPattern = len;
-                    }
-                }
-                if(longestPatternSound >= 0 && patternStep[longestPatternSound] == 0 && patternChainLength>1)
-                {
-                    uint8_t currentPattern = GetCurrentPattern();
-                    chainStep = (++chainStep)%patternChainLength;
-                    // if we are moving to a new pattern, reset all the steps to zero
-                    if(patternChain[chainStep]!=currentPattern)
-                    {
-                         ResetPatternOffset();
-                    }
                 }
             }
         }
@@ -294,7 +288,7 @@ void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step
 }
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
-    uint8_t note = patterns[voice].notes[patternChain[chainStep]*64+step];
+    uint8_t note = patterns[voice].notes[GetCurrentPattern()*64+step];
     if(note >> 7 == 1)
     {
         return note&0x7f;
@@ -328,7 +322,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     ssd1306_set_string_color(p, false);
     if(clearTime > 0 && holdingEscape)
     {
-        sprintf(str, "clear pat %i in %i", patternChain[0]+1, clearTime/60);
+        sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/60);
         clearTime--;
         if(clearTime == 0)
         {
@@ -337,7 +331,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             {
                 for (size_t j = 0; j < 64; j++)
                 {
-                    patterns[voice].notes[patternChain[0]*64+j] = 0;
+                    patterns[voice].notes[GetCurrentPattern()*64+j] = 0;
                 }
             }
         }
@@ -373,7 +367,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(clearTime == 0 && patternSelectMode && holdingEscape)
     {
-        sprintf(str, "pat %i cleared", patternChain[0]+1);
+        sprintf(str, "pat %i cleared", GetCurrentPattern()+1);
         ssd1306_draw_string(p, 0, 8, 1, str);
         return;
     }
@@ -385,7 +379,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             ssd1306_draw_square_rounded(p, 0, 0, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, !soundSelectMode, 1, 1, &m6x118pt7b);
         // sprintf(str, "Snd %i", currentVoice);
-        sprintf(str, "Pat %i", patternChain[chainStep]+1);
+        sprintf(str, "Pat %i", GetCurrentPattern()+1);
         // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
     }
@@ -393,7 +387,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     // copy pattern
     if(patternSelectMode && holdingWrite)
     {
-        sprintf(str, "copy pat %i to", patternChain[0]+1);
+        sprintf(str, "copy pat %i to", GetCurrentPattern()+1);
         ssd1306_draw_string(p, 0, 8, 1, str);
         return;
     }
@@ -455,7 +449,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
         else if(patternSelectMode)
         {
-            if(patternChain[chainStep] == i)
+            if(GetCurrentPattern() == i)
             {
                 color[key] = urgb_u32(10, 200, 45);
             }
@@ -710,7 +704,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     // page select
     if(x==4&&y==2 && pressed)
     {
-        editPage[currentVoice] = (++editPage[currentVoice])%(patterns[currentVoice].length[patternChain[chainStep]]/64+1);
+        editPage[currentVoice] = (++editPage[currentVoice])%(patterns[currentVoice].length[GetCurrentPattern()]/64+1);
     }
     if(x<4 && y>0 && !pressed)
     {
@@ -728,11 +722,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(GetTrigger(currentVoice, sequenceStep+editPage[currentVoice]*16)>=0)
             {
                 if(!parameterLocked)
-                    patterns[currentVoice].notes[patternChain[chainStep]*64+sequenceStep+editPage[currentVoice]*16] = 0;
+                    patterns[currentVoice].notes[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = 0;
             }
             else
             {
-                patterns[currentVoice].notes[patternChain[chainStep]*64+sequenceStep+editPage[currentVoice]*16] = (0x7f&lastNotePlayed)|0x80;
+                patterns[currentVoice].notes[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = (0x7f&lastNotePlayed)|0x80;
             }
         }
 
@@ -785,7 +779,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(patternSelectMode)
         {
-            if(holdingWrite && sequenceStep!=patternChain[0])
+            if(holdingWrite && sequenceStep!=GetCurrentPattern())
             {
                 // copy pattern
                 int currentPattern = patternChain[0];
@@ -814,6 +808,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                 }
                 if(patternChainLength<15)
                 {
+                    if(!playing && patternChainLength == 0)
+                    {
+                        playingPattern = sequenceStep;
+                    }
                     patternChain[patternChainLength++] = sequenceStep;
                 }
             }
