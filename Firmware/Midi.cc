@@ -1,6 +1,8 @@
 #include "midi.h"
 #include "hardware/irq.h"
+#include "hardware/dma.h"
 #include <stdio.h>
+#include <string.h>
 
 #define UART_ID uart1
 #define BAUD_RATE 31250
@@ -14,10 +16,6 @@ void on_uart_rx() {
     while (uart_is_readable(UART_ID)) {
         char c = uart_getc(UART_ID);
         in_buf[buf_count++] = c;
-        // if((c>>7) == 1){
-        //     printf("\n");
-        // }
-        // printf("0x%x ", c);
     }
 }
 
@@ -37,7 +35,54 @@ void Midi::Init()
 
     // Now enable the UART to send interrupts - RX only
     uart_set_irq_enables(UART_ID, true, false);
+    TxIndex = 0;
+    //
+    DmaChannelTX = dma_claim_unused_channel(true);
+
+    dma_channel_config txConfig = dma_channel_get_default_config(DmaChannelTX);
+    channel_config_set_transfer_data_size(&txConfig, DMA_SIZE_8);
+    channel_config_set_read_increment(&txConfig, true);
+    channel_config_set_write_increment(&txConfig, false);
+    channel_config_set_ring(&txConfig, false, MIDI_BUF_LENGTH_POW);
+    channel_config_set_dreq(&txConfig, DREQ_UART1_TX);
+    dma_channel_set_config(DmaChannelTX, &txConfig, false);
+    dma_channel_set_write_addr(DmaChannelTX, &uart1_hw->dr, false);
+    initialized = true;
 }
+
+uint16_t Midi::Write(const uint8_t* data, uint16_t length)
+{
+    if (!initialized || length == 0) {
+        return 0;
+    }
+    // copy the data into the buffer if possible
+    uint8_t* start = &TxBuffer[TxIndex + MIDI_BUF_LENGTH*pingPong];
+    // truncate copy amount to fit into buffer
+    length = TxIndex + length > MIDI_BUF_LENGTH - 1
+        ? MIDI_BUF_LENGTH - 1 - TxIndex
+        : length;
+    memcpy(start, data,
+            length);
+    TxIndex += length;
+    // attempt to flush immediately
+    return length;
+}
+
+void Midi::Flush()
+{
+    if(!initialized || dma_channel_is_busy(DmaChannelTX))
+        return;
+    // Size check
+    if (TxIndex == 0)
+    {
+        return;
+    }
+    uint8_t* start = &TxBuffer[MIDI_BUF_LENGTH*pingPong];
+    dma_channel_transfer_from_buffer_now(DmaChannelTX, start, TxIndex);
+    pingPong = (pingPong+1)%2;
+    TxIndex = 0;
+}
+
 int Midi::GetNote()
 {
     uint8_t cmdStart = 0;
@@ -64,18 +109,18 @@ int Midi::GetNote()
     buf_count = 0;
     return -1;
 }
-void Midi::NoteOn(int16_t pitch, uint8_t velocity)
+void Midi::NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity)
 {
-    uart_putc_raw(UART_ID, 0x90); // note on / channel
-    uart_putc_raw(UART_ID, pitch); // middle c
-    uart_putc_raw(UART_ID, velocity); // velocity
+    uint8_t send[] = {0x90+channel,pitch,velocity};
+    Write(send, 3);
+    // Flush();
 }
 
-void Midi::NoteOff(int16_t pitch)
+void Midi::NoteOff(uint8_t channel, uint8_t pitch)
 {
-    uart_putc_raw(UART_ID, 0x90); // note on / channel
-    uart_putc_raw(UART_ID, pitch); // middle c
-    uart_putc_raw(UART_ID, 0); // velocity
+    uint8_t send[] = {0x90+channel,pitch,0};
+    Write(send, 3);
+    // Flush();
 }
 
 void Midi::StartSequence()

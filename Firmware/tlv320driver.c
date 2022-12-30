@@ -213,7 +213,7 @@ void tlvDriverInit()
     write(0, 0x40, 0x00);
     //sleep_ms(200);
     //printf("powering up adc, lets go\n");
-    sleep_ms(200);
+    sleep_ms(10);
     //printf("powering up adc, now\n");
     // power up ADC
     write(0, 0x51, 0xc0);

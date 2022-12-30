@@ -92,6 +92,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
             case 0: return bpm;
             case 2: return amp_enabled;
             case 4: return chromatic;
+            case 8: return syncIn;
+            case 9: return syncOut;
             default:
                 break;
         }
@@ -135,6 +137,7 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         {
             case 0: return timbre;
             case 1: return color;
+            case 31: return midiChannel;
             default:
                 break;
         }
@@ -164,6 +167,23 @@ const char *rates[7] = {
     "1/4x",
     "1/8x"
 };
+
+const char *syncInStrings[4] = { 
+    "none",
+    "midi",
+    "PO",
+    "VL",
+};
+
+const char *syncOutStrings[6] = { 
+    "none",
+    "midi",
+    "m+PO",
+    "m+24",
+    "PO",
+    "24pq"
+};
+
 
 const char *envTargets[5] = { 
     "Vol",
@@ -230,11 +250,17 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pA, chromatic>0x7f?"On":"Off");
                 sprintf(pB, "");
                 return;
+            case 4:
+                sprintf(strA, "SIn");
+                sprintf(strB, "SOut");
+                sprintf(pA,syncInStrings[(syncIn*0)>>8]); // todo: make this allow for more than "None"
+                sprintf(pB,syncOutStrings[(syncOut*6)>>8]);
+                return;
             case 12:
                 sprintf(strA, "Chng");
                 sprintf(strB, "Swng");
                 sprintf(pA, "%i", length[pattern]/4+1);
-                sprintf(pB,"");//rates[(rate[pattern]*7)>>8]);
+                sprintf(pB,"");
                 return;
             default:
                 sprintf(strA, "");
@@ -417,7 +443,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Midi");
-                sprintf(pB, "%s", ((((uint16_t)valB)*16) >> 8)+1);
+                sprintf(pB, "%i", (midiChannel>>4)+1);
                 return;
             default:
                 return;

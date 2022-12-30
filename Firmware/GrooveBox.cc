@@ -44,6 +44,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         {
             patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);
             globalParams = &patterns[i];
+            globalParams->InitializeGlobals();
             globalParams->bpm = 120;
         }
         else
@@ -51,6 +52,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
             patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
         }
     }
+
     Deserialize();
 
     // we do this in a second pass so the
@@ -165,7 +167,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
             if(tempoPulse)
             {
-                midi.TimingClock();
+                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                    midi.TimingClock();
                 
                 // advance chain if the global pattern just overflowed on the last beat counter
                 if(beatCounter[15]==0 && patternStep[15] == 0)
@@ -193,7 +196,12 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                             rate = 2;
                             break;
                         case 16:
-                            rate = 4;
+                            if((globalParams->GetSyncOutMode() & SyncOutModePO) > 0)
+                                rate = 4;
+                            else if((globalParams->GetSyncOutMode() & SyncOutMode24) > 0)
+                                rate = 7;
+                            else
+                                rate = 0;
                             break;
                         default:
                             rate = (patterns[v].rate[GetCurrentPattern()]*7)>>8;
@@ -221,6 +229,9 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         case 6: // 1/8x
                             beatCounter[v] = beatCounter[v]%48;
                             break;
+                        case 7: // 24 ppq sync
+                            beatCounter[v] = 0;
+                            break;
                     }
                     if(!needsTrigger)
                         continue;
@@ -244,8 +255,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
         }
     }
-    // if we have 2ppq sync output working
-    if(sync_count > 0 && 1==0)
+    if(sync_count > 0 && (globalParams->GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
@@ -284,6 +294,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     int64_t currentRender = absolute_time_diff_us(renderStartTime, renderEndTime);
     renderTime += currentRender;
     sampleCount++;
+    midi.Flush();
 }
 void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {
@@ -386,8 +397,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         sprintf(str, "shutdown in %i", shutdownTime/60);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-
-        //ssd1306_draw_string(p, 0, 8, 1, str);
         shutdownTime--;  
         if(shutdownTime == 0)
         {
@@ -876,8 +885,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(!playing)
             {
                 playing = true;
-                midi.StopSequence();
-                midi.StartSequence();
+                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                {
+                    midi.StopSequence();
+                    midi.StartSequence();
+                }
                 ResetPatternOffset();
             }
         }
@@ -892,12 +904,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             playing = !playing;
             if(playing)
             {
-                midi.StartSequence();
+                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                    midi.StartSequence();
                 ResetPatternOffset();
             }
             else
             {
-                midi.StopSequence();
+                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                    midi.StopSequence();
             }
         }
         if(liveWrite)

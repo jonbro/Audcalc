@@ -434,22 +434,22 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
     else if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
     {
         uint8_t notesToAllowPlay = (voiceData.GetParamValue(PlayingMidiNotes, lastPressedKey, playingStep, playingPattern)>>4);
-        printf("notes to allow play %i\n", notesToAllowPlay);
+        // printf("notes to allow play %i\n", notesToAllowPlay);
         for(int i=0;i<16-notesToAllowPlay;i++)
         {
             uint8_t idx = (i+currentMidiNote+1)%16;
             if(playingMidiNotes[idx] > 0)
             {
-                printf("stopping midi note %i\n", playingMidiNotes[idx]);
-                midi->NoteOff(playingMidiNotes[idx]);
+                // printf("stopping midi note %i\n", playingMidiNotes[idx]);
+                midi->NoteOff(voiceData.GetMidiChannel(), playingMidiNotes[idx]);
                 playingMidiNotes[idx] = -1;
             }
         }
         if(playingMidiNotes[currentMidiNote] > 0)
-            midi->NoteOff(playingMidiNotes[currentMidiNote]);
+            midi->NoteOff(voiceData.GetMidiChannel(), playingMidiNotes[currentMidiNote]);
         playingMidiNotes[currentMidiNote] = note-12;
-        printf("starting midi note %i\n", playingMidiNotes[currentMidiNote]);
-        midi->NoteOn(note-12, voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1);
+        // printf("starting midi note %i\n", playingMidiNotes[currentMidiNote]);
+        midi->NoteOn(voiceData.GetMidiChannel(), note-12, voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1);
         currentMidiNote = (currentMidiNote+1)%16;
     } 
     lastNoteOnPitch = note;

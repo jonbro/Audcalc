@@ -22,6 +22,13 @@ enum InstrumentType {
   INSTRUMENT_DRUMS,
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 };
+enum SyncOutMode { 
+    SyncOutModeNone = 0,
+    SyncOutModeMidi = 1 << 0,
+    SyncOutModePO   = 1 << 1,
+    SyncOutMode24   = 1 << 2,
+};
+
 enum EnvTargets {
     Target_Volume = 0,
     Target_Timbre = 1,
@@ -77,15 +84,55 @@ class VoiceData
                 notes[i] = 0;
             }
         }
+        void InitializeGlobals()
+        {
+            syncOut = 0;
+            syncIn = 0;
+        }
         void GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern);
         void GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB);
         void DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock);
         bool CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
         uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
 
+        uint8_t GetMidiChannel(){
+            return midiChannel >> 4;
+        }
+
         MacroOscillatorShape GetShape(){
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
         }
+        
+        SyncOutMode GetSyncOutMode(){
+            uint8_t bareSyncMode = ((((uint16_t)syncOut)*6) >> 8);
+            SyncOutMode mode = SyncOutModeNone;
+            switch(bareSyncMode)
+            {
+                case 1:
+                    mode = SyncOutModeMidi;
+                    break;
+                case 2:
+                    mode = (SyncOutMode)(SyncOutModeMidi | SyncOutModePO);
+                    break;
+                case 3:
+                    mode = (SyncOutMode)(SyncOutModeMidi | SyncOutMode24);
+                    break;
+                // PO
+                case 4:
+                    mode = SyncOutModePO;
+                    break;
+                // Volca
+                case 5:
+                    mode = SyncOutMode24;
+                    break;
+            }
+            return mode;
+        }
+
+        uint8_t GetSyncInMode(){
+            return ((((uint16_t)syncIn)*4) >> 8);
+        }
+
         SamplerPlayerType GetSampler(){
             return (SamplerPlayerType)((samplerTypeBare*3)>>8);
         }
@@ -198,8 +245,16 @@ class VoiceData
         uint8_t delaySend = 0;
         uint8_t reverbSend = 0;
 
-        uint8_t attackTime = 0x20;
-        uint8_t decayTime = 0x20;
+        union{
+            uint8_t syncIn;
+            uint8_t attackTime = 0x20;
+        };
+        
+        union
+        {
+            uint8_t syncOut;
+            uint8_t decayTime = 0x20;
+        };
 
         // separate values so that we can have more sensible defaults
         uint8_t sampleAttackTime = 0x0;
