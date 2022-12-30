@@ -56,7 +56,6 @@ class Instrument
         MacroOscillator osc;
         uint8_t delaySend = 0;
         uint8_t reverbSend = 0;
-        uint8_t chorusSend = 0;
         VoiceData *globalParams;
         q15_t pWithMods;
 

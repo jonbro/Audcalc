@@ -35,6 +35,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         {
             case SampleIn: return HasLockForStep(step, pattern, SampleIn, value)?value:sampleStart[lastNotePlayed];
             case SampleOut: return HasLockForStep(step, pattern, SampleOut, value)?value:sampleLength[lastNotePlayed];
+            case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:sampleAttackTime;
+            case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:sampleDecayTime;
         }
     }
     switch(param)
@@ -55,7 +57,6 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
-        case ChorusSend: return HasLockForStep(step, pattern, ChorusSend, value)?value:chorusSend;
         case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
     }
     return 0;
@@ -78,10 +79,6 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
                 return reverbSend;
         }
     }
-    // if(param == 30)
-    // {
-    //     return reverbSend;
-    // }
     if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
     {
         return instrumentTypeBare;
@@ -108,8 +105,6 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 4: return volume;
         case 5: break;
         case 6: return octave;
-        case 8: return attackTime;
-        case 9: return decayTime;
         case 10: return attackTime2;
         case 11: return decayTime2;
         case 12: return lfoRate;
@@ -127,6 +122,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         {
             case 0: return timbre;
             case 1: return color;
+            case 8: return attackTime;
+            case 9: return decayTime;
             case 31: return shape;
             default:
                 break;
@@ -148,6 +145,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         {
             case 0: return sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
             case 1: return sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 8: return sampleAttackTime;
+            case 9: return sampleDecayTime;
             case 31: return samplerTypeBare;
             default:
                 break;
@@ -280,12 +279,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pA, "%i", GetOctave());
                 sprintf(pB, "");
                 return;
-            case 4:
-                sprintf(strA, "Atk");
-                sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 8, attackTime, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 9, decayTime, pB);
-                return;
             case 5:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
@@ -349,6 +342,12 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     sprintf(pB, "%i", sampleLength[0]);
                 }
                 return;
+            case 4:
+                sprintf(strA, "Atk");
+                sprintf(strB, "Dcy");
+                lockA = CheckLockAndSetDisplay(step, pattern, 8, sampleAttackTime, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 9, sampleDecayTime, pB);
+                return;
             case 15:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
@@ -380,6 +379,12 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strB, "Colr");
                 lockA = CheckLockAndSetDisplay(step, pattern, 0, timbre, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 1, color, pB);
+                return;
+            case 4:
+                sprintf(strA, "Atk");
+                sprintf(strB, "Dcy");
+                lockA = CheckLockAndSetDisplay(step, pattern, 8, attackTime, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 9, decayTime, pB);
                 return;
             case 15:
                 sprintf(strA, "Type");

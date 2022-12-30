@@ -61,6 +61,7 @@ class GrooveBox {
     {
        patternStep[i] = beatCounter[i] = 0;
     }
+    beatCounter[16] = 0;
   }
  private:
   bool needsInitialADC; 
@@ -74,7 +75,7 @@ class GrooveBox {
   int lastNotePlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
-  uint8_t beatCounter[16] = {0};
+  uint8_t beatCounter[17] = {0};
   bool playing = false;
   bool writing = false;
   bool holdingWrite = false;

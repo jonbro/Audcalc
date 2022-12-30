@@ -51,8 +51,7 @@ enum ParamType {
     Env2Depth = 19,
     Length = 24,
     DelaySend = 28, // all three of these are on the same location
-    ChorusSend = 29,
-    ReverbSend = 30
+    ReverbSend = 29
 };
 
 enum SamplerPlayerType
@@ -71,7 +70,7 @@ class VoiceData
             {
                 length[i] = 15*4; // need to up this to fit into 0xff
                 locksForPattern[i] = ParamLockPool::NullLock();
-                rate[i] = 2; // 1x 
+                rate[i] = 2*37; // 1x 
             }
             for (size_t i = 0; i < 64*16; i++)
             {
@@ -94,7 +93,7 @@ class VoiceData
         uint8_t& GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern);
 
         InstrumentType GetInstrumentType() {
-            return global_instrument?INSTRUMENT_GLOBAL:(InstrumentType)((((uint16_t)instrumentTypeBare)*4) >> 8);
+            return global_instrument?INSTRUMENT_GLOBAL:(InstrumentType)((((uint16_t)instrumentTypeBare)*3) >> 8);
         }
         void SetInstrumentType(InstrumentType instrumentType) {
             if(instrumentType==INSTRUMENT_GLOBAL)
@@ -196,11 +195,16 @@ class VoiceData
         uint8_t samplerTypeBare = 0;
         uint8_t paramLockCount = 0;
         uint8_t effectEditTarget = 0;
-        uint8_t delaySend;
-        uint8_t chorusSend;
-        uint8_t reverbSend;
+        uint8_t delaySend = 0;
+        uint8_t reverbSend = 0;
+
         uint8_t attackTime = 0x20;
         uint8_t decayTime = 0x20;
+
+        // separate values so that we can have more sensible defaults
+        uint8_t sampleAttackTime = 0x0;
+        uint8_t sampleDecayTime = 0xff;
+        
         uint8_t attackTime2 = 0x20;
         uint8_t decayTime2 = 0x20;
         uint8_t lfoRate = 0;

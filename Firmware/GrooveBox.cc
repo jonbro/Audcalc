@@ -77,6 +77,7 @@ int16_t last_delay = 0;
 int16_t last_input;
 uint32_t counter = 0;
 uint32_t countToHalfSecond = 0;
+uint8_t sync_count = 0;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
@@ -179,14 +180,24 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                 }
 
                 // skip the last one, since the global can't be sequenced
-                for(int v=0;v<16;v++)
+                for(int v=0;v<17;v++)
                 {
                     bool needsTrigger = beatCounter[v]==0;
                     beatCounter[v]++;
 
                     // global pattern always uses 16th notes
-                    uint8_t rate = (v==15)?2:((patterns[v].rate[GetCurrentPattern()]*7)>>8);
-
+                    uint8_t rate = 0;
+                    switch(v)
+                    {
+                        case 15:
+                            rate = 2;
+                            break;
+                        case 16:
+                            rate = 4;
+                            break;
+                        default:
+                            rate = (patterns[v].rate[GetCurrentPattern()]*7)>>8;
+                    }
                     switch(rate)
                     {
                         case 0: // 2x
@@ -213,9 +224,12 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     }
                     if(!needsTrigger)
                         continue;
-                    
+                    if(v==16){
+                        sync_count = 6;
+                        continue;
+                    }
                     // never trigger for the global pattern
-                    int requestedNote = (v==15)?-1:GetTrigger(v, patternStep[v]);
+                    int requestedNote = (v==15||v==16)?-1:GetTrigger(v, patternStep[v]);
                     if(requestedNote >= 0)
                     {
                         hadTrigger = hadTrigger|(1<<v);
@@ -230,12 +244,32 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
         }
     }
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    // if we have 2ppq sync output working
+    if(sync_count > 0 && 1==0)
     {
-        // int16_t* chan = (output_buffer+i*2);
-        // chan[0] = workBuffer2[i]>>1;
-        // chan[1] = workBuffer2[i]>>1;
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            int16_t* chan = (output_buffer+i*2);
+            // we need to provide the peak to peak swing so pocket operator can hear the sync signal
+            if(sync_count > 3)
+            {
+                chan[0] = -32767;
+            }
+            else if(sync_count > 0)
+            {
+                chan[0] = 32767;
+            }
+            else
+            {
+                chan[0] = 0;
+            }
+        }
+        sync_count--;
     }
+    {
+        sync_count = 0;
+    }
+
     if(recording)
     {
         ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, SAMPLES_PER_BUFFER*2);
@@ -248,10 +282,6 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     }
     absolute_time_t renderEndTime = get_absolute_time();
     int64_t currentRender = absolute_time_diff_us(renderStartTime, renderEndTime);
-    // if(currentRender > 4000)
-    // {
-    //     printf("underrun!\n");
-    // }
     renderTime += currentRender;
     sampleCount++;
 }
@@ -355,7 +385,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     else if(shutdownTime > 0 && holdingEscape)
     {
         sprintf(str, "shutdown in %i", shutdownTime/60);
-        ssd1306_draw_string(p, 0, 8, 1, str);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+
+        //ssd1306_draw_string(p, 0, 8, 1, str);
         shutdownTime--;  
         if(shutdownTime == 0)
         {
@@ -902,7 +934,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(holdingEscape && soundSelectMode)
     {
         // start countdown to save & shutdown / bootselect
-        shutdownTime = 60*6;
+        shutdownTime = 60*3;
     }
 
     // pattern select

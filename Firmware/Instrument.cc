@@ -15,7 +15,6 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     svf.Init();
     midi = _midi;
     phase_ = 0;    
-    chorusSend = 0;
     sampleOffset = 0;
     for(int i=0;i<16;i++)
     {
@@ -229,7 +228,6 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             buffer[i] = mult_q15(buffer[i], envval);
         }
-        // buffer[i] = (buffer[i]>>(chorusSend>>4))<<(chorusSend>>4);
         buffer[i] = svf.Process(buffer[i]);
         
         // not sure why distortion isn't working, revisit at some point
@@ -264,12 +262,10 @@ const int keyToMidi[16] = {
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
     delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
-    chorusSend = voiceData.GetParamValue(ChorusSend, lastPressedKey, playingStep, playingPattern);
     reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
     volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
     if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
     {
-        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
         env2.Update(voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)>>1);
         lfo_depth = (voiceData.GetParamValue(LFODepth, lastPressedKey, playingStep, playingPattern)>>1)<<7;
         lfo_rate = (voiceData.GetParamValue(LFORate, lastPressedKey, playingStep, playingPattern)>>1)<<7;
@@ -284,12 +280,14 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
+        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
         // copy parameters from voice
         param1Base = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7;
         param2Base = voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
+        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
     }
 }
 void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)

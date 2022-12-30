@@ -270,7 +270,7 @@ lookup_tables.append(('bell', bell(256, 16)))
 Envelope increments.
 ----------------------------------------------------------------------------"""
 
-control_rate = sample_rate / 64.0
+control_rate = sample_rate / 128.0
 max_time = 12.0  # seconds
 min_time = 3.0 / control_rate  # seconds
 gamma = 0.175

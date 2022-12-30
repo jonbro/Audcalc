@@ -191,7 +191,7 @@ void tlvDriverInit()
     // Set the HPL gain to 0dB
     write(1, 0x10, 0x00);
     write(1, 0x11, 0x00);
-    write(1, 0x10, 0x0);
+    write(1, 0x10, 0x0); //0x1d maximum for sync output
     write(1, 0x11, 0x0);
     
     // set lineout gain to 0  db
