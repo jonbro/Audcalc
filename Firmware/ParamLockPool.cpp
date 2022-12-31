@@ -22,7 +22,7 @@ bool ParamLockPool::GetFreeParamLock(ParamLock **lock)
     return false;
 }
 
-void ParamLockPool::ReturnLock(ParamLock *lock)
+void ParamLockPool::FreeLock(ParamLock *lock)
 {
     lock->next = GetLockPosition(freeLocks);
     freeLocks = lock;

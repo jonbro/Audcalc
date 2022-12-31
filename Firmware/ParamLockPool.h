@@ -16,7 +16,7 @@ class ParamLockPool
     public:
         ParamLockPool();
         bool GetFreeParamLock(ParamLock **lock);
-        void ReturnLock(ParamLock *lock);
+        void FreeLock(ParamLock *lock);
         uint16_t GetLockPosition(ParamLock *lock);
         ParamLock* GetLock(uint16_t position);
         static ParamLock* NullLock();

@@ -166,26 +166,37 @@ class VoiceData
             if(lock != ParamLockPool::NullLock())
             {
                 lock->value = value;
-                printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
+                // printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
                 return;
             }
             if(lockPool.GetFreeParamLock(&lock))
             {
                 if(lock == ParamLockPool::NullLock() || !lockPool.validLock(lock))
                 {
-                    printf("out of lock space\n failed to add new lock");
+                    // printf("out of lock space\n failed to add new lock");
                     return;
                 }
-                printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
+                // printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
                 lock->param = param;
                 lock->step = step;
                 lock->value = value;
                 lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
                 locksForPattern[pattern] = lock;
-                printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
+                // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
                 return;
             }
-            printf("failed to add param lock\n");
+            // printf("failed to add param lock\n");
+        }
+        void ClearParameterLocks(uint8_t pattern)
+        {
+            ParamLock* lock = locksForPattern[pattern];
+            while(lock != ParamLockPool::NullLock())
+            {
+                ParamLock* nextLock = lockPool.GetLock(lock->next);
+                lockPool.FreeLock(lock);
+                lock = nextLock;
+            }
+            locksForPattern[pattern] = ParamLockPool::NullLock();
         }
         void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
         {
