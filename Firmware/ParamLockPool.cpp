@@ -2,7 +2,16 @@
 
 ParamLock ParamLockPool::nullLock = {0};
 
-bool ParamLockPool::GetParamLock(ParamLock **lock)
+ParamLockPool::ParamLockPool()
+{
+    freeLocks = locks;
+    for(int i=0;i<LOCKCOUNT;i++)
+    {
+        locks[i].next = i+1;
+    }
+}
+
+bool ParamLockPool::GetFreeParamLock(ParamLock **lock)
 {
     if(freeLocks != &nullLock)
     {
@@ -22,14 +31,41 @@ void ParamLockPool::ReturnLock(ParamLock *lock)
 uint16_t ParamLockPool::GetLockPosition(ParamLock *lock)
 {
     if(lock==&nullLock)
-        return 0;
-    // we are going to 1 index here, so that we can use the zero position to represent no pointer
-    return lock-locks+1;
+        return LOCKCOUNT; // this is effectively returning the nulllock
+    return lock-locks;
 }
 
 ParamLock* ParamLockPool::GetLock(uint16_t position)
 {
-    if(position == 0 || position-1 >= LOCKCOUNT)
+    if(position >= LOCKCOUNT)
         return &nullLock;
-    return locks+(position-1);
+    return locks+position;
+}
+
+ParamLock* ParamLockPool::NullLock()
+{
+    return &nullLock;
+}
+bool ParamLockPool::validLock(ParamLock *lock)
+{
+    return GetLockPosition(lock) < LOCKCOUNT;
+}
+
+void ParamLockPoolTest::RunTest()
+{
+    ParamLockPool lockPool = ParamLockPool();
+    ParamLock *patternLocks = ParamLockPool::NullLock();
+    ParamLock *lock = ParamLockPool::NullLock();
+    // attempt to exhaust the lockpool
+    int lockpoolCount = 0;
+    while(lockPool.GetFreeParamLock(&lock))
+    {
+        lock->param = 0;
+        lock->step = lockpoolCount;
+        lock->value = 0;
+        lock->next = lockPool.GetLockPosition(patternLocks);
+        patternLocks = lock;
+        lockpoolCount++;
+    }
+    printf("final lockpool count: %i\n", lockpoolCount);
 }

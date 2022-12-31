@@ -331,8 +331,11 @@ int main()
     set_sys_clock_khz(240000, true);
     SetDisplay(&disp);
     stdio_init_all();
+    //
     // TestFileSystem();
     // TestVoiceData();
+    // ParamLockPoolTest testLockPool = ParamLockPoolTest();
+    // testLockPool.RunTest();
     // return 0;
     ws2812_init();
 

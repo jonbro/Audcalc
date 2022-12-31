@@ -169,15 +169,20 @@ class VoiceData
                 printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
                 return;
             }
-            if(lockPool.GetParamLock(&lock))
+            if(lockPool.GetFreeParamLock(&lock))
             {
-                printf("new address %x\n", lock);
+                if(lock == ParamLockPool::NullLock() || !lockPool.validLock(lock))
+                {
+                    printf("out of lock space\n failed to add new lock");
+                    return;
+                }
+                printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
                 lock->param = param;
                 lock->step = step;
                 lock->value = value;
                 lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
                 locksForPattern[pattern] = lock;
-                printf("added param lock step: %i param: %i value: %i\n", step, param, value);
+                printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
                 return;
             }
             printf("failed to add param lock\n");

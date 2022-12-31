@@ -972,7 +972,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-#define SAVE_VERSION 10
+#define SAVE_VERSION 11
 void GrooveBox::Serialize()
 {
     Serializer s;

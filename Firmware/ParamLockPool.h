@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <string.h>
 
 struct ParamLock
 {
@@ -13,32 +14,21 @@ struct ParamLock
 class ParamLockPool
 {
     public:
-        ParamLockPool()
-        {
-            freeLocks = locks;
-            for(int i=0;i<LOCKCOUNT;i++)
-            {
-                locks[i].next = i+2;
-                if(i==LOCKCOUNT-1)
-                {
-                    locks[i].next = 0;
-                }
-            }
-        }
-        bool GetParamLock(ParamLock **lock);
+        ParamLockPool();
+        bool GetFreeParamLock(ParamLock **lock);
         void ReturnLock(ParamLock *lock);
-        uint16_t GetLockPosition(ParamLock *lock); // returns the array position from the position - saves us 2 bytes from storing everything as pointers (4 bytes)
+        uint16_t GetLockPosition(ParamLock *lock);
         ParamLock* GetLock(uint16_t position);
-        static ParamLock* NullLock()
-        {
-            return &nullLock;
-        }
-        bool validLock(ParamLock *lock)
-        {
-            return GetLockPosition(lock) < LOCKCOUNT;
-        }
+        static ParamLock* NullLock();
+        bool validLock(ParamLock *lock);
     private:
         ParamLock locks[LOCKCOUNT];
         ParamLock *freeLocks;
         static ParamLock nullLock;
+};
+
+class ParamLockPoolTest
+{
+    public:
+        void RunTest();
 };

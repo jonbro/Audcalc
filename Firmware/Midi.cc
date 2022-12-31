@@ -65,6 +65,7 @@ uint16_t Midi::Write(const uint8_t* data, uint16_t length)
             length);
     TxIndex += length;
     // attempt to flush immediately
+    Flush();
     return length;
 }
 
