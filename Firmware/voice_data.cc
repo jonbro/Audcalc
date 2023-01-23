@@ -65,6 +65,10 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
 // used for setting the value in place
 uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
+    if(param == 32)
+    {
+        return globalVoiceData->bpm;
+    }
     if(param == 28)
     {
         return effectEditTarget;
@@ -226,6 +230,12 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
                     break;
             }
+            return;
+        case 16:
+            sprintf(strA, "Bpm");
+            sprintf(strB, "");
+            sprintf(pA, "%i", (globalVoiceData->bpm+1));
+            sprintf(pB, "");
             return;
     }
     if(instrumentType == INSTRUMENT_GLOBAL)

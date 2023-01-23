@@ -189,7 +189,7 @@ void ws2812_trigger()
             uint8_t r = my_colors[j] & 0xffu;
             uint8_t g = (my_colors[j]>>8u) & 0xffu;
             uint8_t b = (my_colors[j]>>16u) & 0xffu;
-            ws_put_pixel(ws_urgb_u32(r,g,b));
+            ws_put_pixel(ws_urgb_u32(r>>2,g>>2,b>>2));
         }
         transform_strings(strings, count_of(strings), colors, NUM_PIXELS * 4, brightness);
         dither_values(colors, states[current], states[current ^ 1], NUM_PIXELS * 4);

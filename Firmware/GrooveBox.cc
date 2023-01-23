@@ -51,6 +51,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         {
             patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
         }
+        patterns[i].globalVoiceData = &patterns[15];
     }
 
     Deserialize();
@@ -136,26 +137,92 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             int16_t l = 0;
             int16_t r = 0;
             delay.process(toDelayBuffer[i], l, r);
-            mainL += l;
-            mainR += r;
+            int32_t lres = l;
+            int32_t rres = r;
+            // lower delay volume
+            lres *= 0xe0;
+            rres *= 0xe0;
+            lres = lres >> 8;
+            rres = rres >> 8;
+            mainL += lres;
+            mainR += rres;
 
             verb.process(toReverbBuffer[i], l, r);
+            lres = l;
+            rres = r;
+            // lower delay volume
+            lres *= 0xe0;
+            rres *= 0xe0;
+            lres = lres >> 8;
+            rres = rres >> 8;
             mainL += l;
             mainR += r;
 
             chan[0] = mainL;
             chan[1] = mainR;
-        }
+            
+            // lets do a master volume
+            // mainL *= 0xe0;
+            // mainR *= 0xe0;
+            // mainL = mainL >> 8;
+            // mainR = mainR >> 8;
 
+            // one more headroom clip (rip :( )
+
+            // and then hard limit so we don't get overflows
+            int32_t max = 0x7fff;
+            if(mainL > max)
+            {
+                clipping = true;
+                mainL = max;
+            }
+            if(mainR > max)
+            {
+                clipping = true;
+                mainR = max;
+            }
+            if(mainL < -max)
+            {
+                clipping = true;
+                mainL = -max;
+            }
+            if(mainR < -max)
+            {
+                clipping = true;
+                mainR = -max;
+            }
+
+            chan[0] = mainL;
+            chan[1] = mainR;
+
+        }
+        // if(clipping)
+        // {
+        //     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        //     {
+        //         int16_t* chan = (output_buffer+i*2);
+        //         chan[0] = 0;
+        //         chan[1] = 0;
+        //     }
+        // }
         // if(clipping) printf("clipping.");
         // this can all be done outside this loop?
-        
+
+        // handle the midi triggering
+        int midiNote = midi.GetNote();
+        if( midiNote >= 0)
+        {
+            patterns[currentVoice].ClearNextRequestedStep();
+            TriggerInstrumentMidi(midiNote, midiNote, 0, 0, patterns[currentVoice], currentVoice);
+        }
+
         int requestedNote = GetNote();
         if(requestedNote >= 0)
         {
             patterns[currentVoice].ClearNextRequestedStep();
             TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, 0, 0, true, patterns[currentVoice], currentVoice);
         }
+ 
         if(IsPlaying())
         {
             bool tempoPulse = false;
@@ -327,6 +394,28 @@ void GrooveBox::TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step
     //     voiceCounter = (++voiceCounter)%VOICE_COUNT;
     // }
 }
+void GrooveBox::TriggerInstrumentMidi(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel)
+{
+    Instrument *nextPlay = &instruments[channel];
+    // determine if any of the voices are done playing
+    bool foundVoice = false;
+    for (size_t i = 0; i < VOICE_COUNT; i++)
+    {
+        if(!instruments[i].IsPlaying())
+        {
+            nextPlay = &instruments[i];
+            foundVoice = true;
+            voiceChannel[i] = channel;
+            break;
+        }
+    }
+    nextPlay->NoteOn(pitch, midi_note, step, pattern, true, voiceData);
+    if(!foundVoice)
+    {
+        voiceChannel[voiceCounter] = channel;
+        voiceCounter = (++voiceCounter)%VOICE_COUNT;
+    }
+}
 int GrooveBox::GetTrigger(uint voice, uint step)
 {
     uint8_t note = patterns[voice].notes[GetCurrentPattern()*64+step];
@@ -338,8 +427,7 @@ int GrooveBox::GetTrigger(uint voice, uint step)
 }
 int GrooveBox::GetNote()
 {
-    int midi_note = midi.GetNote();
-    int res = midi_note >= 0 ? midi_note : needsNoteTrigger;
+    int res = needsNoteTrigger;
     needsNoteTrigger = -1;
     return res;
 }
@@ -433,6 +521,13 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         return;
     }
 
+    if(soundSelectMode && holdingWrite)
+    {
+        sprintf(str, "copy voice %i to", currentVoice+1);
+        ssd1306_draw_string(p, 0, 8, 1, str);
+        return;
+    }
+
     if(patternSelectMode && clearTime < 0 && !holdingWrite)
     {
         ssd1306_draw_string(p, 0, 8, 1, "chn");
@@ -501,13 +596,18 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             if(currentVoice == i)
             {
                 color[key] = urgb_u32(10, 40, 255);
+            } 
+            // if the voice just triggered
+            if(hadTrigger & (1<<i))
+            {
+                color[key] = urgb_u32(50, 50, 50);
             }
         }
         else
         {
             if((patternStep[currentVoice]-1<0?patterns[currentVoice].GetLength(GetCurrentPattern())-1:patternStep[currentVoice]-1)-editPage[currentVoice]*16 == i && IsPlaying())
             {
-                color[key] = urgb_u32(250, 30, 80);
+                color[key] = urgb_u32(100, 100, 100);
             }
             else if(GetTrigger(currentVoice, i+16*editPage[currentVoice])>=0)
             {
@@ -753,6 +853,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             && !paramSelectMode
             && !patternSelectMode
             && !liveWrite
+            && !holdingMute
             && writing)
         {
             // if we are releasing, then commit the input if there wasn't a parameter lock stored
@@ -803,9 +904,20 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(soundSelectMode)
         {
-            if(sequenceStep != currentVoice)
-                ResetADCLatch();
-            currentVoice = sequenceStep;
+
+            if(holdingWrite && sequenceStep!=currentVoice && sequenceStep != 15)
+            {
+                // copy voice
+                patterns[sequenceStep].CopyFrom(patterns[currentVoice]);
+            }
+            else
+            {
+                // go to new voice
+                if(sequenceStep != currentVoice)
+                    ResetADCLatch();
+                currentVoice = sequenceStep;
+            }
+
         }
         else if(paramSelectMode)
         {
@@ -881,7 +993,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     // play
     if(x==4 && y==3 && pressed)
     {
-        if(holdingWrite)
+        if(paramSelectMode)
+        {
+            // just hardcode for now
+            if(param != 16)
+                paramSetA = paramSetB = false;
+            param = 16;
+        } 
+        else if(holdingWrite)
         {
             liveWrite = true;
             if(!playing)
@@ -974,7 +1093,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-#define SAVE_VERSION 11
+#define SAVE_VERSION 12
 void GrooveBox::Serialize()
 {
     Serializer s;

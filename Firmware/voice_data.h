@@ -248,7 +248,32 @@ class VoiceData
         
         static void SerializeStatic(Serializer &s);
         static void DeserializeStatic(Serializer &s);
+        void CopyFrom(VoiceData &copy)
+        {
+            instrumentTypeBare = copy.instrumentTypeBare;
+            samplerTypeBare = copy.samplerTypeBare;
+            delaySend = copy.delaySend;
+            reverbSend = copy.reverbSend;
+            attackTime = copy.attackTime;
+            decayTime = copy.decayTime;
+            sampleAttackTime = copy.sampleAttackTime;
+            sampleDecayTime = copy.sampleDecayTime;
+            attackTime2 = copy.attackTime2;
+            decayTime2 = copy.decayTime2;
+            lfoRate = copy.lfoRate;
+            env1Target = copy.env1Target;
+            env1Depth = copy.env1Depth;
+            env2Target = copy.env2Target;
+            env2Depth = copy.env2Depth;
 
+            octave = copy.octave;
+            color = copy.color;
+            shape = copy.shape;
+            timbre = copy.timbre;
+            cutoff = copy.cutoff;
+            resonance = copy.resonance;
+            volume = copy.volume;
+        }
 
         ParamLock* locksForPattern[16];
 
@@ -322,7 +347,8 @@ class VoiceData
         uint8_t volume = 0x7f;
         
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
-
+        VoiceData *globalVoiceData; // quick hack for now
+        
     private:
         static ParamLockPool lockPool;
         ffs_file *file;

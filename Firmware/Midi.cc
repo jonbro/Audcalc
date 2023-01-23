@@ -12,10 +12,12 @@
 static int chars_rxed = 0;
 uint8_t in_buf[128];
 uint8_t buf_count = 0;
+bool readBuf = false;
 void on_uart_rx() {
     while (uart_is_readable(UART_ID)) {
         char c = uart_getc(UART_ID);
         in_buf[buf_count++] = c;
+        readBuf = false;
     }
 }
 
@@ -86,6 +88,9 @@ void Midi::Flush()
 
 int Midi::GetNote()
 {
+    if(readBuf)
+        return -1;
+
     uint8_t cmdStart = 0;
     
     while((in_buf[cmdStart]>>4) != 0x9 && cmdStart<buf_count)
@@ -103,6 +108,7 @@ int Midi::GetNote()
     }
     if((in_buf[cmdStart]>>4) == 0x9)
     {
+        readBuf = true;
         buf_count = 0;
         return in_buf[cmdStart+1]&0x7f; // midi data bytes strip off the top bit
     }

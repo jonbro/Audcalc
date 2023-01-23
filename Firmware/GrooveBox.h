@@ -33,6 +33,7 @@ class GrooveBox {
   void OnAdcUpdate(uint8_t a, uint8_t b);
   bool IsPlaying();
   int GetNote();
+  int GetNoteMidi();
   void Render(int16_t* output_buffer, int16_t* input_buffer, size_t size);
   uint8_t GetInstrumentParamA(int voice);
   uint8_t GetInstrumentParamB(int voice);
@@ -66,6 +67,8 @@ class GrooveBox {
  private:
   bool needsInitialADC; 
   void TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
+  void TriggerInstrumentMidi(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
+
   void CalculateTempoIncrement();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];

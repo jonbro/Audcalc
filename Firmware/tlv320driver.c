@@ -4,7 +4,7 @@
 #define I2C_SDA 2
 #define I2C_SCL 3
 #define TLV_RESET_PIN 21
-//#define TLV_DEBUG 0
+#define TLV_DEBUG 0
 #define TLV_I2C_ADDR            0x18
 #define TLV_REG_PAGESELECT	    0
 #define TLV_REG_LDOCONTROL	    2

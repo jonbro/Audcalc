@@ -179,6 +179,7 @@ void draw_screen()
     sleep_ms(3);
     ssd1306_poweron(&disp);
     ssd1306_clear(&disp);
+    ssd1306_contrast(&disp, 0x7f); // lower brightness / power requirement
     while(true)
     {
         queue_entry_t entry;
@@ -497,6 +498,8 @@ int main()
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
+            adc_select_input(2);
+            // printf("battery: %i \n", adc_read());
             bool flip_complete = false;
             if(queue_try_remove(&complete_queue, &flip_complete))
             {
