@@ -175,10 +175,12 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     param1_withMods = add_q15(lfo, param1Base);
     q15_t param2_withMods = param2Base;
     q15_t cutoffWithMods = mainCutoff;
+    q15_t pitchWithMods = pitch;
     for (size_t i = 0; i < 2; i++)
     {
         EnvTargets t = i==0?env1Target:env2Target;
-        q15_t depth = i==0?env1Depth:env2Depth;
+        int16_t depth = i==0?env1Depth:env2Depth;
+        depth = (depth-0x4000)*2; // center at zero
         ADSREnvelope* e = i==0?&env:&env2;
         switch (t)
         {
@@ -192,6 +194,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 break;
             case Target_Cutoff:
                 cutoffWithMods = add_q15(cutoffWithMods, mult_q15(depth, e->valueLin()>>1));
+                break;
+            case Target_Pitch:
+                pitchWithMods = pitchWithMods+(mult_q15(depth, e->value()>>1)>>4);
                 break;
             default:
                 break;
@@ -210,7 +215,8 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     {
         cutoffWithMods = 0;
     }
-    pWithMods = cutoffWithMods;
+    pWithMods = cutoffWithMods; 
+    osc.set_pitch(pitchWithMods);
     osc.set_parameter_1(param1_withMods);
     osc.set_parameter_2(param2_withMods);
     osc.Render(sync, buffer, size);
@@ -272,9 +278,9 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         mainCutoff = (voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7;
         svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
-        env1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env1Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
+        env1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env1Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
-        env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*5)>>8);
+        env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
         distortionAmount = (voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern))<<7;
     }
@@ -386,7 +392,8 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         // only set shape on initial trigger
         osc.set_shape(voiceData.GetShape());
         enable_env = true;
-        osc.set_pitch(note<<7);
+        pitch = note<<7;
+        osc.set_pitch(pitch);
         instrumentType = voiceData.GetInstrumentType();
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);

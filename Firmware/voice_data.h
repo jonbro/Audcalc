@@ -30,11 +30,13 @@ enum SyncOutMode {
 };
 
 enum EnvTargets {
-    Target_Volume = 0,
-    Target_Timbre = 1,
-    Target_Color = 2,
-    Target_Cutoff = 3,
-    Target_Resonance = 4
+    Target_Volume,
+    Target_Timbre,
+    Target_Color,
+    Target_Cutoff,
+    Target_Resonance,
+    Target_Pitch,
+    Target_Count
 };
 enum ParamType {
     Timbre = 0,
@@ -241,9 +243,9 @@ class VoiceData
         uint8_t lfoDepth = 0;
 
         uint8_t env1Target = 0;
-        uint8_t env1Depth = 0;
+        uint8_t env1Depth = 0x7f;
         uint8_t env2Target = 0;
-        uint8_t env2Depth = 0;
+        uint8_t env2Depth = 0x7f;
 
         // these are per pattern
         uint8_t rate[16];

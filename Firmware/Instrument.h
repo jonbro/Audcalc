@@ -104,6 +104,7 @@ class Instrument
         uint32_t sampleLength[16];
         int8_t playingMidiNotes[16];
         EnvTargets env1Target, env2Target;
+        int16_t pitch;
         q15_t env1Depth, env2Depth;
         q15_t distortionAmount;
         uint8_t currentMidiNote;
