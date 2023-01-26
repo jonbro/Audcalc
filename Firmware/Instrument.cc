@@ -163,19 +163,45 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         return;
     }
 
+
+    q15_t param1_withMods = param1Base;
+    q15_t param2_withMods = param2Base;
+    q15_t cutoffWithMods = mainCutoff;
+    q15_t pitchWithMods = pitch;
+    
+    q15_t lfo = mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
+    switch(lfo1Target)
+    {
+        case Target_Volume:
+            break;
+        case Target_Timbre:
+            param1_withMods = add_q15(param1_withMods, lfo);
+            break;
+        case Target_Color:
+            param2_withMods = add_q15(param2_withMods, lfo);
+            break;
+        case Target_Cutoff:
+            cutoffWithMods = add_q15(cutoffWithMods, lfo);
+            break;
+        case Target_Pitch:
+            pitchWithMods = pitchWithMods+(lfo>>4);
+            break;
+        default:
+            break;
+    }
+
     // could alternately use tick rate stuff. might be way better
     // fast 4bf0000
     // slow fffff
     // holy hell what the fuck is this code, seriously :0
     // should like, maybe, move this into some class or something :P 
-    lfo_phase += ((lfo_rate*(0x8bf0000-0xfffff))>>6)+0xfffff;
-    q15_t lfo = mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
+    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+    // 24ppq
+    lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
+    lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>7)+2);
+    //int32_t phaseOff = ((uint32_t)(0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7fffff; 
+    lfo_phase += lfoPhaseIncrement;//((0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7ffff; //((lfo_rate*(0xabf0000-0xfffff))>>4)+0xfffff;
 
-    q15_t param1_withMods = param1Base;
-    param1_withMods = add_q15(lfo, param1Base);
-    q15_t param2_withMods = param2Base;
-    q15_t cutoffWithMods = mainCutoff;
-    q15_t pitchWithMods = pitch;
     for (size_t i = 0; i < 2; i++)
     {
         EnvTargets t = i==0?env1Target:env2Target;
@@ -282,6 +308,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
         env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
+        lfo1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Lfo1Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         distortionAmount = (voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern))<<7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)

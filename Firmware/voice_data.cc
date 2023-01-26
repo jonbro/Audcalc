@@ -55,6 +55,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case Env2Depth: return HasLockForStep(step, pattern, Env2Depth, value)?value:env2Depth;
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
+        case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:lfo1Target;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
         case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
@@ -119,6 +120,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 17: return env1Depth;
         case 18: return env2Target;
         case 19: return env2Depth;
+        case 20: return lfo1Target;
+        case 21: return lfo1Delay;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
     }
@@ -350,14 +353,32 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 9:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                if(HasLockForStep(step, pattern, 18, valB))
+                if(HasLockForStep(step, pattern, 18, valA))
                 {
-                    sprintf(pA, "%s", envTargets[(((uint16_t)valB)*Target_Count) >> 8]);
+                    sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
                     lockA = true;
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)env2Target)*Target_Count)>>8]);
                 if(HasLockForStep(step, pattern, 19, valB))
+                {
+                    sprintf(pB, "%i", (valB-0x80));
+                    lockB = true;
+                }
+                else
+                    sprintf(pB, "%i", (env2Depth-0x80));
+                return;
+            case 10:
+                sprintf(strA, "Trgt");
+                sprintf(strB, "Dely");
+                if(HasLockForStep(step, pattern, 20, valB))
+                {
+                    sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
+                    lockA = true;
+                }
+                else
+                    sprintf(pA, "%s", envTargets[(((uint16_t)lfo1Target)*Target_Count)>>8]);
+                if(HasLockForStep(step, pattern, 21, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;

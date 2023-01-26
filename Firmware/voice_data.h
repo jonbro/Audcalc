@@ -58,6 +58,7 @@ enum ParamType {
     Env1Depth = 17,
     Env2Target = 18,
     Env2Depth = 19,
+    Lfo1Target = 20,
     Length = 24,
     DelaySend = 28, // all three of these are on the same location
     ReverbSend = 29
@@ -241,6 +242,8 @@ class VoiceData
         uint8_t decayTime2 = 0x20;
         uint8_t lfoRate = 0;
         uint8_t lfoDepth = 0;
+        uint8_t lfo1Target = 0;
+        uint8_t lfo1Delay = 0;
 
         uint8_t env1Target = 0;
         uint8_t env1Depth = 0x7f;
