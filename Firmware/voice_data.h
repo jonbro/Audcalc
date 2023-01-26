@@ -160,53 +160,17 @@ class VoiceData
         {
             return length[pattern]/4+1;
         }
-        void StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
-        {
-            ParamLock *lock = GetLockForStep(0x80|step, pattern, param);
-            if(lock != ParamLockPool::NullLock())
-            {
-                lock->value = value;
-                // printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
-                return;
-            }
-            if(lockPool.GetFreeParamLock(&lock))
-            {
-                if(lock == ParamLockPool::NullLock() || !lockPool.validLock(lock))
-                {
-                    // printf("out of lock space\n failed to add new lock");
-                    return;
-                }
-                // printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
-                lock->param = param;
-                lock->step = step;
-                lock->value = value;
-                lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
-                locksForPattern[pattern] = lock;
-                // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
-                return;
-            }
-            // printf("failed to add param lock\n");
-        }
-        void ClearParameterLocks(uint8_t pattern)
-        {
-            ParamLock* lock = locksForPattern[pattern];
-            while(lock != ParamLockPool::NullLock())
-            {
-                ParamLock* nextLock = lockPool.GetLock(lock->next);
-                lockPool.FreeLock(lock);
-                lock = nextLock;
-            }
-            locksForPattern[pattern] = ParamLockPool::NullLock();
-        }
-        void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
-        {
-            ParamLock* lock = locksForPattern[fromPattern];
-            while(lock != ParamLockPool::NullLock())
-            {
-                StoreParamLock(lock->param, lock->step, toPattern, lock->value);
-                lock = lockPool.GetLock(lock->next);
-            }
-        }
+        
+        void StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value);
+        void ClearParameterLocks(uint8_t pattern);
+        void RemoveLocksForStep(uint8_t pattern, uint8_t step);
+        void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern);
+        bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value);
+        bool HasAnyLockForStep(uint8_t step, uint8_t pattern);
+        ParamLock* GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param);
+
+        bool LockableParam(uint8_t param);
+        
         void SetNextRequestedStep(uint8_t step)
         {
             nextRequestedStep = step | 0x80;
@@ -215,36 +179,6 @@ class VoiceData
         {
             nextRequestedStep = 0;
         }
-        bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
-        {
-            if(step>>7==0)
-                return false;
-            ParamLock* lock = GetLockForStep(step, pattern, param);
-            if(lock != ParamLockPool::NullLock())
-            {
-                value = lock->value;
-                return true;
-            }
-            return false;
-        }
-
-        ParamLock* GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param)
-        {
-            if(step>>7==0)
-                return ParamLockPool::NullLock();
-            ParamLock* lock = locksForPattern[pattern];
-            while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
-            {
-                if(lock->param == param && lock->step == (step&0x7f))
-                {
-                    return lock;
-                }
-                lock = lockPool.GetLock(lock->next);
-            }
-            return ParamLockPool::NullLock();
-        }
-
-        bool LockableParam(uint8_t param);
         
         static void SerializeStatic(Serializer &s);
         static void DeserializeStatic(Serializer &s);

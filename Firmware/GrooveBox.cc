@@ -53,7 +53,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
         }
         patterns[i].globalVoiceData = &patterns[15];
     }
-
+    printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
 
     // we do this in a second pass so the
@@ -611,7 +611,15 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             }
             else if(GetTrigger(currentVoice, i+16*editPage[currentVoice])>=0)
             {
-                color[key] = urgb_u32(100, 60, 200);
+                // has a parameter lock
+                if(patterns[currentVoice].HasAnyLockForStep(0x80|(i+16*editPage[currentVoice]), GetCurrentPattern()))
+                {
+                    color[key] = urgb_u32(180, 60, 220);
+                }
+                else
+                {
+                    color[key] = urgb_u32(100, 60, 200);
+                }
             }
         }
 
@@ -863,8 +871,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             ResetADCLatch();
             if(GetTrigger(currentVoice, sequenceStep+editPage[currentVoice]*16)>=0)
             {
-                if(!parameterLocked)
+                if(!parameterLocked){
                     patterns[currentVoice].notes[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = 0;
+                    patterns[currentVoice].RemoveLocksForStep(GetCurrentPattern(), sequenceStep);
+                }
             }
             else
             {

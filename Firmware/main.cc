@@ -406,6 +406,7 @@ int main()
     adc_init();
     adc_gpio_init(26);
     adc_gpio_init(27);
+    adc_gpio_init(28);
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 

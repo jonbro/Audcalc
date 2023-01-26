@@ -500,6 +500,122 @@ void VoiceData::DeserializeStatic(Serializer &s)
 }
 
 
+/* PARAMETER LOCK BEHAVIOR */
+void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
+{
+    ParamLock *lock = GetLockForStep(0x80|step, pattern, param);
+    if(lock != ParamLockPool::NullLock())
+    {
+        lock->value = value;
+        // printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
+        return;
+    }
+    if(lockPool.GetFreeParamLock(&lock))
+    {
+        if(lock == ParamLockPool::NullLock() || !lockPool.validLock(lock))
+        {
+            // printf("out of lock space\n failed to add new lock");
+            return;
+        }
+        // printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
+        lock->param = param;
+        lock->step = step;
+        lock->value = value;
+        lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
+        locksForPattern[pattern] = lock;
+        // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
+        return;
+    }
+    // printf("failed to add param lock\n");
+}
+void VoiceData::ClearParameterLocks(uint8_t pattern)
+{
+    ParamLock* lock = locksForPattern[pattern];
+    while(lock != ParamLockPool::NullLock())
+    {
+        ParamLock* nextLock = lockPool.GetLock(lock->next);
+        lockPool.FreeLock(lock);
+        lock = nextLock;
+    }
+    locksForPattern[pattern] = ParamLockPool::NullLock();
+}
+void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
+{
+    ParamLock* lock = locksForPattern[pattern];
+    ParamLock* lastLock = lock;
+    while(lock != ParamLockPool::NullLock())
+    {
+        ParamLock* nextLock = lockPool.GetLock(lock->next);
+        if(lock->step == step)
+        {
+            lastLock->next = lock->next;
+            lockPool.FreeLock(lock);
+            if(lock == locksForPattern[pattern])
+            {
+                locksForPattern[pattern] = nextLock;
+            }
+        }
+        else
+        {
+            lastLock = lock;
+        }
+        lock = nextLock;
+    }
+}
+void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
+{
+    ParamLock* lock = locksForPattern[fromPattern];
+    while(lock != ParamLockPool::NullLock())
+    {
+        StoreParamLock(lock->param, lock->step, toPattern, lock->value);
+        lock = lockPool.GetLock(lock->next);
+    }
+}
+bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
+{
+    if(step>>7==0)
+        return false;
+    ParamLock* lock = GetLockForStep(step, pattern, param);
+    if(lock != ParamLockPool::NullLock())
+    {
+        value = lock->value;
+        return true;
+    }
+    return false;
+}
+bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
+{
+    if(step>>7==0)
+        return false;
+    ParamLock* lock = locksForPattern[pattern];
+    while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
+    {
+        if(lock->step == (step&0x7f))
+        {
+            return true;
+        }
+        lock = lockPool.GetLock(lock->next);
+    }
+    return false;
+}
+ParamLock* VoiceData::GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param)
+{
+    if(step>>7==0)
+        return ParamLockPool::NullLock();
+    ParamLock* lock = locksForPattern[pattern];
+    while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
+    {
+        if(lock->param == param && lock->step == (step&0x7f))
+        {
+            return lock;
+        }
+        lock = lockPool.GetLock(lock->next);
+    }
+    return ParamLockPool::NullLock();
+}
+
+
+
 void TestVoiceData()
 {
     VoiceData voiceData;

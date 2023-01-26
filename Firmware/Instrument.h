@@ -68,7 +68,9 @@ class Instrument
         int16_t lastSample;
         uint8_t microFade;
         // stores the step & pattern this voice was triggered on for looking up parameter locks
-        uint8_t playingStep, playingPattern;
+        // must be initialized so we don't send junk data to the parameter lookup
+        uint8_t playingStep = 0;
+        uint8_t playingPattern = 0;
         EnvelopeSegment currentSegment;
         uint8_t attackTime, holdTime, decayTime;
         int8_t envTimbre = 0, envColor = 0;
