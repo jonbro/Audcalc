@@ -490,7 +490,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         {
             erasing = true;
             Serialize();
-            reset_usb_boot(0, 0);
+            hardware_shutdown();
         }
         return;
     }

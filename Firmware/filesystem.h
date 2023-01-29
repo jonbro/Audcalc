@@ -298,7 +298,7 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
     return -1;
 }
 
-FFS_DEF int ffs_erase(ffs_filesystem *fs, ffs_file *file)
+FFS_DEF int __not_in_flash_func(ffs_erase)(ffs_filesystem *fs, ffs_file *file)
 {
     // find any blocks that have this file in them and remove
     uint32_t block_offset = 0;

@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#ifndef WS2812_H_
+#define WS2812_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,3 +70,4 @@ void ws2812_trigger();
 #ifdef __cplusplus
 }
 #endif
+#endif // WS2812_H_

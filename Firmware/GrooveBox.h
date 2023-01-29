@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/time.h"
-#include <pico/bootrom.h>
 
 #include "Instrument.h"
 extern "C" {

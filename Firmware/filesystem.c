@@ -10,7 +10,7 @@ int file_read(uint32_t offset, size_t size, void *buffer)
     memcpy(buffer, flash_start+offset, size);
     return 0;
 }
-int file_write(uint32_t offset, size_t size, void *buffer)
+int __not_in_flash_func(file_write)(uint32_t offset, size_t size, void *buffer)
 {
     bool lockedOut = multicore_lockout_start_timeout_us(500);
     uint32_t ints = save_and_disable_interrupts();
@@ -21,10 +21,10 @@ int file_write(uint32_t offset, size_t size, void *buffer)
     return 0;
 }
 
-int file_erase(uint32_t offset, size_t size)
+int __not_in_flash_func(file_erase)(uint32_t offset, size_t size)
 {
-    //printf("ERASE: %p, %d\n", (intptr_t)addr - (intptr_t)XIP_BASE, c->block_size);
-    bool lockedout = multicore_lockout_start_timeout_us(500);
+    //printf("ERASE: %p, %d\n", FS_START + offset, size);
+    bool lockedout = multicore_lockout_start_timeout_us(50);
     uint32_t ints = save_and_disable_interrupts();
     // // re-enable the audio related interrupts so we don't mess up the dac
     irq_set_enabled(DMA_IRQ_0, true);
@@ -32,7 +32,7 @@ int file_erase(uint32_t offset, size_t size)
     flash_range_erase(FS_START + offset,size);
     restore_interrupts(ints);
     if(lockedout)
-        multicore_lockout_end_timeout_us(500);
+        multicore_lockout_end_timeout_us(50);
     return 0;
 }
 ffs_filesystem filesystem;

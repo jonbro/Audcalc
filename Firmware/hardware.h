@@ -2,12 +2,22 @@
 #define HARDWARE_H_
 #include "pico/stdlib.h"
 #include "tlv320driver.h"
+#include "hardware/watchdog.h"
+#include "pico/bootrom.h"
+#include "ws2812.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void hardware_init();
+void hardware_input_init();
+void hardware_shutdown();
+void hardware_reboot_usb();
+
+bool hardware_get_key_state(uint8_t x, uint8_t y);
+void hardware_get_all_key_state(uint32_t *keystate);
+
 
 void hardware_set_amp(bool amp_state);
 void hardware_set_amp_force(bool amp_state, bool force);
