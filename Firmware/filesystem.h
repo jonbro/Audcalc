@@ -23,6 +23,7 @@ very limited file system, but I have different requirements:
 
 #define BLOCK_SIZE 0x1000
 #define EMPTY_JUMP_PAGE 0xffffffff
+extern const uint8_t *flash_start;
 
 typedef struct
 {
@@ -32,17 +33,6 @@ typedef struct
     uint32_t offset;
     uint32_t size;
 } ffs_cfg;
-
-typedef struct
-{
-    bool        initialized;
-    uint16_t    object_id;
-    
-    uint32_t    filesize;
-    uint32_t    logical_read_offset; // where we are in the file (disconnected from physical address)
-    uint8_t     inblock_read_offset;
-    uint32_t    current_block;
-} ffs_file;
 
 typedef struct
 {
@@ -63,6 +53,20 @@ typedef struct
     uint8_t     initial_page;
     uint32_t    block_logical_start;
 } ffs_blockheader;
+
+
+typedef struct
+{
+    bool             initialized;
+    uint16_t         object_id;
+    
+    uint32_t         filesize;
+    uint32_t         logical_read_offset; // where we are in the file (disconnected from physical address)
+    uint8_t          inblock_read_offset;
+    uint32_t         current_block;
+    ffs_blockheader* current_blockheader;
+} ffs_file;
+
 
 
 /* each block contains
@@ -355,8 +359,8 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     }
     // load blockheader
     ffs_blockheader blockHeader;
-
     fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
+    file->current_blockheader = (ffs_blockheader*)flash_start+file->current_block;
 
     if(position >= blockHeader.block_logical_start)
     {
@@ -374,6 +378,7 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
             {
                 file->current_block = blockHeader.jump_page;
                 fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
+                file->current_blockheader = (ffs_blockheader*)flash_start+file->current_block;
                 if(position-blockHeader.block_logical_start < 256*15)
                 {
                     // if the read position is within the current block, we can just move things forward
@@ -393,6 +398,7 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         {
             file->current_block = blockHeader.prior_block;
             fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
+            file->current_blockheader = (ffs_blockheader*)flash_start+file->current_block;
             if(position-blockHeader.block_logical_start < 256*15)
             {
                 // if the read position is within the current block, we can just move things forward
