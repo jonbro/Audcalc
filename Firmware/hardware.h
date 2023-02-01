@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "tlv320driver.h"
 #include "hardware/watchdog.h"
+#include "hardware/adc.h"
 #include "pico/bootrom.h"
 #include "ws2812.h"
 
@@ -18,10 +19,10 @@ void hardware_reboot_usb();
 bool hardware_get_key_state(uint8_t x, uint8_t y);
 void hardware_get_all_key_state(uint32_t *keystate);
 
-
 void hardware_set_amp(bool amp_state);
 void hardware_set_amp_force(bool amp_state, bool force);
-
+uint8_t hardware_get_battery_level();
+void hardware_update_battery_level();
 void hardware_set_mic(bool mic_state);
 bool hardware_line_in_detected();
 bool hardware_headphone_detected();

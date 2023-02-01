@@ -8,7 +8,7 @@
 #include "ADSREnvelope.h"
 #include "filesystem.h"
 #include "voice_data.h"
-
+#include "GlobalData.h"
 using namespace braids;
 
 enum InstrumentParameter {
@@ -56,7 +56,7 @@ class Instrument
         MacroOscillator osc;
         uint8_t delaySend = 0;
         uint8_t reverbSend = 0;
-        VoiceData *globalParams;
+        GlobalData *globalData;
         q15_t pWithMods;
 
     private: 

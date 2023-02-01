@@ -72,17 +72,11 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     }
     if(param == 28)
     {
-        return effectEditTarget;
+        return delaySend;
     }
     if(param == 29)
     {
-        switch((effectEditTarget-1)/127)
-        {
-            case 0:
-                return delaySend;
-            default:
-                return reverbSend;
-        }
+        return reverbSend;
     }
     if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
     {
@@ -182,16 +176,6 @@ const char *syncInStrings[4] = {
     "VL",
 };
 
-const char *syncOutStrings[6] = { 
-    "none",
-    "midi",
-    "m+PO",
-    "m+24",
-    "PO",
-    "24pq"
-};
-
-
 const char *envTargets[6] = { 
     "Vol",
     "Timb",
@@ -221,19 +205,10 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     switch(param)
     {
         case 14:
-            sprintf(strA, "FX");
-            sprintf(strB, "Snd");
-            switch((effectEditTarget-1)/127)
-            {
-                case 0:
-                    sprintf(pA, "Dely");
-                    lockB = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pB);
-                    break;
-                default:
-                    sprintf(pA, "Verb");
-                    lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
-                    break;
-            }
+            sprintf(strA, "Dely");
+            sprintf(strB, "Verb");
+            lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pA);
+            lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
             return;
         case 16:
             sprintf(strA, "Bpm");
@@ -246,12 +221,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     {
         switch (param)
         {
-            case 0:
-                sprintf(strA, "Bpm");
-                sprintf(strB, "");
-                sprintf(pA, "%i", (bpm+1));
-                sprintf(pB, "");
-                return;
             case 1:
                 sprintf(strA, "Spkr");
                 sprintf(strB, "");
@@ -263,12 +232,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strB, "");
                 sprintf(pA, chromatic>0x7f?"On":"Off");
                 sprintf(pB, "");
-                return;
-            case 4:
-                sprintf(strA, "SIn");
-                sprintf(strB, "SOut");
-                sprintf(pA,syncInStrings[(syncIn*0)>>8]); // todo: make this allow for more than "None"
-                sprintf(pB,syncOutStrings[(syncOut*6)>>8]);
                 return;
             case 12:
                 sprintf(strA, "Chng");
@@ -370,7 +333,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 return;
             case 10:
                 sprintf(strA, "Trgt");
-                sprintf(strB, "Dely");
+                sprintf(strB, "");
                 if(HasLockForStep(step, pattern, 20, valB))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
@@ -495,23 +458,71 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         }
     }
 }
+uint8_t head_map[] = {
+  0x00, 0x00, 0x00, 0x00, 
+  0x00, 0x3f, 0xfc, 0x00, 
+  0x01, 0xff, 0xff, 0x80, 
+  0x0f, 0x00, 0x03, 0xf0, 
+  0x10, 0x00, 0x00, 0x18, 
+  0x20, 0xe0, 0x07, 0x0c, 
+  0x61, 0xf0, 0x0f, 0x8e, 
+  0x60, 0xe0, 0x07, 0x0e, 
+  0x60, 0x00, 0x00, 0x0e, 
+  0x60, 0x20, 0x10, 0x0e, 
+  0x20, 0x30, 0x30, 0x1c, 
+  0x1c, 0x1f, 0xe0, 0x38, 
+  0x0f, 0x00, 0x00, 0x70, 
+  0x01, 0xff, 0xff, 0xc0, 
+  0x00, 0x3f, 0xfc, 0x00, 
+  0x00, 0x00, 0x00, 0x00, 
+};
 
 void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    bool lockA = false, lockB = false;
-    GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB);
-    if(lockA)
-        ssd1306_draw_square_rounded(disp, column4, 0, width, 15);
-    if(lockB)
-        ssd1306_draw_square_rounded(disp, column4, 17, width, 15);
-    ssd1306_draw_string_gfxfont(disp, column4+3, 12, str+32, !lockA, 1, 1, &m6x118pt7b);
-    ssd1306_draw_string_gfxfont(disp, column4+3, 17+12, str+48, !lockB, 1, 1, &m6x118pt7b);
-    
-    ssd1306_draw_string_gfxfont(disp, column4-33, 12, str, true, 1, 1, &m6x118pt7b);    
-    ssd1306_draw_string_gfxfont(disp, column4-33, 17+12, str+16, true, 1, 1, &m6x118pt7b);
+    if(param == 7 || param == 11)
+    {
+        // lol
+        uint8_t x = 0;
+        uint8_t y = 0;
+        for(int i=0;i<64;i++)
+        {
+            for(int b=0;b<8;b++)
+            {
+                if((head_map[i]&(0x1<<(7-b))) > 0)
+                {
+                    ssd1306_draw_pixel(disp, x+column4, y);
+                }
+                else
+                {
+                    ssd1306_clear_pixel(disp, x+column4, y);
+                }
+                x++;
+                if(x>=32)
+                {
+                    x = 0;
+                    y++;
+                }
+            }
+        }
+
+    }
+    else
+    {
+        bool lockA = false, lockB = false;
+        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB);
+        if(lockA)
+            ssd1306_draw_square_rounded(disp, column4, 0, width, 15);
+        if(lockB)
+            ssd1306_draw_square_rounded(disp, column4, 17, width, 15);
+        ssd1306_draw_string_gfxfont(disp, column4+3, 12, str+32, !lockA, 1, 1, &m6x118pt7b);
+        ssd1306_draw_string_gfxfont(disp, column4+3, 17+12, str+48, !lockB, 1, 1, &m6x118pt7b);
+        
+        ssd1306_draw_string_gfxfont(disp, column4-33, 12, str, true, 1, 1, &m6x118pt7b);    
+        ssd1306_draw_string_gfxfont(disp, column4-33, 17+12, str+16, true, 1, 1, &m6x118pt7b);
+    }
 }
 
 void VoiceData::SerializeStatic(Serializer &s)

@@ -20,7 +20,7 @@ int16_t temp_buffer[SAMPLES_PER_BUFFER];
 
 void GrooveBox::CalculateTempoIncrement()
 {
-    tempoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+    tempoPhaseIncrement = lut_tempo_phase_increment[globalData.bpm];
     // 24ppq
     tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
     // tempoPhaseIncrement >>= 1;
@@ -36,22 +36,12 @@ GrooveBox::GrooveBox(uint32_t *_color)
     for(int i=0;i<VOICE_COUNT;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
-        instruments[i].globalParams = &patterns[15];
+        instruments[i].globalData = &globalData;
     }
+    globalData.bpm = 119;
     for(int i=0;i<16;i++)
     {
-        if(i==15)
-        {
-            patterns[i].SetInstrumentType(INSTRUMENT_GLOBAL);
-            globalParams = &patterns[i];
-            globalParams->InitializeGlobals();
-            globalParams->bpm = 120;
-        }
-        else
-        {
-            patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
-        }
-        patterns[i].globalVoiceData = &patterns[15];
+        patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
@@ -234,7 +224,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
             if(tempoPulse)
             {
-                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.TimingClock();
                 
                 // advance chain if the global pattern just overflowed on the last beat counter
@@ -249,23 +239,25 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     }
                 }
 
-                // skip the last one, since the global can't be sequenced
-                for(int v=0;v<17;v++)
+                // two extra counters
+                // 17: the pattern change counter
+                // 18: the sync output counter
+                for(int v=0;v<18;v++)
                 {
                     bool needsTrigger = beatCounter[v]==0;
                     beatCounter[v]++;
 
-                    // global pattern always uses 16th notes
+                    // global pattern (pattern change counter) always uses 16th notes
                     uint8_t rate = 0;
                     switch(v)
                     {
-                        case 15:
+                        case 16:
                             rate = 2;
                             break;
-                        case 16:
-                            if((globalParams->GetSyncOutMode() & SyncOutModePO) > 0)
+                        case 17:
+                            if((globalData.GetSyncOutMode() & SyncOutModePO) > 0)
                                 rate = 4;
-                            else if((globalParams->GetSyncOutMode() & SyncOutMode24) > 0)
+                            else if((globalData.GetSyncOutMode() & SyncOutMode24) > 0)
                                 rate = 7;
                             else
                                 rate = 0;
@@ -302,12 +294,12 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     }
                     if(!needsTrigger)
                         continue;
-                    if(v==16){
+                    if(v==17){
                         sync_count = 6;
                         continue;
                     }
                     // never trigger for the global pattern
-                    int requestedNote = (v==15||v==16)?-1:GetTrigger(v, patternStep[v]);
+                    int requestedNote = (v==16||v==17)?-1:GetTrigger(v, patternStep[v]);
                     if(requestedNote >= 0)
                     {
                         hadTrigger = hadTrigger|(1<<v);
@@ -322,7 +314,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
         }
     }
-    if(sync_count > 0 && (globalParams->GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
+    if(sync_count > 0 && (globalData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
@@ -438,6 +430,7 @@ bool GrooveBox::IsPlaying()
 }
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
+    drawCount++;
     // if(sampleCount > 500)
     // {
     //     renderTime /= sampleCount;
@@ -492,6 +485,15 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             Serialize();
             hardware_shutdown();
         }
+        return;
+    }
+    else if(hardware_get_battery_level() < 115)
+    {
+        sprintf(str, "Low Battery!");
+        if((drawCount % 90) < 45)
+            ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        sprintf(str, "Save and charge.");
+        ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
     else if(clearTime == 0 && patternSelectMode && holdingEscape)
@@ -556,10 +558,17 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else
     {
-        uint8_t paramLockSignal = storingParamLockForStep;
-        if(holdingWrite)
-            paramLockSignal = 0x80|(0x7f&patternStep[currentVoice]);
-        patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), paramLockSignal);
+        if(selectedGlobalParam)
+        {
+            globalData.DrawParamString(param, GetCurrentPattern(), str);
+        }
+        else
+        {
+            uint8_t paramLockSignal = storingParamLockForStep;
+            if(holdingWrite)
+                paramLockSignal = 0x80|(0x7f&patternStep[currentVoice]);
+            patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), paramLockSignal);
+        }
     }
     uint8_t fade_speed = 0xaf;
     if(holdingMute)
@@ -663,20 +672,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         color[19] = urgb_u32(0, 0, 0);
     }
     // update various slow hardware things
-    hardware_set_amp(globalParams->amp_enabled>0x7f);
     playThroughEnabled = hardware_line_in_detected();
     hardware_set_mic(!playThroughEnabled);
         
-    // if(hardware_line_in_detected()){
-    //     ssd1306_draw_square(p, 0, 0, 10, 10);
-    // }
-    // if(hardware_headphone_detected()){
-    //     ssd1306_draw_square(p, 10, 0, 10, 10);
-    // }
-
-    // input level monitor
-    // ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
-    // draw the current page within the pattern that we are editing 
     for (size_t i = 0; i < 4; i++)
     {
         if((i+1) > ((patterns[currentVoice].GetLength(GetCurrentPattern())-1)/16+1))
@@ -693,7 +691,21 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 
     ssd1306_draw_square(p, 0, 0, param>>8, 1);
 }
-
+void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
+{
+    uint8_t& current_a = globalData.GetParam(param*2, GetCurrentPattern());
+    uint8_t& current_b = globalData.GetParam(param*2+1, GetCurrentPattern());
+    if(paramSetA)
+    {
+        current_a = a;
+        lastAdcValA = a;
+    }
+    if(paramSetB)
+    {
+        current_b = b;
+        lastAdcValB = b;
+    }
+}
 void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
 {
     if(needsInitialADC)
@@ -738,6 +750,8 @@ void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
             }
         }
     }
+    if(selectedGlobalParam)
+        return SetGlobalParameter(a, b, paramSetA, paramSetB);
     // live param recording
     if(holdingWrite)
     {
@@ -934,6 +948,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(sequenceStep != param)
                 paramSetA = paramSetB = false;
             param = sequenceStep;
+            selectedGlobalParam = false;
         }
         else if(holdingMute)
         {
@@ -1006,9 +1021,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         if(paramSelectMode)
         {
             // just hardcode for now
-            if(param != 16)
+            if(param != x+y*5)
                 paramSetA = paramSetB = false;
-            param = 16;
+            selectedGlobalParam = true;
+            param = x+y*5;
         } 
         else if(holdingWrite)
         {
@@ -1016,7 +1032,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(!playing)
             {
                 playing = true;
-                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                 {
                     midi.StopSequence();
                     midi.StartSequence();
@@ -1035,13 +1051,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             playing = !playing;
             if(playing)
             {
-                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.StartSequence();
                 ResetPatternOffset();
             }
             else
             {
-                if((globalParams->GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.StopSequence();
             }
         }
@@ -1085,14 +1101,24 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     // pattern select
     if(x==1 && y==0)
     {
-        if(holdingEscape && pressed)
+        if(pressed && paramSelectMode)
         {
-            clearTime = 180*2;
+            if(param != x+y*5)
+                paramSetA = paramSetB = false;
+            selectedGlobalParam = true;
+            param = x+y*5;
         }
-        patternSelectMode = pressed;
-        if(pressed)
+        else
         {
-            nextPatternSelected = false;
+            if(holdingEscape && pressed)
+            {
+                clearTime = 180*2;
+            }
+            patternSelectMode = pressed;
+            if(pressed)
+            {
+                nextPatternSelected = false;
+            }
         }
     }
 
@@ -1103,7 +1129,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     }
 }
 #define SAVE_SIZE 16*16*16
-#define SAVE_VERSION 13
+#define SAVE_VERSION 15
 void GrooveBox::Serialize()
 {
     Serializer s;
@@ -1125,6 +1151,14 @@ void GrooveBox::Serialize()
     }
     // save the parameter locks
     VoiceData::SerializeStatic(s);
+    
+    patternReader = (uint8_t*)&globalData;
+    for (size_t i = 0; i < sizeof(GlobalData); i++)
+    {
+        s.AddData(*patternReader);
+        patternReader++;
+    }
+
 
     s.Finish();
     printf("serialized file size %i\n", s.writeFile.filesize);
@@ -1147,6 +1181,14 @@ void GrooveBox::Deserialize()
         *patternReader = s.GetNextValue();
         patternReader++;
     }
+    
     VoiceData::DeserializeStatic(s);
+    patternReader = (uint8_t*)&globalData;
+    for (size_t i = 0; i < sizeof(GlobalData); i++)
+    {
+        *patternReader = s.GetNextValue();
+        patternReader++;
+    }
+
     printf("loaded filesize %i\n", s.writeFile.filesize);
 }

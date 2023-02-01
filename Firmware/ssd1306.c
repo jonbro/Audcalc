@@ -166,6 +166,7 @@ void ssd1306_draw_pixel(ssd1306_t *p, uint32_t x, uint32_t y) {
     p->buffer[x+p->width*(y>>3)]|=0x1<<(y&0x07); // y>>3==y/8 && y&0x7==y%8
 }
 
+
 void ssd1306_clear_pixel(ssd1306_t *p, uint32_t x, uint32_t y) {
 	if(x>=p->width || y>=p->height) return;
     x = 127-x;

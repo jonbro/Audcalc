@@ -14,6 +14,7 @@ extern "C" {
 #include "Serializer.h"
 #include "hardware.h"
 #include "voice_data.h"
+#include "GlobalData.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
 #include "Chorus.h"
@@ -30,6 +31,7 @@ class GrooveBox {
   int GetTrigger(uint voice, uint step);
   void UpdateDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint8_t a, uint8_t b);
+  void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
   bool IsPlaying();
   int GetNote();
   int GetNoteMidi();
@@ -74,10 +76,11 @@ class GrooveBox {
   uint8_t instrumentParamB[8];
   int needsNoteTrigger = -1;
   int drawY = 0;
+  uint16_t drawCount = 0;
   int lastNotePlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
-  uint8_t beatCounter[17] = {0};
+  uint8_t beatCounter[18] = {0};
   bool playing = false;
   bool writing = false;
   bool holdingWrite = false;
@@ -91,7 +94,7 @@ class GrooveBox {
   bool soundSelectMode = false;
   bool patternSelectMode = false;
   bool paramSelectMode = false;
-  
+  bool selectedGlobalParam = false;
   uint8_t param = 0;
   uint32_t *color;
   uint16_t hadTrigger = 0;
@@ -115,7 +118,7 @@ class GrooveBox {
   VoiceData patterns[16];
   VoiceData *Editing;
   VoiceData *Playing;
-
+  GlobalData globalData;
   Midi midi;
   uint16_t nextTrigger = 0;
   uint8_t lastAdcValA = 0;
@@ -124,7 +127,6 @@ class GrooveBox {
   Chorus chorus;
   Reverb2 verb;
   ffs_file files[16];
-  VoiceData *globalParams;
   int64_t renderTime = 0;
   int64_t sampleCount = 0;
 };

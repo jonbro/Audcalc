@@ -195,7 +195,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     // slow fffff
     // holy hell what the fuck is this code, seriously :0
     // should like, maybe, move this into some class or something :P 
-    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalData->bpm];
     // 24ppq
     lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
     lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>7)+2);
@@ -333,14 +333,14 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
     playingStep = step;
     playingPattern = pattern;
     int note = keyToMidi[key]+12*voiceData.GetOctave();
-    if(globalParams->chromatic > 0x7f)
-    {
-        uint8_t x = key%4;
-        uint8_t y = key/4;
-        y = 3-y;
-        int16_t inverseKey = x+y*4;
-        note = (inverseKey+50)+16*voiceData.GetOctave();
-    }
+    // if(globalData->chromatic > 0x7f)
+    // {
+    //     uint8_t x = key%4;
+    //     uint8_t y = key/4;
+    //     y = 3-y;
+    //     int16_t inverseKey = x+y*4;
+    //     note = (inverseKey+50)+16*voiceData.GetOctave();
+    // }
     if(midinote >= 0)
     {
         note = midinote;
@@ -373,7 +373,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
             }
             // compute the phase increment so it loops in 16 beats
             // first we need to know the number of samples in the loop?
-            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalParams->bpm];
+            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalData->bpm];
             // 24ppq
             tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
             uint32_t tempoPhase = 0;

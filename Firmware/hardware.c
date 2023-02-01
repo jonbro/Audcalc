@@ -9,7 +9,7 @@
 #define SUBSYSTEM_RESET_PIN 21
 
 static bool last_amp_state;
-
+static uint8_t battery_level;
 void hardware_init()
 {
     gpio_init(BLINK_PIN_LED);
@@ -93,6 +93,21 @@ void hardware_get_all_key_state(uint32_t *keyState)
             }
         }
     }
+}
+uint8_t hardware_get_battery_level()
+{
+    return battery_level;
+}
+void hardware_update_battery_level()
+{
+    adc_select_input(2);
+    printf("battery level: %i\n", battery_level);
+        
+        const float conversion_factor = 3.3f / (1 << 12);
+        uint16_t result = adc_read();
+        printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
+
+    battery_level = adc_read()>>4;
 }
 
 void hardware_shutdown()

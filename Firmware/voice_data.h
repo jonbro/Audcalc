@@ -22,12 +22,6 @@ enum InstrumentType {
   INSTRUMENT_DRUMS,
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
 };
-enum SyncOutMode { 
-    SyncOutModeNone = 0,
-    SyncOutModeMidi = 1 << 0,
-    SyncOutModePO   = 1 << 1,
-    SyncOutMode24   = 1 << 2,
-};
 
 enum EnvTargets {
     Target_Volume,
@@ -106,32 +100,6 @@ class VoiceData
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
         }
         
-        SyncOutMode GetSyncOutMode(){
-            uint8_t bareSyncMode = ((((uint16_t)syncOut)*6) >> 8);
-            SyncOutMode mode = SyncOutModeNone;
-            switch(bareSyncMode)
-            {
-                case 1:
-                    mode = SyncOutModeMidi;
-                    break;
-                case 2:
-                    mode = (SyncOutMode)(SyncOutModeMidi | SyncOutModePO);
-                    break;
-                case 3:
-                    mode = (SyncOutMode)(SyncOutModeMidi | SyncOutMode24);
-                    break;
-                // PO
-                case 4:
-                    mode = SyncOutModePO;
-                    break;
-                // Volca
-                case 5:
-                    mode = SyncOutMode24;
-                    break;
-            }
-            return mode;
-        }
-
         uint8_t GetSyncInMode(){
             return ((((uint16_t)syncIn)*4) >> 8);
         }

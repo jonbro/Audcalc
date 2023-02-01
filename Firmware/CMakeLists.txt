@@ -30,6 +30,7 @@ add_executable(tdm
         usb_descriptors.c
         GrooveBox.cc
         voice_data.cc
+        GlobalData.cc
         ParamLockPool.cpp
         Instrument.cc
         Midi.cc
@@ -43,7 +44,7 @@ add_executable(tdm
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
         audio/resources.cc
-        audio/random.cc
+        audio/random.cc 
         AudioSampleSecondbloop.cpp
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
