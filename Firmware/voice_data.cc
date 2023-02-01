@@ -341,13 +341,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)lfo1Target)*Target_Count)>>8]);
-                if(HasLockForStep(step, pattern, 21, valB))
-                {
-                    sprintf(pB, "%i", (valB-0x80));
-                    lockB = true;
-                }
-                else
-                    sprintf(pB, "%i", (env2Depth-0x80));
+                sprintf(pB, "");
                 return;
             case 12:
                 sprintf(strA, "Len");

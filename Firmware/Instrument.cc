@@ -75,6 +75,7 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
 #define SAMPLES_PER_BUFFER 128
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
+    
     if(instrumentType == INSTRUMENT_MIDI)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -86,84 +87,8 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             }
         }
         return;
-    } 
-    if(instrumentType == INSTRUMENT_SAMPLE)
-    {
-        uint32_t filesize = ffs_file_size(GetFilesystem(), file);
-        if(!file || filesize == 0 || sampleSegment == SMP_COMPLETE)
-        {
-            memset(buffer, 0, SAMPLES_PER_BUFFER*2);
-            return;
-        }
-        // double check the file length
-        if(!file->initialized || sampleOffset*2 > file->filesize)
-            sampleSegment = SMP_COMPLETE;
-        if(sampleSegment == SMP_COMPLETE)
-            return;
-
-        // this is too slow to do in the loop - which unfortunately makes
-        // handling higher octaves quite difficult
-        // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
-        int16_t wave[128*5] = {0}; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
-        ffs_seek(GetFilesystem(), file, sampleOffset*2);
-        // clamp the read amount to the maximum filesize
-        // todo: add a ffs_read that takes a per read stride, so I can fill this more easily, and don't need to load more than necessary
-        uint16_t readAmount = (sampleOffset*2+2*128*5)>filesize?filesize-sampleOffset*2:2*128*5;
-        ffs_read(GetFilesystem(), file, wave, readAmount);
-        uint32_t startingSampleOffset = sampleOffset;
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            if(sampleOffset > sampleEnd - 1)
-            {
-                if(loopMode == INSTRUMENT_LOOPMODE_NONE)
-                {
-                    sampleSegment = SMP_COMPLETE;
-                    return;
-                }
-                else
-                {
-                    while(sampleOffset*2 > filesize - 1)
-                    {
-                        sampleOffset -= filesize/2;
-                    }
-                }
-            }
-            // int16_t wave;
-            // ffs_seek(GetFilesystem(), file, sampleOffset*2);
-            // ffs_read(GetFilesystem(), file, wave, 2);
-
-            phase_ += phase_increment;
-            sampleOffset+=(phase_>>25);
-            phase_-=(phase_&(0xfe<<24));
-
-            buffer[i] = wave[sampleOffset-startingSampleOffset];
-            
-            if(microFade < 0xfa)
-            {
-                buffer[i] = (((int32_t)buffer[i]*microFade)>>8) + (((int32_t)(0xff-microFade)*(int32_t)lastSample)>>8);
-                microFade += 0xa;
-            }
-            else
-            {
-                lastSample = buffer[i];
-            }
-        }
-        svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
-        // I think this might be better for cache locality?
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            buffer[i] = svf.Process(buffer[i]);
-        }
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            lastenv2val = env2.Render();
-            q15_t envval = env.Render() >> 1;
-            buffer[i] = mult_q15(buffer[i], mult_q15(volume, envval));
-        }
-        return;
     }
-
-
+    
     q15_t param1_withMods = param1Base;
     q15_t param2_withMods = param2Base;
     q15_t cutoffWithMods = mainCutoff;
@@ -242,11 +167,87 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         cutoffWithMods = 0;
     }
     pWithMods = cutoffWithMods; 
+    svf.set_frequency(cutoffWithMods);
+
+    if(instrumentType == INSTRUMENT_SAMPLE)
+    {
+        uint32_t filesize = ffs_file_size(GetFilesystem(), file);
+        if(!file || filesize == 0 || sampleSegment == SMP_COMPLETE)
+        {
+            memset(buffer, 0, SAMPLES_PER_BUFFER*2);
+            return;
+        }
+        // double check the file length
+        if(!file->initialized || sampleOffset*2 > file->filesize)
+            sampleSegment = SMP_COMPLETE;
+        if(sampleSegment == SMP_COMPLETE)
+            return;
+
+        // this is too slow to do in the loop - which unfortunately makes
+        // handling higher octaves quite difficult
+        // one thing I could do is add a special read mode to change the stepping in the ffs_read to match the phase increment - i.e. read 1, skip 1 or something like this?
+        // int16_t wave[128*5] = {0}; // lets just get 5 octaves worth? thats only 2k, we should be able to spare it, lol
+        // ffs_seek(GetFilesystem(), file, sampleOffset*2);
+        // // clamp the read amount to the maximum filesize
+        // // todo: add a ffs_read that takes a per read stride, so I can fill this more easily, and don't need to load more than necessary
+        // uint16_t readAmount = (sampleOffset*2+2*128*5)>filesize?filesize-sampleOffset*2:2*128*5;
+        // ffs_read(GetFilesystem(), file, wave, readAmount);
+        uint32_t startingSampleOffset = sampleOffset;
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            if(sampleOffset > sampleEnd - 1)
+            {
+                if(loopMode == INSTRUMENT_LOOPMODE_NONE)
+                {
+                    sampleSegment = SMP_COMPLETE;
+                    return;
+                }
+                else
+                {
+                    while(sampleOffset*2 > filesize - 1)
+                    {
+                        sampleOffset -= filesize/2;
+                    }
+                }
+            }
+            int16_t wave;
+            ffs_seek(GetFilesystem(), file, sampleOffset*2);
+            ffs_read(GetFilesystem(), file, &wave, 2);
+
+            phase_ += phase_increment;
+            sampleOffset+=(phase_>>25);
+            phase_-=(phase_&(0xfe<<24));
+
+            buffer[i] = wave;//[sampleOffset-startingSampleOffset];
+            
+            if(microFade < 0xfa)
+            {
+                buffer[i] = (((int32_t)buffer[i]*microFade)>>8) + (((int32_t)(0xff-microFade)*(int32_t)lastSample)>>8);
+                microFade += 0xa;
+            }
+            else
+            {
+                lastSample = buffer[i];
+            }
+        }
+        // I think this might be better for cache locality?
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            buffer[i] = svf.Process(buffer[i]);
+        }
+        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        {
+            lastenv2val = env2.Render();
+            q15_t envval = env.Render() >> 1;
+            buffer[i] = mult_q15(buffer[i], mult_q15(volume, envval));
+        }
+        return;
+    }
+
     osc.set_pitch(pitchWithMods);
     osc.set_parameter_1(param1_withMods);
     osc.set_parameter_2(param2_withMods);
     osc.Render(sync, buffer, size);
-    svf.set_frequency(cutoffWithMods);
     RenderGlobal(sync, buffer, size);
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)

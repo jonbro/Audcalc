@@ -228,7 +228,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     midi.TimingClock();
                 
                 // advance chain if the global pattern just overflowed on the last beat counter
-                if(beatCounter[15]==0 && patternStep[15] == 0)
+                if(beatCounter[16]==0 && patternStep[16] == 0)
                 {
                     chainStep = (++chainStep)%patternChainLength;
                     // if we are moving to a new pattern, reset all the steps to zero
@@ -675,6 +675,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     playThroughEnabled = hardware_line_in_detected();
     hardware_set_mic(!playThroughEnabled);
         
+
+    // input level monitor
+    // ssd1306_draw_line(p, 0, 0, last_input>>8, 0);
+    // draw the current page within the pattern that we are editing 
     for (size_t i = 0; i < 4; i++)
     {
         if((i+1) > ((patterns[currentVoice].GetLength(GetCurrentPattern())-1)/16+1))

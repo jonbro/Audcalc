@@ -101,7 +101,7 @@ class GrooveBox {
   // defaults to allow all playback
   uint16_t allowPlayback = 0xffff;
   // each sound can be on a different step through the pattern, we should track these
-  uint8_t patternStep[16] = {0};
+  uint8_t patternStep[17] = {0};
 
   // the page we are currently editing for each sound
   // clamped to the length of this pattern / sound
