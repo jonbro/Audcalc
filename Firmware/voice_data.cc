@@ -476,7 +476,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 7 || param == 11)
+    if(param == 7 || param == 11 || param == 13)
     {
         // lol
         uint8_t x = 0;

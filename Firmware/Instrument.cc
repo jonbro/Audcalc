@@ -181,7 +181,13 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         if(!file->initialized || sampleOffset*2 > file->filesize)
             sampleSegment = SMP_COMPLETE;
         if(sampleSegment == SMP_COMPLETE)
+        {
+            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            {
+                buffer[i] = 0;
+            }
             return;
+        }
 
         // this is too slow to do in the loop - which unfortunately makes
         // handling higher octaves quite difficult
@@ -200,7 +206,8 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 if(loopMode == INSTRUMENT_LOOPMODE_NONE)
                 {
                     sampleSegment = SMP_COMPLETE;
-                    return;
+                    buffer[i] = 0;
+                    continue;
                 }
                 else
                 {
@@ -222,13 +229,13 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             
             if(microFade < 0xfa)
             {
-                buffer[i] = (((int32_t)buffer[i]*microFade)>>8) + (((int32_t)(0xff-microFade)*(int32_t)lastSample)>>8);
+                buffer[i] = (((int32_t)buffer[i]*microFade)>>8);
                 microFade += 0xa;
             }
-            else
-            {
-                lastSample = buffer[i];
-            }
+            // else
+            // {
+            //     lastSample = buffer[i];
+            // }
         }
         // I think this might be better for cache locality?
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -239,7 +246,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             lastenv2val = env2.Render();
             q15_t envval = env.Render() >> 1;
-            buffer[i] = mult_q15(buffer[i], mult_q15(volume, envval));
+            buffer[i] = mult_q15(volume, mult_q15(buffer[i], envval));
         }
         return;
     }

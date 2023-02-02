@@ -6,10 +6,12 @@
 #include "hardware/adc.h"
 #include "pico/bootrom.h"
 #include "ws2812.h"
+#include "ssd1306.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+extern ssd1306_t disp;
 
 void hardware_init();
 void hardware_input_init();

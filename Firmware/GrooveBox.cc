@@ -50,8 +50,6 @@ GrooveBox::GrooveBox(uint32_t *_color)
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
     {
-        if(i==15)
-            continue;
         ffs_open(GetFilesystem(), &files[i], i);
         patterns[i].SetFile(&files[i]);
     }
@@ -431,13 +429,21 @@ bool GrooveBox::IsPlaying()
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     drawCount++;
-    // if(sampleCount > 500)
-    // {
-    //     renderTime /= sampleCount;
-    //     printf("renderTime us: %i\n", (int)renderTime);
-    //     renderTime = 0;
-    //     sampleCount = 0;
-    // }
+    framesSinceLastTouch++;
+
+    // 5 minutes & 20 minutes 
+    #define TWOMINS 0x1c20
+    #define FIVEMINS 0x4650
+    #define TWENTYMINS 0x11940
+    
+    if((!IsPlaying() && framesSinceLastTouch > TWOMINS) || (IsPlaying() && framesSinceLastTouch > TWENTYMINS))
+    {
+        // store song here
+        erasing = true;
+        Serialize();
+        hardware_shutdown();
+    }
+
 
     ssd1306_clear(p);
     char str[64];
@@ -462,16 +468,44 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(holdingArm && holdingEscape)
     {
-        sprintf(str, "press 1-16 to erase sample");
+        sprintf(str, "press red to erase sample");
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        for(int i=0;i<16;i++)
+        {
+            int x = i%4;
+            int y = i/4;
+            int key = x+(y+1)*5;
+            if(files[i].initialized)
+            {
+                color[key] = urgb_u32(200, 50, 50);
+            }
+        }
+        return;
+    }
+    else if(erasing)
+    {
+        ssd1306_clear(p);
+        sprintf(str, "ERASING...");
+        // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
     else if(holdingArm && !recording)
     {
-        sprintf(str, "hold 1-16 to record");
+        sprintf(str, "hold red to sample");
         // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         ssd1306_draw_square(p, 0, 17, last_input>>8, 32-17);
+        for(int i=0;i<16;i++)
+        {
+            int x = i%4;
+            int y = i/4;
+            int key = x+(y+1)*5;
+            if(!files[i].initialized)
+            {
+                color[key] = urgb_u32(200, 50, 50);
+            }
+        }
         return;
     }
     else if(shutdownTime > 0 && holdingEscape)
@@ -552,8 +586,12 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(recording)
     {
-        int filesize = ffs_file_size(GetFilesystem(), &files[recordingTarget]);
-        sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-filesize)/88100);
+        uint32_t allFileSizes = 0;
+        for(int i=0;i<16;i++)
+        {
+            allFileSizes += ffs_file_size(GetFilesystem(), &files[i]);
+        }
+        sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-allFileSizes)/64000);
         ssd1306_draw_string(p, 0, 0, 1, str);
     }
     else
@@ -610,6 +648,13 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             if(hadTrigger & (1<<i))
             {
                 color[key] = urgb_u32(50, 50, 50);
+            }
+        }
+        else if(holdingArm && !recording)
+        {
+            if(&files[i].filesize == 0)
+            {
+                color[key] = urgb_u32(200, 50, 50);
             }
         }
         else
@@ -831,6 +876,7 @@ void GrooveBox::OnFinishRecording()
 }
 void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 {
+    framesSinceLastTouch = 0;
     int x=key/5;
     int y=key%5;
     
@@ -906,7 +952,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         int sequenceStep = x+(y-1)*4;
         if(holdingEscape && holdingArm)
         {
-            if(pressed)
+            if(pressed && files[sequenceStep].initialized)
             {
                 erasing = true;
                 holdingEscape = false;
@@ -917,13 +963,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(holdingArm)
         {
-            if(pressed && !recording)
+            if(pressed && !recording && !files[sequenceStep].initialized)
             {
                 recordingLength = 0;
                 recordingTarget = sequenceStep;
                 recording = true;
             }
-            else
+            else if(recording)
             {
                 // finish recording
                 recording = false;

@@ -10,6 +10,8 @@
 
 static bool last_amp_state;
 static uint8_t battery_level;
+ssd1306_t disp;
+
 void hardware_init()
 {
     gpio_init(BLINK_PIN_LED);

@@ -155,7 +155,6 @@ bool usb_timer_callback(struct repeating_timer *t) {
 }
 
 bool screen_flip_ready = false;
-ssd1306_t disp;
 int drawY = 0;
 typedef struct
 {
@@ -255,61 +254,6 @@ void configure_audio_driver()
     irq_add_shared_handler(DMA_IRQ_0, dma_output_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY-2);
     irq_set_enabled(DMA_IRQ_0, true);
 }
-// see https://ghubcoder.github.io/posts/awaking-the-pico/ to explain why we need this recovery code
-void recover_from_sleep(uint scb_orig, uint clock0_orig, uint clock1_orig){
-
-    //Re-enable ring Oscillator control
-    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
-
-    //reset procs back to default
-    scb_hw->scr = scb_orig;
-    clocks_hw->sleep_en0 = clock0_orig;
-    clocks_hw->sleep_en1 = clock1_orig;
-
-    //reset clocks
-    clocks_init();
-    stdio_init_all();
-    return;
-}
-
-// void sleep()
-// {
-//     // TODO: copy all critical state to flash and shut down ram prior to sleep
-//     // set all columns high
-//     for (size_t i = 0; i < 5; i++)
-//     {
-//         gpio_init(col_pin_base+i);
-//         gpio_set_dir(col_pin_base+i, GPIO_OUT);
-//         gpio_disable_pulls(col_pin_base+i);
-//         gpio_init(row_pin_base+i);
-//         gpio_set_dir(row_pin_base+i, GPIO_IN);
-//         gpio_pull_down(row_pin_base+i);
-//         // the mask here are the gpio pins for the colums
-//         gpio_put(col_pin_base+i, true);
-//         sleep_us(3);
-//     }
-//     uint scb_orig = scb_hw->scr;
-//     uint clock0_orig = clocks_hw->sleep_en0;
-//     uint clock1_orig = clocks_hw->sleep_en1;
-
-//     multicore_reset_core1();
-//     ssd1306_poweroff(&disp);
-//     gpio_put(SUBSYSTEM_RESET_PIN, 0);
-//     sleep_ms(10);
-
-//     uart_default_tx_wait_blocking();
-//     gpio_put(25, false);
-//     sleep_run_from_xosc();
-//     sleep_goto_dormant_until_level_high(row_pin_base);
-//     recover_from_sleep(scb_orig, clock0_orig, clock1_orig); 
-//     ssd1306_poweron(&disp);
-//     multicore_launch_core1(draw_screen);
-//     gpio_put(SUBSYSTEM_RESET_PIN, 1);
-//     sleep_ms(10);
-//     tlvDriverInit();
-
-//     gpio_put(25, true);
-// }
 
 uint8_t adc1_prev;
 uint8_t adc2_prev;
@@ -416,8 +360,6 @@ int main()
             uint32_t s = keyState & (1ul<<i);
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
-                touchCounter = 0x7fff;
-                touchCounter = 0x1f4;
                 gbox->OnKeyUpdate(i, s>0); 
                 if(s>0)
                 {
@@ -429,13 +371,6 @@ int main()
         lastKeyState = keyState;
         if(needsScreenupdate)
         {
-            touchCounter--;
-            if(touchCounter <= 0)
-            {
-                // store song here
-                // gbox->Serialize();
-                //gpio_set_pulls(23, false, true);
-            }
             adc_select_input(1);
             uint16_t adc_val = adc_read();
             adc_select_input(0);
