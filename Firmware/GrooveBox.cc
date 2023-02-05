@@ -307,7 +307,15 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                             TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
                         }
                     }
-                    patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                    // we need to special case 16: the pattern change counter
+                    if(v==16)
+                    {
+                        patternStep[v] = (patternStep[v]+1)%globalData.GetLength(GetCurrentPattern());
+                    }
+                    else
+                    {
+                        patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                    }
                 }
             }
         }

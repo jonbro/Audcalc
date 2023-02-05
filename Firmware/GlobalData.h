@@ -22,6 +22,11 @@ class GlobalData
                 changeLength[i] = 15*4; // need to up this to fit into 0xff
             }
         }
+        uint8_t GetLength(uint8_t pattern)
+        {
+            return changeLength[pattern]/4+1;
+        }
+
         SyncOutMode GetSyncOutMode();
         void DrawParamString(uint8_t param, uint8_t pattern, char *str);
         uint8_t& GetParam(uint8_t param, uint8_t pattern);
