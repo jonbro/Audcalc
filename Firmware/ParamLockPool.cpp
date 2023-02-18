@@ -1,4 +1,5 @@
 #include "ParamLockPool.h"
+#include <cassert>
 
 ParamLock ParamLockPool::nullLock = {0};
 
@@ -22,8 +23,40 @@ bool ParamLockPool::GetFreeParamLock(ParamLock **lock)
     return false;
 }
 
+uint16_t ParamLockPool::FreeLockCount()
+{
+    uint16_t count = 0;
+    ParamLock *lock = freeLocks;
+    while(lock != &nullLock)
+    {
+        count++;
+        if(lock == GetLock(lock->next))
+            return count;
+        lock = GetLock(lock->next);
+    }
+    return count;
+}
+
+bool ParamLockPool::IsFreeLock(ParamLock *searchLock)
+{
+    ParamLock *lock = freeLocks;
+    while(lock != &nullLock)
+    {
+        if(lock == searchLock)
+            return true;
+        lock = GetLock(lock->next);
+    }
+    return false;
+}
+
 void ParamLockPool::FreeLock(ParamLock *lock)
 {
+    if(freeLocks == &nullLock)
+    {
+        lock->next = GetLockPosition(&nullLock);
+        freeLocks = lock;
+        return;
+    }
     lock->next = GetLockPosition(freeLocks);
     freeLocks = lock;
 }
@@ -56,6 +89,15 @@ void ParamLockPoolTest::RunTest()
     ParamLockPool lockPool = ParamLockPool();
     ParamLock *patternLocks = ParamLockPool::NullLock();
     ParamLock *lock = ParamLockPool::NullLock();
+
+    assert(lockPool.FreeLockCount() == 4096);
+    // get a lock
+    lockPool.GetFreeParamLock(&lock);
+    assert(lockPool.FreeLockCount() == 4095);
+    lockPool.FreeLock(lock);
+    assert(lockPool.FreeLockCount() == 4096);
+     
+    // return it
     // attempt to exhaust the lockpool
     int lockpoolCount = 0;
     while(lockPool.GetFreeParamLock(&lock))
