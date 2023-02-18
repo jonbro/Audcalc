@@ -42,7 +42,7 @@ class Instrument
         void Render(const uint8_t* sync,int16_t* buffer,size_t size);
         void RenderGlobal(const uint8_t* sync,int16_t* buffer,size_t size);
         void SetParameter(uint8_t param, uint8_t value);
-        void NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData);
+        void NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData);
         void SetAHD(uint32_t attackTime, uint32_t holdTime, uint32_t decayTime);
         bool IsPlaying();
         void UpdateVoiceData(VoiceData &voiceData);

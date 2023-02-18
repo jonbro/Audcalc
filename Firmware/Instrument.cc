@@ -292,13 +292,6 @@ void Instrument::SetOscillator(uint8_t oscillator)
     osc.set_shape((MacroOscillatorShape)oscillator);
 }
 
-const int keyToMidi[16] = {
-    81, 83, 84, 86,
-    74, 76, 77, 79,
-    67, 69, 71, 72,
-    60, 62, 64, 65
-};
-
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
     delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
@@ -331,33 +324,21 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
     }
 }
-void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
+void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
     // used for editing values for specific keys
     if(livePlay)
     {
-        lastPressedKey = key;
+        lastPressedKey = (uint8_t)key.value;
     }
     playingStep = step;
     playingPattern = pattern;
-    int note = keyToMidi[key]+12*voiceData.GetOctave();
-    // if(globalData->chromatic > 0x7f)
-    // {
-    //     uint8_t x = key%4;
-    //     uint8_t y = key/4;
-    //     y = 3-y;
-    //     int16_t inverseKey = x+y*4;
-    //     note = (inverseKey+50)+16*voiceData.GetOctave();
-    // }
-    if(midinote >= 0)
-    {
-        note = midinote;
-    }
+    int note = midinote;
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         microFade = 0;
         UpdateVoiceData(voiceData);
-        playingSlice = key;
+        playingSlice = (uint8_t)key.value;
         file = voiceData.GetFile();
         instrumentType = voiceData.GetInstrumentType();
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
@@ -369,7 +350,7 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         {
             // clamp it - what kind of wild person needs so many octaves anyways.
             note = note>69+12*4?69+12*4:note;
-            key = 0;
+            key = {0};
         }
         if(voiceData.GetSampler() == SAMPLE_PLAYER_SEQL)
         {
@@ -401,12 +382,12 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
             phase_increment = (uint32_t)(((uint64_t)(sampleEnd-sampleOffset)<<31)/((uint64_t)sampleCount)); // q32?
             phase_increment = phase_increment>>6; // q25 our overflow value
             // calculate the actual sample offset based on the pressed key
-            sampleOffset = (sampleEnd-sampleOffset)/16*key+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
+            sampleOffset = (sampleEnd-sampleOffset)/16*(uint8_t)key.value+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
         }
         else
         {
-            sampleOffset = (voiceData.sampleStart[key]) * (filesize>>9);
-            sampleEnd = sampleOffset + (voiceData.sampleLength[key]) * (filesize>>9);
+            sampleOffset = (voiceData.sampleStart[(uint8_t)key.value]) * (filesize>>9);
+            sampleEnd = sampleOffset + (voiceData.sampleLength[(uint8_t)key.value]) * (filesize>>9);
             if(sampleEnd*2 > filesize - 1)
             {
                 sampleEnd = filesize/2 -1;
@@ -433,45 +414,6 @@ void Instrument::NoteOn(int16_t key, int16_t midinote, uint8_t step, uint8_t pat
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
-    }
-    else if(instrumentType == INSTRUMENT_DRUMS)
-    {
-        osc.Strike();
-        currentSegment = ENV_SEGMENT_ATTACK;
-        envPhase = 0;
-        enable_env = false;
-        enable_filter = false;
-        switch(key)
-        {
-            case 0:
-                SetOscillator(MACRO_OSC_SHAPE_KICK);
-                osc.set_pitch(35<<7);
-                break;
-            case 1:
-                SetOscillator(MACRO_OSC_SHAPE_KICK);
-                osc.set_pitch(48<<7);
-                break;
-            case 2:
-                SetOscillator(MACRO_OSC_SHAPE_SNARE);
-                osc.set_pitch(55<<7);
-                break;
-            case 3:
-                SetOscillator(MACRO_OSC_SHAPE_SNARE);
-                osc.set_pitch(75<<7);
-                break;
-            case 4:
-                SetOscillator(MACRO_OSC_SHAPE_CYMBAL);
-                enable_env = true;
-                SetAHD(10, 10, 4000);
-                osc.set_pitch(65<<7);
-                break;
-            case 5:
-                SetOscillator(MACRO_OSC_SHAPE_CYMBAL);
-                enable_env = true;
-                SetAHD(10, 2000, 8000);
-                osc.set_pitch(63<<7);
-                break;
-        }
     }
     else if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
     {

@@ -15,6 +15,8 @@ extern "C" {
 
 using namespace braids;
 
+typedef struct { unsigned value : 4; } uint4;
+
 enum InstrumentType {
   INSTRUMENT_MACRO,
   INSTRUMENT_SAMPLE,
@@ -88,7 +90,7 @@ class VoiceData
         }
         void GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern);
         void GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep);
-        void DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep);
+        void DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep);
         bool CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
         uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
 
@@ -223,6 +225,7 @@ class VoiceData
         uint8_t length[16];
         
         uint8_t notes[64*16]; // patterns * 64 steps per pattern
+        uint4 keys[64*16]; // stored seperately from notes, so we can track the keys that were used for inputting the notes - important for slice sampler?
 
         uint8_t sampleStart[16];
         uint8_t sampleLength[16];

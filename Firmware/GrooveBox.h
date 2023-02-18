@@ -17,7 +17,6 @@ extern "C" {
 #include "GlobalData.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
-#include "Chorus.h"
 #include "Reverb2.h"
 #include "Delay.h"
 
@@ -28,7 +27,7 @@ class GrooveBox {
  public:
   GrooveBox(uint32_t *_color);
   void OnKeyUpdate(uint key, bool pressed);
-  int GetTrigger(uint voice, uint step);
+  bool GetTrigger(uint voice, uint step, uint8_t &note, uint4 &key);
   void UpdateDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
@@ -67,8 +66,8 @@ class GrooveBox {
   }
  private:
   bool needsInitialADC; 
-  void TriggerInstrument(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
-  void TriggerInstrumentMidi(int16_t pitch, int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
+  void TriggerInstrument(uint4 key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
+  void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
 
   void CalculateTempoIncrement();
   uint8_t voiceCounter = 0;
@@ -78,6 +77,7 @@ class GrooveBox {
   int drawY = 0;
   uint16_t drawCount = 0;
   int lastNotePlayed = 0;
+  uint4 lastKeyPlayed = {0};
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
   uint8_t beatCounter[18] = {0};
@@ -126,7 +126,6 @@ class GrooveBox {
   uint16_t AdcInterpolatedA = 0;
   uint16_t AdcInterpolatedB = 0;
   Delay2 delay;
-  Chorus chorus;
   Reverb2 verb;
   ffs_file files[16];
   int64_t renderTime = 0;

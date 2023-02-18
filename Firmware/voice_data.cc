@@ -3,11 +3,6 @@
 
 ParamLockPool VoiceData::lockPool;
 
-int8_t VoiceData::GetOctave()
-{
-    return ((int8_t)(octave/51))-2;
-}
-
 // incorporates the lock if any
 uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t pattern)
 {
@@ -284,10 +279,10 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pB, "");
                 return;
             case 3:
-                sprintf(strA, "Octv");
-                sprintf(strB, "");
-                sprintf(pA, "%i", GetOctave());
-                sprintf(pB, "");
+                // sprintf(strA, "Octv");
+                // sprintf(strB, "");
+                // sprintf(pA, "%i", GetOctave());
+                // sprintf(pB, "");
                 return;
             case 5:
                 sprintf(strA, "Atk");
@@ -478,7 +473,7 @@ uint8_t head_map[] = {
   0x00, 0x00, 0x00, 0x00, 
 };
 
-void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep)
+void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
@@ -513,7 +508,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     else
     {
         bool lockA = false, lockB = false;
-        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB, showForStep);
+        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, (uint8_t)lastNotePlayed.value, str+32, str+48, lockA, lockB, showForStep);
         if(lockA)
             ssd1306_draw_square_rounded(disp, column4, 0, width, 15);
         if(lockB)
@@ -620,6 +615,8 @@ void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 }
 bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
 {
+    // because we use the highbit to signal if we are checking a specific step in the callsite, this must be stripped here
+    step = step&0x7f;
     ParamLock* lock = GetLockForStep(step, pattern, param);
     if(lock != ParamLockPool::NullLock())
     {

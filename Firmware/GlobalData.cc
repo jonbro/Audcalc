@@ -37,8 +37,33 @@ uint8_t& GlobalData::GetParam(uint8_t param, uint8_t pattern)
             return bpm;
         case 19*2+1:
             return syncOut;
+        case 24*2:
+            return octave;
+        case 24*2+1:
+            return root;
     }
     return nothing;
+}
+uint8_t GlobalData::GetRoot()
+{
+    return (root*12)>>8;
+}
+
+int8_t GlobalData::GetOctave()
+{
+    return ((int8_t)(octave/51))-2;
+}
+
+const int keyToMidi[16] = {
+    81, 83, 84, 86,
+    74, 76, 77, 79,
+    67, 69, 71, 72,
+    60, 62, 64, 65
+};
+
+uint8_t GlobalData::GetNote(uint8_t key)
+{
+   return keyToMidi[key]+12*GetOctave()+GetRoot();
 }
 
 const char *syncOutStrings[6] = { 
@@ -48,6 +73,20 @@ const char *syncOutStrings[6] = {
     "m+24",
     "PO",
     "24pq"
+};
+const char *rootStrings[12] = { 
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B"
 };
 
 void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
@@ -74,6 +113,12 @@ void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
             sprintf(pA, "%i", bpm+1);
             sprintf(strB, "Sync");
             sprintf(pB,syncOutStrings[(syncOut*6)>>8]);
+            break;
+        case 24:
+            sprintf(strA, "Octv");
+            sprintf(pA, "%i", GetOctave());
+            sprintf(strB, "Root");
+            sprintf(pB,rootStrings[GetRoot()]);
             break;
     }
     
