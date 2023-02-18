@@ -14,10 +14,12 @@ ssd1306_t disp;
 
 void hardware_init()
 {
+    // give all the caps some time to warm up
+    sleep_ms(20);
     gpio_init(BLINK_PIN_LED);
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
     gpio_put(BLINK_PIN_LED, true);
-    set_sys_clock_khz(240000, true);
+    set_sys_clock_khz(220000, true);
 
 
     gpio_init(AMP_CONTROL);
@@ -103,11 +105,11 @@ uint8_t hardware_get_battery_level()
 void hardware_update_battery_level()
 {
     adc_select_input(2);
-    printf("battery level: %i\n", battery_level);
+    // printf("battery level: %i\n", battery_level);
         
         const float conversion_factor = 3.3f / (1 << 12);
         uint16_t result = adc_read();
-        printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
+        // printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
 
     battery_level = adc_read()>>4;
 }
