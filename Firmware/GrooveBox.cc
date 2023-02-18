@@ -304,7 +304,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         if((allowPlayback>>v)&0x1)
                         {
                             patterns[v].SetNextRequestedStep(patternStep[v]);
-                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v]|0x80, GetCurrentPattern(), false, patterns[v], v);
+                            TriggerInstrument(requestedNote, requestedNote > 15?requestedNote:-1, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
                         }
                     }
                     // we need to special case 16: the pattern change counter
@@ -612,8 +612,8 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         {
             uint8_t paramLockSignal = storingParamLockForStep;
             if(holdingWrite)
-                paramLockSignal = 0x80|(0x7f&patternStep[currentVoice]);
-            patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), paramLockSignal);
+                paramLockSignal = patternStep[currentVoice];
+            patterns[currentVoice].DrawParamString(param, str, lastNotePlayed, GetCurrentPattern(), 0x7f&paramLockSignal, (0x80&storingParamLockForStep) || holdingWrite);
         }
     }
     uint8_t fade_speed = 0xaf;
@@ -674,7 +674,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             else if(GetTrigger(currentVoice, i+16*editPage[currentVoice])>=0)
             {
                 // has a parameter lock
-                if(patterns[currentVoice].HasAnyLockForStep(0x80|(i+16*editPage[currentVoice]), GetCurrentPattern()))
+                if(patterns[currentVoice].HasAnyLockForStep(i+16*editPage[currentVoice], GetCurrentPattern()))
                 {
                     color[key] = urgb_u32(180, 60, 220);
                 }
@@ -815,13 +815,13 @@ void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
         if(paramSetA)
         {
             lastAdcValA = a;
-            patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice]&0x7f, GetCurrentPattern(), a);
+            patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice], GetCurrentPattern(), a);
             parameterLocked = true;
         }
         if(paramSetB)
         {
             lastAdcValB = b;
-            patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice]&0x7f, GetCurrentPattern(), b);
+            patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice], GetCurrentPattern(), b);
             parameterLocked = true;
         }
         return;

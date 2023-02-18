@@ -188,7 +188,9 @@ const char *envTargets[6] = {
 bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
 {
     uint8_t valA = 0;
-    if(HasLockForStep(step, pattern, param, valA))
+    // we use the high bit here to signal if we are checking for a step or not
+    // so it needs to be stripped befor asking about the specific step
+    if((step & 0x80) && HasLockForStep(step&0x7f, pattern, param, valA))
     {
         sprintf(paramString, "%i", valA);
         return true;
@@ -197,8 +199,13 @@ bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t pa
     return false;
 }
 
-void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB)
+void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep)
 {
+
+    // use the high bit here to signal that we want to actually check the lock for a particular step
+    if(showForStep)
+        step = step | 0x80;
+    
     uint8_t valA = 0, valB = 0;
     InstrumentType instrumentType = GetInstrumentType();
     
@@ -471,7 +478,7 @@ uint8_t head_map[] = {
   0x00, 0x00, 0x00, 0x00, 
 };
 
-void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock)
+void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
@@ -506,7 +513,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     else
     {
         bool lockA = false, lockB = false;
-        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB);
+        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB, showForStep);
         if(lockA)
             ssd1306_draw_square_rounded(disp, column4, 0, width, 15);
         if(lockB)
@@ -543,11 +550,11 @@ void VoiceData::DeserializeStatic(Serializer &s)
 /* PARAMETER LOCK BEHAVIOR */
 void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
 {
-    ParamLock *lock = GetLockForStep(0x80|step, pattern, param);
+    ParamLock *lock = GetLockForStep(step, pattern, param);
     if(lock != ParamLockPool::NullLock())
     {
         lock->value = value;
-        // printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
+        printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
         return;
     }
     if(lockPool.GetFreeParamLock(&lock))
@@ -613,8 +620,6 @@ void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 }
 bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
 {
-    if(step>>7==0)
-        return false;
     ParamLock* lock = GetLockForStep(step, pattern, param);
     if(lock != ParamLockPool::NullLock())
     {
@@ -625,12 +630,10 @@ bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uin
 }
 bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 {
-    if(step>>7==0)
-        return false;
     ParamLock* lock = locksForPattern[pattern];
     while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
     {
-        if(lock->step == (step&0x7f))
+        if(lock->step == step)
         {
             return true;
         }
@@ -640,12 +643,10 @@ bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 }
 ParamLock* VoiceData::GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param)
 {
-    if(step>>7==0)
-        return ParamLockPool::NullLock();
     ParamLock* lock = locksForPattern[pattern];
     while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
     {
-        if(lock->param == param && lock->step == (step&0x7f))
+        if(lock->param == param && lock->step == step)
         {
             return lock;
         }
