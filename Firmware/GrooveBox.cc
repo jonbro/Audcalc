@@ -553,6 +553,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         ssd1306_draw_string_gfxfont(p, 3, 12, str, !soundSelectMode, 1, 1, &m6x118pt7b);
         // sprintf(str, "Snd %i", currentVoice);
         sprintf(str, "Pat %i", GetCurrentPattern()+1);
+        // sprintf(str, "%i", AdcInterpolatedA>>2);
         // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
     }
@@ -763,8 +764,15 @@ void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
         lastAdcValB = b;
     }
 }
-void GrooveBox::OnAdcUpdate(uint8_t a, uint8_t b)
+
+void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
 {
+    // interpolate the input values
+    uint16_t interpolationbias = 0xd000; 
+    AdcInterpolatedA = (((uint32_t)a_in)*(0xffff-interpolationbias) + ((uint32_t)AdcInterpolatedA)*interpolationbias)>>16;
+    AdcInterpolatedB = (((uint32_t)b_in)*(0xffff-interpolationbias) + ((uint32_t)AdcInterpolatedB)*interpolationbias)>>16;
+    uint8_t a = AdcInterpolatedA>>4;
+    uint8_t b = AdcInterpolatedB>>4; 
     if(needsInitialADC)
     {
         lastAdcValA = a;

@@ -30,7 +30,7 @@ class GrooveBox {
   void OnKeyUpdate(uint key, bool pressed);
   int GetTrigger(uint voice, uint step);
   void UpdateDisplay(ssd1306_t *p);
-  void OnAdcUpdate(uint8_t a, uint8_t b);
+  void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
   bool IsPlaying();
   int GetNote();
@@ -123,6 +123,8 @@ class GrooveBox {
   uint16_t nextTrigger = 0;
   uint8_t lastAdcValA = 0;
   uint8_t lastAdcValB = 0;
+  uint16_t AdcInterpolatedA = 0;
+  uint16_t AdcInterpolatedB = 0;
   Delay2 delay;
   Chorus chorus;
   Reverb2 verb;

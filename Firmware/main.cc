@@ -375,7 +375,7 @@ int main()
             uint16_t adc_val = adc_read();
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
-            gbox->OnAdcUpdate(adc_val >> 4, adc_read()>>4);
+            gbox->OnAdcUpdate(adc_val, adc_read());
             hardware_update_battery_level();
             bool flip_complete = false;
             if(queue_try_remove(&complete_queue, &flip_complete))
