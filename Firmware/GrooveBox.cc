@@ -44,7 +44,137 @@ GrooveBox::GrooveBox(uint32_t *_color)
         patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
+
+    // pre deserialize lock count
+    printf("pre deserialize lock count: \n ============================== \n");
+    {
+        int totalLockCount = 0;
+        // lets count all the allocated locks
+        for(int i=0;i<16;i++)
+        {
+            for(int p=0;p<16;p++)
+            {
+                int lockCount = 0;
+                ParamLock *lock = patterns[i].locksForPattern[p];
+                while(lock != ParamLockPool::NullLock())
+                {
+                    lock = patterns[0].lockPool.GetLock(lock->next);
+                    lockCount++;
+                    totalLockCount++;
+                }
+                if(lockCount > 0)
+                    printf("locks for voice %i pattern %i : %i\n", i, p, lockCount);
+            }
+        }
+        printf("total used locks: %i\n", totalLockCount);
+        printf("no free locks\n");
+        // lets also just count the raw locks for each step
+        for(int i=0;i<64;i++)
+        {
+            int lockCount = 0;
+            for(int l=0;l<16*256;l++)
+            {
+                ParamLock *lock = patterns[0].lockPool.GetLock(l);
+                if(lock->step == i || (lock->step&0x7f)==i)
+                {
+                    lockCount++;
+                }
+            }
+            if(lockCount > 0)
+            {
+                printf("locks for step %i : %i\n", i, lockCount);
+            }
+        }
+    }
     Deserialize();
+    printf("post: \n ============================== \n");
+
+    ParamLock *paramLock;
+    if(patterns[0].lockPool.GetFreeParamLock(&paramLock))
+    {
+        patterns[0].lockPool.FreeLock(paramLock);
+        printf("found free lock\n");
+    }
+    else
+    {
+        int totalLockCount = 0;
+        // lets count all the allocated locks
+        for(int i=0;i<16;i++)
+        {
+            for(int p=0;p<16;p++)
+            {
+                int lockCount = 0;
+                ParamLock *lock = patterns[i].locksForPattern[p];
+                while(lock != ParamLockPool::NullLock())
+                {
+                    printf("lock step: %i param: %i\n", lock->step, lock->param);
+                    lock = patterns[0].lockPool.GetLock(lock->next);
+                    lock->step = lock->step & 0x7f;
+                    lockCount++;
+                    totalLockCount++;
+                }
+                printf("locks for voice %i pattern %i : %i\n", i, p, lockCount);
+            }
+        }
+        printf("total used locks: %i\n", totalLockCount);
+        printf("no free locks\n");
+        // lets also just count the raw locks for each step
+        for(int i=0;i<64;i++)
+        {
+            int lockCount = 0;
+            for(int l=0;l<16*256;l++)
+            {
+                ParamLock *lock = patterns[0].lockPool.GetLock(l);
+                if(lock->step == i || (lock->step&0x7f)==i)
+                {
+                    lockCount++;
+                }
+            }
+            if(lockCount > 0)
+            {
+                printf("locks for step %i : %i\n", i, lockCount);
+            }
+        }
+    }
+
+    // attempt to clean up the unused parameter locks
+    int freeAttemptCount = 0;
+    for(int l=0;l<16*256;l++)
+    {
+        ParamLock *searchingForLock = patterns[0].lockPool.GetLock(l);
+        bool foundLock = false;
+        for(int i=0;i<16;i++)
+        {
+            for(int p=0;p<16;p++)
+            {
+                int lockCount = 0;
+                ParamLock *lock = patterns[i].locksForPattern[p];
+                while(lock != ParamLockPool::NullLock())
+                {
+                    if(lock == searchingForLock){
+                        foundLock = true;
+                        break;
+                    }
+                    if(lock == patterns[0].lockPool.GetLock(lock->next))
+                    {
+                        break;
+                    }
+                    lock = patterns[0].lockPool.GetLock(lock->next);
+                }
+            }
+        }
+        if(!foundLock)
+        {
+            // before we attempt to free this lock, confirm its not on the freelock list
+            if(!patterns[0].lockPool.IsFreeLock(searchingForLock))
+            {
+                patterns[0].lockPool.FreeLock(searchingForLock);
+                freeAttemptCount++;
+            }
+        }
+    }
+    printf("attempted to free %i locks\n", freeAttemptCount);
+    printf("free locks after cleanup: %i\n", patterns[0].lockPool.FreeLockCount());
 
     // we do this in a second pass so the
     // deserialized pointers aren't pointing to the wrong places
@@ -55,6 +185,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
     }
     CalculateTempoIncrement();
     color = _color;
+    
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
