@@ -107,8 +107,6 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)
             {
-                // scale everything down
-                // workBuffer[i] = mult_q15(workBuffer[i], 0x4fff);
                 workBuffer2[i*2] += mult_q15(workBuffer[i], 0x7fff-instruments[v].GetPan());
                 workBuffer2[i*2+1] += mult_q15(workBuffer[i], instruments[v].GetPan());
                 toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
@@ -808,19 +806,28 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     if(selectedGlobalParam)
         return SetGlobalParameter(a, b, paramSetA, paramSetB);
     // live param recording
-    if(holdingWrite)
+    if(holdingWrite && IsPlaying())
     {
-        if(paramSetA)
+        // only store the param lock if the voice has a trigger for this step
+        uint4 _key = {0};
+        uint8_t _note;
+        // for now only store parameter locks for steps that have triggers
+        // eventually we might want to do "motion recording", but we will need to refactor the Instrument::UpdateVoiceData
+        // to correctly request data for the currently playing step (rather than the step where the note was triggered)
+        if(GetTrigger(currentVoice, patternStep[currentVoice], _note, _key))
         {
-            lastAdcValA = a;
-            patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice], GetCurrentPattern(), a);
-            parameterLocked = true;
-        }
-        if(paramSetB)
-        {
-            lastAdcValB = b;
-            patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice], GetCurrentPattern(), b);
-            parameterLocked = true;
+            if(paramSetA)
+            {
+                lastAdcValA = a;
+                patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice], GetCurrentPattern(), a);
+                parameterLocked = true;
+            }
+            if(paramSetB)
+            {
+                lastAdcValB = b;
+                patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice], GetCurrentPattern(), b);
+                parameterLocked = true;
+            }
         }
         return;
     }
