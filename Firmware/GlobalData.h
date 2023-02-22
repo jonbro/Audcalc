@@ -29,6 +29,7 @@ class GlobalData
         uint8_t GetNote(uint8_t key);
         int8_t GetOctave();
         uint8_t GetRoot();
+        uint8_t GetScale();
         SyncOutMode GetSyncOutMode();
         void DrawParamString(uint8_t param, uint8_t pattern, char *str);
         uint8_t& GetParam(uint8_t param, uint8_t pattern);
@@ -36,7 +37,7 @@ class GlobalData
         uint8_t syncIn;
         uint8_t syncOut = 1 << 0;
         uint8_t bpm;
-        uint8_t scale;
+        uint8_t scale = 0;
         uint8_t chromatic;
         uint8_t octave = 0x7f;
         uint8_t root = 0;

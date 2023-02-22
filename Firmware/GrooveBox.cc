@@ -1090,10 +1090,15 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         if(paramSelectMode)
         {
             // just hardcode for now
-            if(param != x+y*5)
+            uint8_t targetParam = x+y*5;
+            if(selectedGlobalParam && param == targetParam)
+            {
+                targetParam = (targetParam+25)%25;
+            }
+            if(param != targetParam)
                 paramSetA = paramSetB = false;
             selectedGlobalParam = true;
-            param = x+y*5;
+            param = targetParam;
         } 
         else if(holdingWrite)
         {
@@ -1148,10 +1153,16 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     {
         if(pressed && paramSelectMode)
         {
-            if(param != x+y*5)
+            // just hardcode for now
+            uint8_t targetParam = x+y*5;
+            if(selectedGlobalParam && param == targetParam)
+            {
+                targetParam = (targetParam+25)%50;
+            }
+            if(param != targetParam)
                 paramSetA = paramSetB = false;
             selectedGlobalParam = true;
-            param = x+y*5;
+            param = targetParam;
         }
         else{
             holdingWrite = pressed;

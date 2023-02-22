@@ -39,6 +39,8 @@ uint8_t& GlobalData::GetParam(uint8_t param, uint8_t pattern)
             return syncOut;
         case 24*2:
             return octave;
+        case 24*2+(25*2): // this offset to the next page must also be doubled
+            return scale;
         case 24*2+1:
             return root;
     }
@@ -48,22 +50,39 @@ uint8_t GlobalData::GetRoot()
 {
     return (root*12)>>8;
 }
+uint8_t GlobalData::GetScale()
+{
+    return (((uint16_t)scale)*9)>>8;
+}
 
 int8_t GlobalData::GetOctave()
 {
     return ((int8_t)(octave/51))-2;
 }
 
-const int keyToMidi[16] = {
-    81, 83, 84, 86,
-    74, 76, 77, 79,
-    67, 69, 71, 72,
-    60, 62, 64, 65
+const int keyMap[16] = {
+    12, 13, 14, 15,
+    8, 9, 10, 11,
+    4, 5, 6, 7,
+    0, 1, 2, 3
+};
+
+const int scales[] = {
+    0, 2, 4, 5, 7, 9, 11, //Maj
+    0, 2, 3, 5, 7, 8, 10, //NMin
+    0, 2, 3, 5, 7, 8, 11, //HMin
+    0, 2, 3, 5, 7, 9, 11, //MMin
+    0, 2, 3, 5, 7, 9, 10, //Dor
+    0, 1, 3, 5, 7, 8, 10, //Phry
+    0, 2, 4, 6, 7, 9, 11, //Lyd
+    0, 2, 4, 5, 7, 9, 10, //Mixo
+    0, 1, 3, 5, 6, 8, 10, //Locr
 };
 
 uint8_t GlobalData::GetNote(uint8_t key)
 {
-   return keyToMidi[key]+12*GetOctave()+GetRoot();
+    key = keyMap[key];
+    return scales[GetScale()*7+key%7]+12*(key/7)+12*GetOctave()+GetRoot() + 60;
 }
 
 const char *syncOutStrings[6] = { 
@@ -87,6 +106,19 @@ const char *rootStrings[12] = {
     "A",
     "A#",
     "B"
+};
+
+
+const char *scaleStrings[9] = {
+"Maj",
+"NMin",
+"HMin",
+"MMin",
+"Dor",
+"Phry",
+"Lyd",
+"Mixo",
+"Locr"
 };
 
 void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
@@ -119,6 +151,12 @@ void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
             sprintf(pA, "%i", GetOctave());
             sprintf(strB, "Root");
             sprintf(pB,rootStrings[GetRoot()]);
+            break;
+        case 24+25:
+            sprintf(strA, "Scle");
+            sprintf(pA, scaleStrings[GetScale()]);
+            sprintf(strB, "");
+            sprintf(pB,"");
             break;
     }
     
