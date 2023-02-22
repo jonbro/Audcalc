@@ -39,6 +39,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case Cutoff: return HasLockForStep(step, pattern, Cutoff, value)?value:cutoff;
         case Resonance: return HasLockForStep(step, pattern, Resonance, value)?value:resonance;
         case Volume: return HasLockForStep(step, pattern, Volume, value)?value:volume;
+        case Pan: return HasLockForStep(step, pattern, Pan, value)?value:pan;
         case Octave: return HasLockForStep(step, pattern, Octave, value)?value:octave;
         case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:attackTime;
         case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:decayTime;
@@ -99,7 +100,7 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 2: return cutoff;
         case 3: return resonance;
         case 4: return volume;
-        case 5: break;
+        case 5: return pan;
         case 6: return octave;
         case 10: return attackTime2;
         case 11: return decayTime2;
@@ -171,13 +172,14 @@ const char *syncInStrings[4] = {
     "VL",
 };
 
-const char *envTargets[6] = { 
+const char *envTargets[7] = { 
     "Vol",
     "Timb",
     "Col",
     "Cut",
     "Res",
-    "Pit"
+    "Pit",
+    "Pan"
 };
 
 bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
@@ -260,7 +262,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             sprintf(pB,rates[(rate[pattern]*7)>>8]);
             return;
     }
-
+    int p = pan;
     if(instrumentType == INSTRUMENT_MACRO || instrumentType == INSTRUMENT_SAMPLE)
     {
         switch (param)
@@ -274,9 +276,24 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             // volume / pan
             case 2:
                 sprintf(strA, "Volm");
-                sprintf(strB, "");
+                sprintf(strB, "Pan");
                 lockA = CheckLockAndSetDisplay(step, pattern, 4, volume, pA);
-                sprintf(pB, "");
+                if(HasLockForStep(step, pattern, 5, valB))
+                {
+                    p = valB;
+                    lockB = true;
+                }
+                if(p==0x7f)
+                {
+                    sprintf(pB, "Cent");
+                }
+                else if(p < 0x80){
+                    sprintf(pB, "L:%i", (0x7f-p));
+                }
+                else
+                {
+                    sprintf(pB, "R:%i", (p-0x7f));
+                }
                 return;
             case 3:
                 // sprintf(strA, "Octv");
@@ -478,7 +495,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, 
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 7 || param == 11 || param == 13)
+    if(param == 3 || param == 7 || param == 11 || param == 13)
     {
         // lol
         uint8_t x = 0;

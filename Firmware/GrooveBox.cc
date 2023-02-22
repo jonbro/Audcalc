@@ -58,7 +58,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
-int32_t workBuffer2[SAMPLES_PER_BUFFER];
+int32_t workBuffer2[SAMPLES_PER_BUFFER*2];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
 int16_t toReverbBuffer[SAMPLES_PER_BUFFER];
@@ -72,7 +72,7 @@ uint8_t sync_count = 0;
 void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
-    memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER);
+    memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER*2);
     memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(toReverbBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
@@ -87,7 +87,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         recordBuffer[i] = input;
         if(playThroughEnabled)
         {
-            workBuffer2[i] = input;
+            workBuffer2[i*2] = input;
+            workBuffer2[i*2+1] = input;
         }
         if(input<0)
         {
@@ -108,7 +109,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             {
                 // scale everything down
                 // workBuffer[i] = mult_q15(workBuffer[i], 0x4fff);
-                workBuffer2[i] += workBuffer[i];
+                workBuffer2[i*2] += mult_q15(workBuffer[i], 0x7fff-instruments[v].GetPan());
+                workBuffer2[i*2+1] += mult_q15(workBuffer[i], instruments[v].GetPan());
                 toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
                 toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].reverbSend)<<7));
             }
@@ -119,8 +121,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             int16_t* chan = (output_buffer+i*2);
             int32_t mainL = 0;
             int32_t mainR = 0;
-            mainL = workBuffer2[i];
-            mainR = workBuffer2[i];
+            mainL = workBuffer2[i*2];
+            mainR = workBuffer2[i*2+1];
 
             int16_t l = 0;
             int16_t r = 0;
@@ -353,8 +355,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t* chan = (output_buffer+i*2);
-            chan[0] = workBuffer2[i];
-            chan[1] = workBuffer2[i];
+            chan[0] = workBuffer2[i*2];
+            chan[1] = workBuffer2[i*2+1];
         }
     }
     absolute_time_t renderEndTime = get_absolute_time();
@@ -1197,7 +1199,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 15
+#define SAVE_VERSION 17
 void GrooveBox::Serialize()
 {
     Serializer s;

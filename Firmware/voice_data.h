@@ -32,6 +32,7 @@ enum EnvTargets {
     Target_Cutoff,
     Target_Resonance,
     Target_Pitch,
+    Target_Pan,
     Target_Count
 };
 enum ParamType {
@@ -43,6 +44,7 @@ enum ParamType {
     Cutoff = 2,
     Resonance = 3,
     Volume = 4,
+    Pan = 5,
     Octave = 6,
     AttackTime = 8,
     DecayTime = 9,
@@ -255,6 +257,7 @@ class VoiceData
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
         uint8_t volume = 0x7f;
+        uint8_t pan = 0x7f;
         
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         VoiceData *globalVoiceData; // quick hack for now

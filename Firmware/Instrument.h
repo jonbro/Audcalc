@@ -52,6 +52,10 @@ class Instrument
           if(type == INSTRUMENT_DRUMS)
             osc.set_shape(MACRO_OSC_SHAPE_KICK);
         }
+        q15_t GetPan()
+        {
+          return panWithMods;
+        }
         void GetParamString(uint8_t param, char *str);
         MacroOscillator osc;
         uint8_t delaySend = 0;
@@ -89,6 +93,8 @@ class Instrument
         q15_t param2Base;
         q15_t timbre;
         q15_t mainCutoff;
+        q15_t panning;
+        q15_t panWithMods;
         uint8_t resonance;
         uint32_t sampleOffset; 
         uint32_t lfo_phase = 0;

@@ -93,7 +93,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     q15_t param2_withMods = param2Base;
     q15_t cutoffWithMods = mainCutoff;
     q15_t pitchWithMods = pitch;
-    
+    panWithMods = panning;
     q15_t lfo = mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
     switch(lfo1Target)
     {
@@ -110,6 +110,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
             break;
         case Target_Pitch:
             pitchWithMods = pitchWithMods+(lfo>>4);
+            break;
+        case Target_Pan:
+            panWithMods = add_q15(panWithMods, lfo);
             break;
         default:
             break;
@@ -148,6 +151,9 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
                 break;
             case Target_Pitch:
                 pitchWithMods = pitchWithMods+(mult_q15(depth, e->value()>>1)>>4);
+                break;
+            case Target_Pan:
+                panWithMods = add_q15(panWithMods, mult_q15(depth, e->valueLin()>>1));
                 break;
             default:
                 break;
@@ -297,6 +303,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
     reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
     volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
+    panning = ((q15_t)voiceData.GetParamValue(Pan, lastPressedKey, playingStep, playingPattern))<<7;
     if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
     {
         env2.Update(voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)>>1);
