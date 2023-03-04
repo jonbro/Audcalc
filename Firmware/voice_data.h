@@ -77,7 +77,7 @@ class VoiceData
             for (size_t i = 0; i < 16; i++)
             {
                 length[i] = 15*4; // need to up this to fit into 0xff
-                locksForPattern[i] = ParamLockPool::NullLock();
+                locksForPattern[i] = ParamLockPool::InvalidLockPosition();
                 rate[i] = 2*37; // 1x 
             }
             for (size_t i = 0; i < 64*16; i++)
@@ -142,7 +142,6 @@ class VoiceData
         void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern);
         bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value);
         bool HasAnyLockForStep(uint8_t step, uint8_t pattern);
-        ParamLock* GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param);
 
         bool LockableParam(uint8_t param);
         
@@ -184,7 +183,7 @@ class VoiceData
             volume = copy.volume;
         }
 
-        ParamLock* locksForPattern[16];
+        uint16_t locksForPattern[16];
 
         uint8_t nextRequestedStep;
         bool    global_instrument = false; // this ... should get shared somewhere, lots of nonsense to cart around
@@ -262,8 +261,9 @@ class VoiceData
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         VoiceData *globalVoiceData; // quick hack for now
         
-    private:
         static ParamLockPool lockPool;
+    private:
+        bool GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param);
         ffs_file *file;
 };
 

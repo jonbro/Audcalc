@@ -562,56 +562,55 @@ void VoiceData::DeserializeStatic(Serializer &s)
 /* PARAMETER LOCK BEHAVIOR */
 void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
 {
-    ParamLock *lock = GetLockForStep(step, pattern, param);
-    if(lock != ParamLockPool::NullLock())
+    ParamLock *lock;
+    if(GetLockForStep(&lock, step, pattern, param))
     {
         lock->value = value;
-        printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
+        // printf("updated param lock step: %i param: %i value: %i\n", step, param, value);
         return;
     }
     if(lockPool.GetFreeParamLock(&lock))
     {
-        if(lock == ParamLockPool::NullLock() || !lockPool.validLock(lock))
+        if(!lockPool.IsValidLock(lock))
         {
-            // printf("out of lock space\n failed to add new lock");
+            printf("out of lock space\n failed to add new lock");
             return;
         }
-        // printf("new address %x | null lock addy %x\n", lock, ParamLockPool::NullLock());
         lock->param = param;
         lock->step = step;
         lock->value = value;
-        lock->next = lockPool.GetLockPosition(locksForPattern[pattern]);
-        locksForPattern[pattern] = lock;
+        lock->next = locksForPattern[pattern];
+        locksForPattern[pattern] = lockPool.GetLockPosition(lock);
         // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
         return;
     }
-    // printf("failed to add param lock\n");
+    printf("failed to add param lock\n");
 }
 void VoiceData::ClearParameterLocks(uint8_t pattern)
 {
-    ParamLock* lock = locksForPattern[pattern];
-    while(lock != ParamLockPool::NullLock())
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    while(lockPool.IsValidLock(lock))
     {
         ParamLock* nextLock = lockPool.GetLock(lock->next);
-        lockPool.FreeLock(lock);
+        lockPool.ReturnLockToPool(lock);
         lock = nextLock;
     }
-    locksForPattern[pattern] = ParamLockPool::NullLock();
+    locksForPattern[pattern] = ParamLockPool::InvalidLockPosition();
 }
 void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 {
-    ParamLock* lock = locksForPattern[pattern];
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     ParamLock* lastLock = lock;
-    while(lock != ParamLockPool::NullLock())
+    while(lockPool.IsValidLock(lock))
     {
         ParamLock* nextLock = lockPool.GetLock(lock->next);
         if(lock->step == step)
         {
             lastLock->next = lock->next;
-            lockPool.FreeLock(lock);
-            if(lock == locksForPattern[pattern])
+            lockPool.ReturnLockToPool(lock);
+            if(lockPool.GetLockPosition(lock) == locksForPattern[pattern])
             {
-                locksForPattern[pattern] = nextLock;
+                locksForPattern[pattern] = lockPool.GetLockPosition(nextLock);
             }
         }
         else
@@ -623,8 +622,8 @@ void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 }
 void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 {
-    ParamLock* lock = locksForPattern[fromPattern];
-    while(lock != ParamLockPool::NullLock())
+    ParamLock* lock = lockPool.GetLock(locksForPattern[fromPattern]);
+    while(lockPool.IsValidLock(lock))
     {
         StoreParamLock(lock->param, lock->step, toPattern, lock->value);
         lock = lockPool.GetLock(lock->next);
@@ -634,8 +633,8 @@ bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uin
 {
     // because we use the highbit to signal if we are checking a specific step in the callsite, this must be stripped here
     step = step&0x7f;
-    ParamLock* lock = GetLockForStep(step, pattern, param);
-    if(lock != ParamLockPool::NullLock())
+    ParamLock *lock;
+    if(GetLockForStep(&lock, step, pattern, param))
     {
         value = lock->value;
         return true;
@@ -644,8 +643,8 @@ bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uin
 }
 bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 {
-    ParamLock* lock = locksForPattern[pattern];
-    while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    while(lockPool.IsValidLock(lock))
     {
         if(lock->step == step)
         {
@@ -655,18 +654,19 @@ bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
     }
     return false;
 }
-ParamLock* VoiceData::GetLockForStep(uint8_t step, uint8_t pattern, uint8_t param)
+bool VoiceData::GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param)
 {
-    ParamLock* lock = locksForPattern[pattern];
-    while(lock != ParamLockPool::NullLock() && lockPool.validLock(lock))
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    while(lockPool.IsValidLock(lock))
     {
         if(lock->param == param && lock->step == step)
         {
-            return lock;
+            *lockOut = lock;
+            return true;
         }
         lock = lockPool.GetLock(lock->next);
     }
-    return ParamLockPool::NullLock();
+    return false;
 }
 
 
@@ -681,4 +681,32 @@ void TestVoiceData()
     voiceData.StoreParamLock(1, 1, 1, 127);
     hasLock = voiceData.HasLockForStep(0x80|1, 1, 1, lockValue);
     printf("%i, %i\n", hasLock, lockValue);
+
+    int lostLockCount = 0;
+    for(int l=0;l<16*256;l++)
+    {
+        ParamLock *searchingForLock = voiceData.lockPool.GetLock(l);
+        bool foundLock = false;
+        {
+            for(int p=0;p<16;p++)
+            {
+                int lockCount = 0;
+                ParamLock *lock = voiceData.lockPool.GetLock(voiceData.locksForPattern[p]);
+                while(voiceData.lockPool.IsValidLock(lock))
+                {
+                    if(lock == searchingForLock){
+                        foundLock = true;
+                        break;
+                    }
+                    if(lock == voiceData.lockPool.GetLock(lock->next))
+                    {
+                        break;
+                    }
+                    lock = voiceData.lockPool.GetLock(lock->next);
+                }
+            }
+        }
+    }
+    printf("lost lock count: %i\n", lostLockCount);
+
 }

@@ -45,6 +45,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
     }
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
+    //PrintLostLockData();
 
     // we do this in a second pass so the
     // deserialized pointers aren't pointing to the wrong places
@@ -1217,7 +1218,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 17
+#define SAVE_VERSION 16
 void GrooveBox::Serialize()
 {
     Serializer s;
