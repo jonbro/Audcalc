@@ -268,10 +268,10 @@ int main()
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
-        if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
-        {
-            hardware_shutdown();
-        }
+        // if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
+        // {
+        //     hardware_shutdown();
+        // }
         // if the user is holding the record key, then reboot in usb mode
         if(hardware_get_key_state(4, 4))
         {
@@ -349,7 +349,8 @@ int main()
 
       // initialize the USB microphone interface
     // usb_microphone_set_tx_ready_handler(on_usb_microphone_tx_ready);
-
+    // lets do a lost lock count every second
+    int lostCount = 0;
     while(true)
     {
         hardware_get_all_key_state(&keyState);
@@ -384,7 +385,16 @@ int main()
                 queue_entry_t entry = {true};
                 queue_add_blocking(&signal_queue, &entry);
             }
-
+            // lostCount++;
+            // if(lostCount == 120)
+            // {
+            //     lostCount = gbox->GetLostLockCount();
+            //     if(lostCount>0)
+            //     {
+            //         printf("lost %i locks\n", lostCount);
+            //     }
+            //     lostCount = 0;
+            // }
             ws2812_setColors(color+5);
             needsScreenupdate = false;
             ws2812_trigger();

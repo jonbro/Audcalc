@@ -29,6 +29,7 @@ add_executable(tdm
         usb_microphone.c
         usb_descriptors.c
         GrooveBox.cc
+        GrooveBoxTestUtils.cc
         voice_data.cc
         GlobalData.cc
         ParamLockPool.cpp
