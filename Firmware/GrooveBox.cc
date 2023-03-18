@@ -53,10 +53,10 @@ GrooveBox::GrooveBox(uint32_t *_color)
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
     //PrintLostLockData();
-    int lostLockCount = GetLostLockCount();
-    if(lostLockCount > 0)
-        printf("\n************\nJUST LOST LOCKS TEH FUCK\n****************\n");
-    printf("lost lock count: %i\n", lostLockCount);
+    // int lostLockCount = GetLostLockCount();
+    // if(lostLockCount > 0)
+    //     printf("\n************\nJUST LOST LOCKS TEH FUCK\n****************\n");
+    // printf("lost lock count: %i\n", lostLockCount);
     // we do this in a second pass so the
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
@@ -1089,6 +1089,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                     if(!playing && patternChainLength == 0)
                     {
                         playingPattern = sequenceStep;
+                        ResetPatternOffset();
                     }
                     patternChain[patternChainLength++] = sequenceStep;
                 }
@@ -1255,7 +1256,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 15
+#define SAVE_VERSION 16
 void GrooveBox::Serialize()
 {
     Serializer s;

@@ -212,12 +212,6 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pA);
             lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
             return;
-        case 16:
-            sprintf(strA, "Bpm");
-            sprintf(strB, "");
-            sprintf(pA, "%i", (globalVoiceData->bpm+1));
-            sprintf(pB, "");
-            return;
     }
     if(instrumentType == INSTRUMENT_GLOBAL)
     {

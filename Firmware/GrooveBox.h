@@ -60,11 +60,12 @@ class GrooveBox {
 
   void ResetPatternOffset()
   {
-    for (size_t i = 0; i < 16; i++)
+    for (size_t i = 0; i < 17; i++)
     {
-        patternStep[i] = beatCounter[i] = 0;
+        patternStep[i] = 0;
+        beatCounter[i] = 0;
     }
-    beatCounter[16] = 0;
+    beatCounter[17] = 0;
   }
   void OnCCChanged(uint8_t cc, uint8_t newValue);
 
