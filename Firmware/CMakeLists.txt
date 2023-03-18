@@ -35,6 +35,7 @@ add_executable(tdm
         ParamLockPool.cpp
         Instrument.cc
         Midi.cc
+        MidiParamMapper.cc
         tlv320driver.c
         ssd1306.c
         ws2812.c

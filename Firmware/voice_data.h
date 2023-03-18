@@ -259,7 +259,6 @@ class VoiceData
         uint8_t pan = 0x7f;
         
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
-        VoiceData *globalVoiceData; // quick hack for now
         
         static ParamLockPool lockPool;
     private:

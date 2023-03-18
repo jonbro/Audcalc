@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "audio/dsp.h"
 #include "audio/resources.h"
 #include "pico/stdlib.h"

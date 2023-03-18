@@ -18,7 +18,9 @@ class Midi
         int GetNote();
         uint16_t Write(const uint8_t* data, uint16_t length);
         void Flush();
+        void(*OnCCChanged)(uint8_t cc, uint8_t newValue) = NULL;
     private:
+        uint8_t lastCCValue[128]; // used for filtering out values so we don't send them all the time
         bool initialized = false;
         uint8_t pingPong = 0; // what half of the buffer we are sending
         uint8_t TxBuffer[MIDI_BUF_LENGTH*2];

@@ -60,12 +60,10 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
 }
 
 // used for setting the value in place
+// currentPattern is used for alterning things that have per pattern values (pattern length)
+// last n
 uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
-    if(param == 32)
-    {
-        return globalVoiceData->bpm;
-    }
     if(param == 28)
     {
         return delaySend;

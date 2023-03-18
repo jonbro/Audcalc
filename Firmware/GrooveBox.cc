@@ -17,7 +17,12 @@ static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
 }
 
 int16_t temp_buffer[SAMPLES_PER_BUFFER];
+GrooveBox* groovebox;
 
+void OnCCChangedBare(uint8_t cc, uint8_t newValue)
+{
+    groovebox->OnCCChanged(cc, newValue);
+}
 void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[globalData.bpm];
@@ -30,7 +35,9 @@ void GrooveBox::CalculateTempoIncrement()
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     needsInitialADC = true;
+    groovebox = this;
     midi.Init();
+    midi.OnCCChanged = OnCCChangedBare;
     ResetADCLatch();
     tempoPhase = 0;
     for(int i=0;i<VOICE_COUNT;i++)
@@ -46,7 +53,10 @@ GrooveBox::GrooveBox(uint32_t *_color)
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
     //PrintLostLockData();
-
+    int lostLockCount = GetLostLockCount();
+    if(lostLockCount > 0)
+        printf("\n************\nJUST LOST LOCKS TEH FUCK\n****************\n");
+    printf("lost lock count: %i\n", lostLockCount);
     // we do this in a second pass so the
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
@@ -56,6 +66,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
     }
     CalculateTempoIncrement();
     color = _color;
+    lastKeyPlayed = {static_cast<unsigned int>(0 & 0xf)};
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
@@ -416,15 +427,31 @@ int GrooveBox::GetNote()
     needsNoteTrigger = -1;
     return res;
 }
-
+void GrooveBox::OnCCChanged(uint8_t cc, uint8_t newValue)
+{
+    if(paramSelectMode && lastEditedParam > 0)
+    {
+        // set the midi mapping
+        //lastEditedParam = param*2+1;
+        midiMap.SetCCTarget(cc, currentVoice, lastEditedParam, (uint8_t)lastKeyPlayed.value);
+    }
+    else
+    {
+        midiMap.UpdateCC(patterns, cc, newValue*2, GetCurrentPattern());
+        ResetADCLatch(); // I'm not sure what this does :0 - but without it, we can't update the graphics :(
+    }
+}
 bool GrooveBox::IsPlaying()
 {
     return playing;
 }
+
+uint32_t screen_lfo_phase = 0;
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     drawCount++;
     framesSinceLastTouch++;
+    screen_lfo_phase += 0x2ffffff;
 
     // 5 minutes & 20 minutes 
     #define TWOMINS 0x1c20
@@ -854,12 +881,15 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     bool voiceNeedsUpdate = false;
     if(paramSetA)
     {
+        // eventually will need to encode the page number in the param - not there yet
+        lastEditedParam = param*2;
         current_a = a;
         voiceNeedsUpdate = true;
         lastAdcValA = a;
     }
     if(paramSetB)
     {
+        lastEditedParam = param*2+1;
         current_b = b;
         voiceNeedsUpdate = true;
         lastAdcValB = b;
@@ -1156,9 +1186,16 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             // just hardcode for now
             uint8_t targetParam = x+y*5;
-            if(selectedGlobalParam && param == targetParam)
+            // record key param 1: 24
+            // record key param 2: 49
+            switch(param)
             {
-                targetParam = (targetParam+25)%50;
+                case 24:
+                    targetParam = 49;
+                    break;
+                default:
+                    targetParam = 24;
+                    break;
             }
             if(param != targetParam)
                 paramSetA = paramSetB = false;
@@ -1218,7 +1255,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 16
+#define SAVE_VERSION 15
 void GrooveBox::Serialize()
 {
     Serializer s;

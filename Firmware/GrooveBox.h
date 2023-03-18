@@ -19,9 +19,9 @@ extern "C" {
 #include "audio/resources.h"
 #include "Reverb2.h"
 #include "Delay.h"
+#include "MidiParamMapper.h"
 
 #define VOICE_COUNT 8
-
 
 class GrooveBox {
  public:
@@ -48,28 +48,31 @@ class GrooveBox {
   uint32_t recordingLength;
   bool erasing = false;
   bool playThroughEnabled = false;
-
   uint8_t GetCurrentPattern()
   {
     return playingPattern;//patternChain[chainStep];
   }
+
   void ResetADCLatch()
   {
     paramSetA = paramSetB = false;
   }
+
   void ResetPatternOffset()
   {
     for (size_t i = 0; i < 16; i++)
     {
-       patternStep[i] = beatCounter[i] = 0;
+        patternStep[i] = beatCounter[i] = 0;
     }
     beatCounter[16] = 0;
   }
+  void OnCCChanged(uint8_t cc, uint8_t newValue);
+
  private:
+  MidiParamMapper midiMap;
   bool needsInitialADC; 
   void TriggerInstrument(uint4 key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
-
   void CalculateTempoIncrement();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
@@ -77,7 +80,7 @@ class GrooveBox {
   int needsNoteTrigger = -1;
   int drawY = 0;
   uint16_t drawCount = 0;
-  int lastNotePlayed = 0;
+  int lastNotePlayed = 60;
   uint4 lastKeyPlayed = {0};
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
@@ -95,6 +98,10 @@ class GrooveBox {
   bool soundSelectMode = false;
   bool patternSelectMode = false;
   bool paramSelectMode = false;
+  
+  // used for midi learn mode
+  int16_t lastEditedParam = -1;
+  
   bool selectedGlobalParam = false;
   uint8_t param = 0;
   uint32_t *color;
@@ -132,4 +139,7 @@ class GrooveBox {
   int64_t renderTime = 0;
   int64_t sampleCount = 0;
 };
+
+extern GrooveBox *groovebox; // used for the midi callbacks
+
 #endif // GROOVEBOX_H_
