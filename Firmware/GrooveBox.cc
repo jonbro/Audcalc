@@ -317,8 +317,26 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         hadTrigger = hadTrigger|(1<<v);
                         if((allowPlayback>>v)&0x1)
                         {
-                            patterns[v].SetNextRequestedStep(patternStep[v]);
-                            TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                            bool trigger = true;
+                            // check to see if the conditions allow us to play
+                            ConditionModeEnum conditionMode = patterns[v].GetConditionMode(patterns[v].GetParamValue(ConditionMode, requestedKey.value, patternStep[v], GetCurrentPattern()));
+                            uint8_t conditionData = patterns[v].GetParamValue(ConditionData, requestedKey.value, patternStep[v], GetCurrentPattern());
+                            switch(conditionMode)
+                            {
+                                case CONDITION_MODE_RAND:
+                                    if(conditionData < (get_rand_32()>>24))
+                                        trigger = false;
+                                    break;
+                                case CONDITION_MODE_LENGTH:
+                                    uint8_t tmp = ((uint16_t)conditionData*35)>>8;
+                                    trigger = ConditionalEvery[tmp*2]-1 == patternLoopCount[v]%ConditionalEvery[tmp*2+1];
+                                    break;
+                            }
+                            if(trigger)
+                            {
+                                patterns[v].SetNextRequestedStep(patternStep[v]);
+                                TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                            }
                         }
                     }
                     // we need to special case 16: the pattern change counter
@@ -329,6 +347,10 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     else
                     {
                         patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                        if(patternStep[v] == 0)
+                        {
+                            patternLoopCount[v]++;
+                        }
                     }
                 }
             }
@@ -1256,7 +1278,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 16
+#define SAVE_VERSION 17
 void GrooveBox::Serialize()
 {
     Serializer s;

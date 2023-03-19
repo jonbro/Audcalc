@@ -69,6 +69,7 @@ target_link_libraries(tdm
         hardware_pio
         hardware_adc
         hardware_flash
+        pico_rand
         pico_audio_i2s
         tinyusb_device tinyusb_board
         )

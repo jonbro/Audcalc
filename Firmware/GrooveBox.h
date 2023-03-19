@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/time.h"
+#include "pico/rand.h"
 
 #include "Instrument.h"
 extern "C" {
@@ -64,6 +65,8 @@ class GrooveBox {
     {
         patternStep[i] = 0;
         beatCounter[i] = 0;
+        if(i<16)
+          patternLoopCount[i] = 0;
     }
     beatCounter[17] = 0;
   }
@@ -111,6 +114,10 @@ class GrooveBox {
   uint16_t allowPlayback = 0xffff;
   // each sound can be on a different step through the pattern, we should track these
   uint8_t patternStep[17] = {0};
+
+  // for tracking how many times we've looped through a pattern
+  uint8_t patternLoopCount[16] = {0};
+
   uint32_t framesSinceLastTouch = 0;
   // the page we are currently editing for each sound
   // clamped to the length of this pattern / sound
