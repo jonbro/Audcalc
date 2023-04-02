@@ -72,7 +72,7 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
   return phase_increment;
 }
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     
@@ -331,16 +331,55 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
     }
 }
+
+void Instrument::TempoPulse()
+{
+    if(retriggersRemaining == 0)
+        return;
+    retriggerNextPulse -= 1;
+    if(retriggerNextPulse == 0)
+    {
+        retriggersRemaining--;
+        retriggerNextPulse = playingVoice->GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern);
+        retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
+        Retrigger();
+    }
+}
+
+void Instrument::Retrigger()
+{
+    if(playingVoice->GetInstrumentType() == INSTRUMENT_SAMPLE)
+    {
+    }
+    if(playingVoice->GetInstrumentType() == INSTRUMENT_MACRO)
+    {
+        enable_env = true;
+        osc.Strike();
+        env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+    }
+    else if(playingVoice->GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+    }
+}
+
 void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
-    // used for editing values for specific keys
     if(livePlay)
     {
         lastPressedKey = (uint8_t)key.value;
     }
     playingStep = step;
     playingPattern = pattern;
+    playingVoice = &voiceData;
     int note = midinote;
+    if(!livePlay)
+    {
+        retriggersRemaining = voiceData.GetParamValue(RetriggerLength, lastPressedKey, playingStep, playingPattern);
+        retriggerNextPulse = voiceData.GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern);
+        retriggersRemaining = ((uint16_t)retriggersRemaining*8)>>8;
+        retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
+    }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         microFade = 0;

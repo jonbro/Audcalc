@@ -57,7 +57,7 @@ for i=2,8 do
   end
 end
 
-print("const uint8_t *ConditionalEvery[".. #valTable .. "] = {\n" .. table.concat(valTable, ", ") .. "};")
+print("const uint8_t ConditionalEvery[".. #valTable .. "] = {\n" .. table.concat(valTable, ", ") .. "};")
 
 
         // simplify, lets load from a known good source

@@ -52,6 +52,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:lfo1Target;
+        case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:retriggerSpeed;
+        case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:retriggerLength;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
         case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
@@ -106,12 +108,15 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 11: return decayTime2;
         case 12: return lfoRate;
         case 13: return lfoDepth;
+        case 14: return retriggerSpeed;
+        case 15: return retriggerLength;
         case 16: return env1Target;
         case 17: return env1Depth;
         case 18: return env2Target;
         case 19: return env2Depth;
         case 20: return lfo1Target;
         case 21: return lfo1Delay;
+        case 22: return retriggerFade;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
         case 26: return conditionMode;
@@ -236,6 +241,18 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     // all non global instruments
     switch (param)
     {
+        case 7:
+            sprintf(strA, "RTsp");
+            sprintf(strB, "RTLn");
+            lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, retriggerSpeed, pA);
+            lockB = CheckLockAndSetDisplay(step, pattern, RetriggerLength, retriggerLength, pB);
+            return;
+        case 11:
+            sprintf(strA, "RTfd");
+            sprintf(strB, "");
+            sprintf(pA, "%i", retriggerFade);
+            sprintf(pB, "");
+            return;
         case 12:
             sprintf(strA, "Len");
             sprintf(strB, "Rate");
@@ -508,7 +525,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, 
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 3 || param == 7 || param == 11)
+    if(param == 3)
     {
         // lol
         uint8_t x = 0;

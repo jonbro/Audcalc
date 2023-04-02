@@ -60,6 +60,8 @@ enum ParamType {
     DecayTime2 = 11,
     LFORate = 12,
     LFODepth = 13,
+    RetriggerSpeed = 14,
+    RetriggerLength = 15,
     Env1Target = 16,
     Env1Depth = 17,
     Env2Target = 18,
@@ -278,6 +280,10 @@ class VoiceData
         uint8_t volume = 0x7f;
         uint8_t pan = 0x7f;
         
+        uint8_t retriggerSpeed = 0;
+        uint8_t retriggerLength = 0x7f;
+        uint8_t retriggerFade = 0x7f;
+
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         
         static ParamLockPool lockPool;

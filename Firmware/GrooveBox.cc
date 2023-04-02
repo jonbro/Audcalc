@@ -2,7 +2,7 @@
 #include <string.h>
 #include "m6x118pt7b.h"
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -27,7 +27,9 @@ void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[globalData.bpm];
     // 24ppq
-    tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+
+    //tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+    
     // tempoPhaseIncrement >>= 1;
     // 4 ppq
     // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
@@ -249,7 +251,11 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         ResetPatternOffset();
                     }
                 }
-
+                // send the sync pulse to all the instruments
+                for(int v=0;v<VOICE_COUNT;v++)
+                {
+                    instruments[v].TempoPulse();
+                }
                 // two extra counters
                 // 17: the pattern change counter
                 // 18: the sync output counter
@@ -274,35 +280,36 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                                 rate = 0;
                             break;
                         default:
-                            rate = (patterns[v].rate[GetCurrentPattern()]*7)>>8;
+                            rate = ((patterns[v].rate[GetCurrentPattern()]*7)>>8);
                     }
                     switch(rate)
                     {
                         case 0: // 2x
-                            beatCounter[v] = beatCounter[v]%3;
-                            break;
-                        case 1: // 3/2x
-                            beatCounter[v] = beatCounter[v]%4;
-                            break;
-                        case 2: // 1x
-                            beatCounter[v] = beatCounter[v]%6;
-                            break;
-                        case 3: // 3/4x
-                            beatCounter[v] = beatCounter[v]%8;
-                            break;
-                        case 4: // 1/2x
                             beatCounter[v] = beatCounter[v]%12;
                             break;
-                        case 5: // 1/4x
+                        case 1: // 3/2x
+                            beatCounter[v] = beatCounter[v]%16;
+                            break;
+                        case 2: // 1x
                             beatCounter[v] = beatCounter[v]%24;
                             break;
-                        case 6: // 1/8x
+                        case 3: // 3/4x
+                            beatCounter[v] = beatCounter[v]%32;
+                            break;
+                        case 4: // 1/2x
                             beatCounter[v] = beatCounter[v]%48;
                             break;
-                        case 7: // 24 ppq sync
-                            beatCounter[v] = 0;
+                        case 5: // 1/4x
+                            beatCounter[v] = beatCounter[v]%96;
+                            break;
+                        case 6: // 1/8x
+                            beatCounter[v] = beatCounter[v]%192;
+                            break;
+                        case 7: // 24ppq
+                            beatCounter[v] = beatCounter[v]%4;
                             break;
                     }
+                    
                     if(!needsTrigger)
                         continue;
                     if(v==17){
@@ -1278,7 +1285,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 17
+#define SAVE_VERSION 18
 void GrooveBox::Serialize()
 {
     Serializer s;
