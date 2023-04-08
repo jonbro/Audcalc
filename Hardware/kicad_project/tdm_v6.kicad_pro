@@ -56,14 +56,8 @@
         }
       ],
       "drc_exclusions": [
-        "clearance|42286000|58116000|b03cb553-3709-44f5-9a1e-0bd7ca2daf93|87bdd00e-f10c-4d37-9a6b-480b5e87ca33",
-        "clearance|42286000|66176000|83181dd0-bbcd-4a99-a5a2-7d6961abb51a|0c345fc5-964b-48c0-9452-55507c868edc",
-        "clearance|63690000|38944000|9ad54c14-6dd1-4741-ab11-80a0275cae72|db09a492-3111-4077-8b89-2ff4c8eebad3",
-        "clearance|67680000|38944000|0e852933-f119-4b7f-a503-b829e02656a9|dc2e4d69-ab4d-4864-999d-7aa340dd63c7",
-        "clearance|68490000|38944000|3b5147db-69cc-4871-96a7-79c3437a6213|21a4e5f9-158c-4a1e-a6d3-12c826291e62",
         "clearance|69330000|37644000|fe0a8ab1-7b25-4d9a-9a3b-f8c5e10b289a|646182ef-83d3-48ef-8f13-39bd3cf49786",
-        "silk_over_copper|37300000|84200000|c356ab19-506c-4d8e-9a29-26c312a8865f|4840e595-7cf2-44ea-9466-cfcfe23584ce",
-        "silk_over_copper|41286000|57956000|ef3c2ca7-fcc8-4cff-8fc1-0c762aa25455|b03cb553-3709-44f5-9a1e-0bd7ca2daf93",
+        "silk_over_copper|41286000|57956000|205124da-208d-4258-a4a7-f97b71056a5a|1cc90ba5-fe67-4483-aa0e-8f57e3933829",
         "silk_over_copper|43730000|34646000|1d6518e1-cfe9-4078-adc2-cf8e6477b5cb|ad2d033c-4040-4813-b5da-82cf827f9d86",
         "silk_over_copper|43730000|34840000|6e416a78-df14-48ee-9842-e6e24081191e|ad2d033c-4040-4813-b5da-82cf827f9d86",
         "silk_over_copper|62890000|36894000|4605c20a-6c32-4ba9-9d98-157265e5d2d4|96cc7009-e5c2-4181-9848-d145b9196cc4",
@@ -379,7 +373,7 @@
     "classes": [
       {
         "bus_width": 12.0,
-        "clearance": 0.2,
+        "clearance": 0.18,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
