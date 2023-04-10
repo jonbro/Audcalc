@@ -17,12 +17,20 @@ using namespace braids;
 
 typedef struct { unsigned value : 4; } uint4;
 
+extern const uint8_t ConditionalEvery[];
+
 enum InstrumentType {
   INSTRUMENT_MACRO,
   INSTRUMENT_SAMPLE,
   INSTRUMENT_MIDI,
   INSTRUMENT_DRUMS,
   INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
+};
+
+enum ConditionModeEnum {
+  CONDITION_MODE_NONE,
+  CONDITION_MODE_RAND,
+  CONDITION_MODE_LENGTH,
 };
 
 enum EnvTargets {
@@ -52,12 +60,16 @@ enum ParamType {
     DecayTime2 = 11,
     LFORate = 12,
     LFODepth = 13,
+    RetriggerSpeed = 14,
+    RetriggerLength = 15,
     Env1Target = 16,
     Env1Depth = 17,
     Env2Target = 18,
     Env2Depth = 19,
     Lfo1Target = 20,
     Length = 24,
+    ConditionMode = 26,
+    ConditionData = 27,
     DelaySend = 28, // all three of these are on the same location
     ReverbSend = 29
 };
@@ -104,6 +116,13 @@ class VoiceData
             return (MacroOscillatorShape)((((uint16_t)shape)*41) >> 8);
         }
         
+        ConditionModeEnum GetConditionMode(){
+            return GetConditionMode(conditionMode);
+        }
+        ConditionModeEnum GetConditionMode(uint8_t conditionModeOverride){
+            return (ConditionModeEnum)((((uint16_t)conditionModeOverride)*3) >> 8);
+        }
+
         uint8_t GetSyncInMode(){
             return ((((uint16_t)syncIn)*4) >> 8);
         }
@@ -253,13 +272,19 @@ class VoiceData
             uint8_t chromatic;
         };
         
+        uint8_t conditionMode = 0;
+        uint8_t conditionData = 0;
+
         uint8_t cutoff = 0xff;
         uint8_t resonance = 0;
         uint8_t volume = 0x7f;
         uint8_t pan = 0x7f;
         
+        uint8_t retriggerSpeed = 0;
+        uint8_t retriggerLength = 0x7f;
+        uint8_t retriggerFade = 0x7f;
+
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
-        VoiceData *globalVoiceData; // quick hack for now
         
         static ParamLockPool lockPool;
     private:

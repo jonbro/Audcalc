@@ -27,13 +27,37 @@ beats per sample
 
 44100 * 32nds p sec
 
+    "1:1", 1
+    
+    "1:2", 2
+    "2:2", 3 (2*1)
+    
+    "1:3", 4
+    "2:3", 5 
+    "1:3", 6 (3*2)
+
+    "1:4", 7
+    "2:4", 8
+    "3:4", 9
+    "4:4", 10 (5*2)
+  e
+
 2,756.25
 q8          q4
 (44100<<8)/(60<<4) = q4
 
 60*32 = 1920
 
+local valTable = {}
 
+for i=2,8 do
+  for j=1,i do
+   table.insert(valTable, j)
+   table.insert(valTable, i)
+  end
+end
+
+print("const uint8_t ConditionalEvery[".. #valTable .. "] = {\n" .. table.concat(valTable, ", ") .. "};")
 
 
         // simplify, lets load from a known good source

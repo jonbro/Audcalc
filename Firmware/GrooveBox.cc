@@ -2,7 +2,7 @@
 #include <string.h>
 #include "m6x118pt7b.h"
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
@@ -17,12 +17,19 @@ static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
 }
 
 int16_t temp_buffer[SAMPLES_PER_BUFFER];
+GrooveBox* groovebox;
 
+void OnCCChangedBare(uint8_t cc, uint8_t newValue)
+{
+    groovebox->OnCCChanged(cc, newValue);
+}
 void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[globalData.bpm];
     // 24ppq
-    tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+
+    //tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
+    
     // tempoPhaseIncrement >>= 1;
     // 4 ppq
     // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
@@ -30,7 +37,9 @@ void GrooveBox::CalculateTempoIncrement()
 GrooveBox::GrooveBox(uint32_t *_color)
 {
     needsInitialADC = true;
+    groovebox = this;
     midi.Init();
+    midi.OnCCChanged = OnCCChangedBare;
     ResetADCLatch();
     tempoPhase = 0;
     for(int i=0;i<VOICE_COUNT;i++)
@@ -46,7 +55,10 @@ GrooveBox::GrooveBox(uint32_t *_color)
     printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
     //PrintLostLockData();
-
+    // int lostLockCount = GetLostLockCount();
+    // if(lostLockCount > 0)
+    //     printf("\n************\nJUST LOST LOCKS TEH FUCK\n****************\n");
+    // printf("lost lock count: %i\n", lostLockCount);
     // we do this in a second pass so the
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
@@ -56,6 +68,7 @@ GrooveBox::GrooveBox(uint32_t *_color)
     }
     CalculateTempoIncrement();
     color = _color;
+    lastKeyPlayed = {static_cast<unsigned int>(0 & 0xf)};
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
@@ -238,7 +251,11 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         ResetPatternOffset();
                     }
                 }
-
+                // send the sync pulse to all the instruments
+                for(int v=0;v<VOICE_COUNT;v++)
+                {
+                    instruments[v].TempoPulse();
+                }
                 // two extra counters
                 // 17: the pattern change counter
                 // 18: the sync output counter
@@ -263,35 +280,36 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                                 rate = 0;
                             break;
                         default:
-                            rate = (patterns[v].rate[GetCurrentPattern()]*7)>>8;
+                            rate = ((patterns[v].rate[GetCurrentPattern()]*7)>>8);
                     }
                     switch(rate)
                     {
                         case 0: // 2x
-                            beatCounter[v] = beatCounter[v]%3;
-                            break;
-                        case 1: // 3/2x
-                            beatCounter[v] = beatCounter[v]%4;
-                            break;
-                        case 2: // 1x
-                            beatCounter[v] = beatCounter[v]%6;
-                            break;
-                        case 3: // 3/4x
-                            beatCounter[v] = beatCounter[v]%8;
-                            break;
-                        case 4: // 1/2x
                             beatCounter[v] = beatCounter[v]%12;
                             break;
-                        case 5: // 1/4x
+                        case 1: // 3/2x
+                            beatCounter[v] = beatCounter[v]%16;
+                            break;
+                        case 2: // 1x
                             beatCounter[v] = beatCounter[v]%24;
                             break;
-                        case 6: // 1/8x
+                        case 3: // 3/4x
+                            beatCounter[v] = beatCounter[v]%32;
+                            break;
+                        case 4: // 1/2x
                             beatCounter[v] = beatCounter[v]%48;
                             break;
-                        case 7: // 24 ppq sync
-                            beatCounter[v] = 0;
+                        case 5: // 1/4x
+                            beatCounter[v] = beatCounter[v]%96;
+                            break;
+                        case 6: // 1/8x
+                            beatCounter[v] = beatCounter[v]%192;
+                            break;
+                        case 7: // 24ppq
+                            beatCounter[v] = beatCounter[v]%4;
                             break;
                     }
+                    
                     if(!needsTrigger)
                         continue;
                     if(v==17){
@@ -306,8 +324,26 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         hadTrigger = hadTrigger|(1<<v);
                         if((allowPlayback>>v)&0x1)
                         {
-                            patterns[v].SetNextRequestedStep(patternStep[v]);
-                            TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                            bool trigger = true;
+                            // check to see if the conditions allow us to play
+                            ConditionModeEnum conditionMode = patterns[v].GetConditionMode(patterns[v].GetParamValue(ConditionMode, requestedKey.value, patternStep[v], GetCurrentPattern()));
+                            uint8_t conditionData = patterns[v].GetParamValue(ConditionData, requestedKey.value, patternStep[v], GetCurrentPattern());
+                            switch(conditionMode)
+                            {
+                                case CONDITION_MODE_RAND:
+                                    if(conditionData < (get_rand_32()>>24))
+                                        trigger = false;
+                                    break;
+                                case CONDITION_MODE_LENGTH:
+                                    uint8_t tmp = ((uint16_t)conditionData*35)>>8;
+                                    trigger = ConditionalEvery[tmp*2]-1 == patternLoopCount[v]%ConditionalEvery[tmp*2+1];
+                                    break;
+                            }
+                            if(trigger)
+                            {
+                                patterns[v].SetNextRequestedStep(patternStep[v]);
+                                TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                            }
                         }
                     }
                     // we need to special case 16: the pattern change counter
@@ -318,6 +354,10 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     else
                     {
                         patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
+                        if(patternStep[v] == 0)
+                        {
+                            patternLoopCount[v]++;
+                        }
                     }
                 }
             }
@@ -416,15 +456,31 @@ int GrooveBox::GetNote()
     needsNoteTrigger = -1;
     return res;
 }
-
+void GrooveBox::OnCCChanged(uint8_t cc, uint8_t newValue)
+{
+    if(paramSelectMode && lastEditedParam > 0)
+    {
+        // set the midi mapping
+        //lastEditedParam = param*2+1;
+        midiMap.SetCCTarget(cc, currentVoice, lastEditedParam, (uint8_t)lastKeyPlayed.value);
+    }
+    else
+    {
+        midiMap.UpdateCC(patterns, cc, newValue*2, GetCurrentPattern());
+        ResetADCLatch(); // I'm not sure what this does :0 - but without it, we can't update the graphics :(
+    }
+}
 bool GrooveBox::IsPlaying()
 {
     return playing;
 }
+
+uint32_t screen_lfo_phase = 0;
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     drawCount++;
     framesSinceLastTouch++;
+    screen_lfo_phase += 0x2ffffff;
 
     // 5 minutes & 20 minutes 
     #define TWOMINS 0x1c20
@@ -854,12 +910,15 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     bool voiceNeedsUpdate = false;
     if(paramSetA)
     {
+        // eventually will need to encode the page number in the param - not there yet
+        lastEditedParam = param*2;
         current_a = a;
         voiceNeedsUpdate = true;
         lastAdcValA = a;
     }
     if(paramSetB)
     {
+        lastEditedParam = param*2+1;
         current_b = b;
         voiceNeedsUpdate = true;
         lastAdcValB = b;
@@ -1059,6 +1118,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                     if(!playing && patternChainLength == 0)
                     {
                         playingPattern = sequenceStep;
+                        ResetPatternOffset();
                     }
                     patternChain[patternChainLength++] = sequenceStep;
                 }
@@ -1156,9 +1216,16 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             // just hardcode for now
             uint8_t targetParam = x+y*5;
-            if(selectedGlobalParam && param == targetParam)
+            // record key param 1: 24
+            // record key param 2: 49
+            switch(param)
             {
-                targetParam = (targetParam+25)%50;
+                case 24:
+                    targetParam = 49;
+                    break;
+                default:
+                    targetParam = 24;
+                    break;
             }
             if(param != targetParam)
                 paramSetA = paramSetB = false;
@@ -1218,7 +1285,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 16
+#define SAVE_VERSION 18
 void GrooveBox::Serialize()
 {
     Serializer s;

@@ -52,20 +52,22 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
         case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:lfo1Target;
+        case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:retriggerSpeed;
+        case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:retriggerLength;
         case Length: return length[pattern];
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
         case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
+        case ConditionMode: return HasLockForStep(step, pattern, ConditionMode, value)?value:conditionMode;
+        case ConditionData: return HasLockForStep(step, pattern, ConditionData, value)?value:conditionData;
     }
     return 0;
 }
 
 // used for setting the value in place
+// currentPattern is used for alterning things that have per pattern values (pattern length)
+// last n
 uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
-    if(param == 32)
-    {
-        return globalVoiceData->bpm;
-    }
     if(param == 28)
     {
         return delaySend;
@@ -106,14 +108,19 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 11: return decayTime2;
         case 12: return lfoRate;
         case 13: return lfoDepth;
+        case 14: return retriggerSpeed;
+        case 15: return retriggerLength;
         case 16: return env1Target;
         case 17: return env1Depth;
         case 18: return env2Target;
         case 19: return env2Depth;
         case 20: return lfo1Target;
         case 21: return lfo1Delay;
+        case 22: return retriggerFade;
         case 24: return length[currentPattern];
         case 25: return rate[currentPattern];
+        case 26: return conditionMode;
+        case 27: return conditionData;
     }
     if(GetInstrumentType() == INSTRUMENT_MACRO)
     {
@@ -165,6 +172,11 @@ const char *rates[7] = {
     "1/8x"
 };
 
+const char *conditionStrings[4] = { 
+    "none",
+    "Rnd",
+    "Len",
+};
 const char *syncInStrings[4] = { 
     "none",
     "midi",
@@ -181,6 +193,16 @@ const char *envTargets[7] = {
     "Pit",
     "Pan"
 };
+
+// this can probably be done with some math. I'm not going to do that tonight, my brain
+
+const uint8_t ConditionalEvery[70] = {
+    1, 2, 2, 2, 1, 3, 2, 3, 3, 3, 1, 4, 2, 4, 3, 4, 4, 4,
+    1, 5, 2, 5, 3, 5, 4, 5, 5, 5, 1, 6, 2, 6, 3, 6, 4, 6, 5, 6, 6, 6,
+    1, 7, 2, 7, 3, 7, 4, 7, 5, 7, 6, 7, 7, 7,
+    1, 8, 2, 8, 3, 8, 4, 8, 5, 8, 6, 8, 7, 8, 8, 8
+};
+
 
 bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
 {
@@ -205,7 +227,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     
     uint8_t valA = 0, valB = 0;
     InstrumentType instrumentType = GetInstrumentType();
-    
+    ConditionModeEnum conditionModeTmp = CONDITION_MODE_NONE;
     switch(param)
     {
         case 14:
@@ -214,52 +236,60 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pA);
             lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
             return;
-        case 16:
-            sprintf(strA, "Bpm");
-            sprintf(strB, "");
-            sprintf(pA, "%i", (globalVoiceData->bpm+1));
-            sprintf(pB, "");
-            return;
-    }
-    if(instrumentType == INSTRUMENT_GLOBAL)
-    {
-        switch (param)
-        {
-            case 1:
-                sprintf(strA, "Spkr");
-                sprintf(strB, "");
-                sprintf(pA, amp_enabled>0x7f?"On":"Off");
-                sprintf(pB, "");
-                return;
-            case 2:
-                sprintf(strA, "chrom");
-                sprintf(strB, "");
-                sprintf(pA, chromatic>0x7f?"On":"Off");
-                sprintf(pB, "");
-                return;
-            case 12:
-                sprintf(strA, "Chng");
-                sprintf(strB, "Swng");
-                sprintf(pA, "%i", length[pattern]/4+1);
-                sprintf(pB,"");
-                return;
-            default:
-                sprintf(strA, "");
-                sprintf(strB, "");
-                sprintf(pA, "");
-                sprintf(pB, "");
-                return;
-        }
     }
     
     // all non global instruments
     switch (param)
     {
+        case 7:
+            sprintf(strA, "RTsp");
+            sprintf(strB, "RTLn");
+            lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, retriggerSpeed, pA);
+            lockB = CheckLockAndSetDisplay(step, pattern, RetriggerLength, retriggerLength, pB);
+            return;
+        case 11:
+            sprintf(strA, "RTfd");
+            sprintf(strB, "");
+            sprintf(pA, "%i", retriggerFade);
+            sprintf(pB, "");
+            return;
         case 12:
             sprintf(strA, "Len");
             sprintf(strB, "Rate");
             sprintf(pA, "%i", length[pattern]/4+1);
             sprintf(pB,rates[(rate[pattern]*7)>>8]);
+            return;
+        case 13:
+            sprintf(strA, "Cnd");
+            sprintf(strB, "Rate");
+            if(HasLockForStep(step, pattern, 26, valA))
+            {
+                conditionModeTmp = GetConditionMode(valA);
+                lockA = true;
+            }
+            else
+                conditionModeTmp = GetConditionMode();
+            sprintf(pA, "%s", conditionStrings[conditionModeTmp]);
+            uint8_t tmp = 0;
+            uint8_t conditionDataTmp = conditionData;
+            if(HasLockForStep(step, pattern, 27, valB))
+            {
+                conditionDataTmp = valB;
+                lockB = true;
+            }            
+            switch(conditionModeTmp)
+            {
+                case CONDITION_MODE_RAND:
+                    sprintf(pB, "%i%", ((uint16_t)conditionDataTmp*100)>>8);
+                    break;
+                case CONDITION_MODE_LENGTH:
+                    tmp = ((uint16_t)conditionDataTmp*35)>>8;
+                    sprintf(pB, "%i:%i", ConditionalEvery[tmp*2], ConditionalEvery[tmp*2+1]);
+                    break;
+                default:
+                    sprintf(pB, "%i", conditionDataTmp);
+                    break;
+            }
             return;
     }
     int p = pan;
@@ -495,7 +525,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, 
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 3 || param == 7 || param == 11 || param == 13)
+    if(param == 3)
     {
         // lol
         uint8_t x = 0;

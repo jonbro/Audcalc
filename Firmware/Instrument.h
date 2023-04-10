@@ -57,13 +57,19 @@ class Instrument
           return panWithMods;
         }
         void GetParamString(uint8_t param, char *str);
+        void TempoPulse();
         MacroOscillator osc;
         uint8_t delaySend = 0;
         uint8_t reverbSend = 0;
         GlobalData *globalData;
         q15_t pWithMods;
 
-    private: 
+    private:
+        VoiceData *playingVoice;
+        void Retrigger();
+        // lets hardcode some retriggers here
+        uint8_t retriggerNextPulse = 0;
+        uint8_t retriggersRemaining = 0;
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
         uint32_t phase_;

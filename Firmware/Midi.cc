@@ -23,6 +23,11 @@ void on_uart_rx() {
 
 void Midi::Init()
 {
+    // clear out the last values so we immediately update on first get
+    for(int i=0;i<128;i++)
+    {
+        lastCCValue[i] = 0xff;
+    }
     // Set up our UART with the required speed.
     uart_init(UART_ID, BAUD_RATE);
 
@@ -92,8 +97,8 @@ int Midi::GetNote()
         return -1;
 
     uint8_t cmdStart = 0;
-    
-    while((in_buf[cmdStart]>>4) != 0x9 && cmdStart<buf_count)
+    // filter out all non 0x9 commands
+    while(((in_buf[cmdStart]>>4) != 0x9 && (in_buf[cmdStart]>>4) != 0xb) && cmdStart<buf_count)
     {
         cmdStart++;
         while((in_buf[cmdStart]>>7) != 1 && cmdStart<buf_count)
@@ -111,6 +116,23 @@ int Midi::GetNote()
         readBuf = true;
         buf_count = 0;
         return in_buf[cmdStart+1]&0x7f; // midi data bytes strip off the top bit
+    }
+    // control change
+    if((in_buf[cmdStart]>>4) == 0xb)
+    {
+        uint8_t cc = in_buf[cmdStart+1];
+        uint8_t val = in_buf[cmdStart+2];
+        if(lastCCValue[cc] == 0xff || lastCCValue[cc] != val)
+        {
+            if(OnCCChanged != NULL)
+            {
+                OnCCChanged(cc, val);
+            }
+            lastCCValue[cc] = val;
+        }
+        //printf("cc: %i %i\n",in_buf[cmdStart+1], in_buf[cmdStart+2]);
+        buf_count = 0;
+        return -1;
     }
     // note off
     buf_count = 0;

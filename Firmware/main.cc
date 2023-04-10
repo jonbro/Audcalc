@@ -53,7 +53,7 @@ using namespace braids;
 #define TLV_REG_RESET   	    1
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
-#define SAMPLES_PER_BUFFER 128
+#define SAMPLES_PER_BUFFER 64
 #define USING_DEMO_BOARD 0
 // TDM board defines
 #if USING_DEMO_BOARD
@@ -268,10 +268,10 @@ int main()
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
-        // if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
-        // {
-        //     hardware_shutdown();
-        // }
+        if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
+        {
+            hardware_shutdown();
+        }
         // if the user is holding the record key, then reboot in usb mode
         if(hardware_get_key_state(4, 4))
         {
