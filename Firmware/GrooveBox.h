@@ -15,7 +15,7 @@ extern "C" {
 #include "Serializer.h"
 #include "hardware.h"
 #include "voice_data.h"
-#include "GlobalData.h"
+#include "SongData.h"
 #include "usb_microphone.h"
 #include "audio/resources.h"
 #include "Reverb2.h"
@@ -134,7 +134,7 @@ class GrooveBox {
   VoiceData patterns[16];
   VoiceData *Editing;
   VoiceData *Playing;
-  GlobalData globalData;
+  SongData songData;
   Midi midi;
   uint16_t nextTrigger = 0;
   uint8_t lastAdcValA = 0;

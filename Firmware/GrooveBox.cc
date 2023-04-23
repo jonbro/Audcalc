@@ -28,7 +28,7 @@ void OnCCChangedBare(uint8_t cc, uint8_t newValue)
 }
 void GrooveBox::CalculateTempoIncrement()
 {
-    tempoPhaseIncrement = lut_tempo_phase_increment[globalData.GetBpm()];
+    tempoPhaseIncrement = lut_tempo_phase_increment[songData.GetBpm()];
     // 24ppq
 
     //tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
@@ -48,7 +48,7 @@ void GrooveBox::init(uint32_t *_color)
     for(int i=0;i<VOICE_COUNT;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
-        instruments[i].globalData = &globalData;
+        instruments[i].songData = &songData;
     }
     for(int i=0;i<16;i++)
     {
@@ -241,7 +241,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
             if(tempoPulse)
             {
-                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.TimingClock();
                 
                 // advance chain if the global pattern just overflowed on the last beat counter
@@ -276,9 +276,9 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                             rate = 2;
                             break;
                         case 17:
-                            if((globalData.GetSyncOutMode() & SyncOutModePO) > 0)
+                            if((songData.GetSyncOutMode() & SyncOutModePO) > 0)
                                 rate = 4;
-                            else if((globalData.GetSyncOutMode() & SyncOutMode24) > 0)
+                            else if((songData.GetSyncOutMode() & SyncOutMode24) > 0)
                                 rate = 7;
                             else
                                 rate = 0;
@@ -353,7 +353,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     // we need to special case 16: the pattern change counter
                     if(v==16)
                     {
-                        patternStep[v] = (patternStep[v]+1)%globalData.GetLength(GetCurrentPattern());
+                        patternStep[v] = (patternStep[v]+1)%songData.GetLength(GetCurrentPattern());
                     }
                     else
                     {
@@ -367,7 +367,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
         }
     }
-    if(sync_count > 0 && (globalData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
+    if(sync_count > 0 && (songData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
@@ -655,7 +655,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         if(selectedGlobalParam)
         {
-            globalData.DrawParamString(param, GetCurrentPattern(), str);
+            songData.DrawParamString(param, GetCurrentPattern(), str);
         }
         else
         {
@@ -801,8 +801,8 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 }
 void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
 {
-    uint8_t& current_a = globalData.GetParam(param*2, GetCurrentPattern());
-    uint8_t& current_b = globalData.GetParam(param*2+1, GetCurrentPattern());
+    uint8_t& current_a = songData.GetParam(param*2, GetCurrentPattern());
+    uint8_t& current_b = songData.GetParam(param*2+1, GetCurrentPattern());
     if(paramSetA)
     {
         current_a = a;
@@ -1125,14 +1125,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(!writing)
         {
-            lastNotePlayed = needsNoteTrigger = globalData.GetNote(sequenceStep);
+            lastNotePlayed = needsNoteTrigger = songData.GetNote(sequenceStep);
             lastKeyPlayed = sequenceStep;
             ResetADCLatch();
         }
         else if(liveWrite)
         {
             uint16_t noteToModify = patternStep[currentVoice];
-            uint8_t newValue = (0x7f&globalData.GetNote(sequenceStep))|0x80;
+            uint8_t newValue = (0x7f&songData.GetNote(sequenceStep))|0x80;
             patterns[currentVoice].GetNotesForPattern(patternChain[chainStep])[noteToModify] = newValue;
             patterns[currentVoice].GetKeysForPattern(patternChain[chainStep])[noteToModify] = sequenceStep;
         }
@@ -1166,7 +1166,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(!playing)
             {
                 playing = true;
-                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                 {
                     midi.StopSequence();
                     midi.StartSequence();
@@ -1185,13 +1185,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             playing = !playing;
             if(playing)
             {
-                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.StartSequence();
                 ResetPatternOffset();
             }
             else
             {
-                if((globalData.GetSyncOutMode()&SyncOutModeMidi) > 0)
+                if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.StopSequence();
             }
         }
@@ -1293,6 +1293,15 @@ bool serialize_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
     }
     return true;
 }
+/* FILELIST
+*  --------
+*  0: global data (last playing song)
+*  1-16: song data
+*  17-(17+16*16): sample data - this only gives us 1 block per sample (65,536 bytes), but thats ~2 seconds...
+*  the real issue is that we can't be full of both songs and samples, because then we run out of blocks.
+*  this is more of an issue if we stay with the large block size
+*/
+
 #define SAVE_VERSION 20
 void GrooveBox::Serialize()
 {
@@ -1301,14 +1310,18 @@ void GrooveBox::Serialize()
     ffs_file writefile;
     erasing = true;
     ffs_open(GetFilesystem(), &writefile, 101);
+    absolute_time_t eraseStartTime = get_absolute_time();
     ffs_erase(GetFilesystem(), &writefile);
+    printf("file erase time: %lld\n", (long long)absolute_time_diff_us(eraseStartTime, get_absolute_time()));
+
+    absolute_time_t saveStartTime = get_absolute_time();
     s.Init();
     // version
     s.AddData(SAVE_VERSION);
     // save the parameter locks
     
     pb_ostream_t serializerStream = {&serialize_callback, &s, SIZE_MAX, 0};
-    globalData.Serialize(&serializerStream);
+    songData.Serialize(&serializerStream);
 
     for(int i=0;i<16;i++)
     {
@@ -1323,6 +1336,8 @@ void GrooveBox::Serialize()
     VoiceData::SerializeStatic(&serializerStream);
 
     s.Finish();
+    printf("file save time: %lld\n", (long long)absolute_time_diff_us(saveStartTime, get_absolute_time()));
+
     printf("serialized file size %i\n", s.writeFile.filesize);
 }
 bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
@@ -1349,8 +1364,8 @@ void GrooveBox::Deserialize()
         return;
 
     pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
-    globalData.InitDefaults();
-    globalData.Deserialize(&serializerStream);
+    songData.InitDefaults();
+    songData.Deserialize(&serializerStream);
 
     // load pattern data
     for(int i=0;i<16;i++)

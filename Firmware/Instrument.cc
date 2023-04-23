@@ -123,7 +123,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     // slow fffff
     // holy hell what the fuck is this code, seriously :0
     // should like, maybe, move this into some class or something :P 
-    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalData->GetBpm()];
+    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[songData->GetBpm()];
     // 24ppq
     lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
     lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>7)+2);
@@ -256,7 +256,6 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
         }
         return;
     }
-
     osc.set_pitch(pitchWithMods);
     osc.set_parameter_1(param1_withMods);
     osc.set_parameter_2(param2_withMods);
@@ -408,7 +407,7 @@ void Instrument::NoteOn(uint8_t key, int16_t midinote, uint8_t step, uint8_t pat
             }
             // compute the phase increment so it loops in 16 beats
             // first we need to know the number of samples in the loop?
-            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalData->GetBpm()];
+            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[songData->GetBpm()];
             // 24ppq
             tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
             uint32_t tempoPhase = 0;

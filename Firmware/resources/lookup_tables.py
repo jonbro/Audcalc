@@ -33,6 +33,7 @@ lookup_tables_signed = []
 lookup_tables_32 = []
 
 sample_rate = 32000
+samples_per_buffer = 64
 excursion = 65536 * 65536.0
 
 # Create table for pitch.
@@ -270,7 +271,7 @@ lookup_tables.append(('bell', bell(256, 16)))
 Envelope increments.
 ----------------------------------------------------------------------------"""
 
-control_rate = sample_rate / 128.0
+control_rate = sample_rate / samples_per_buffer
 max_time = 12.0  # seconds
 min_time = 3.0 / control_rate  # seconds
 gamma = 0.175
@@ -299,7 +300,7 @@ Tempo
 
 tempo_values = numpy.arange(1.0, 257.0)
 width = 1 << 32
-control_rate = 32000/64.0 # 344.53125 # 44100 / 128
+control_rate = sample_rate/samples_per_buffer # 344.53125 # 44100 / 128
 
 tempo_phase_increment = width * (tempo_values/60.0) * 48.0 / control_rate
 lookup_tables_32.append(

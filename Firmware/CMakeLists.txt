@@ -13,7 +13,7 @@ include_directories(${NANOPB_INCLUDE_DIRS})
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         VoiceDataInternal.proto
         ParamLockPoolInternal.proto
-        GlobalDataInternal.proto
+        SongDataInternal.proto
 )
 # add_definitions(-DPB_FIELD_32BIT)
 
@@ -42,7 +42,7 @@ add_executable(tdm
         GrooveBox.cc
         GrooveBoxTestUtils.cc
         voice_data.cc
-        GlobalData.cc
+        SongData.cc
         ParamLockPool.cpp
         Instrument.cc
         Midi.cc

@@ -1,7 +1,7 @@
-#include "GlobalData.h"
+#include "SongData.h"
 #include "m6x118pt7b.h"
 
-SyncOutMode GlobalData::GetSyncOutMode(){
+SyncOutMode SongData::GetSyncOutMode(){
     uint8_t bareSyncMode = ((((uint16_t)internalData.syncOut)*6) >> 8);
     SyncOutMode mode = SyncOutModeNone;
     switch(bareSyncMode)
@@ -27,7 +27,7 @@ SyncOutMode GlobalData::GetSyncOutMode(){
     return mode;
 }
 
-uint8_t& GlobalData::GetParam(uint8_t param, uint8_t pattern)
+uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
 {
     switch(param)
     {
@@ -46,19 +46,19 @@ uint8_t& GlobalData::GetParam(uint8_t param, uint8_t pattern)
     }
     return nothing;
 }
-uint8_t GlobalData::GetRoot()
+uint8_t SongData::GetRoot()
 {
     return (internalData.root*12)>>8;
 }
-uint8_t GlobalData::GetScale()
+uint8_t SongData::GetScale()
 {
     return (((uint16_t)internalData.scale)*9)>>8;
 }
-int8_t GlobalData::GetOctave()
+int8_t SongData::GetOctave()
 {
     return ((int8_t)(internalData.octave/51))-2;
 }
-uint8_t GlobalData::GetBpm()
+uint8_t SongData::GetBpm()
 {
     return internalData.bpm;
 }
@@ -82,7 +82,7 @@ const int scales[] = {
     0, 1, 3, 5, 6, 8, 10, //Locr
 };
 
-uint8_t GlobalData::GetNote(uint8_t key)
+uint8_t SongData::GetNote(uint8_t key)
 {
     key = keyMap[key];
     return scales[GetScale()*7+key%7]+12*(key/7)+12*GetOctave()+GetRoot() + 60;
@@ -124,7 +124,7 @@ const char *scaleStrings[9] = {
 "Locr"
 };
 
-void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
+void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
@@ -170,12 +170,12 @@ void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
     ssd1306_draw_string_gfxfont(disp, column4-33, 17+12, str+16, true, 1, 1, &m6x118pt7b);
 }
 
-void GlobalData::Serialize(pb_ostream_t *s)
+void SongData::Serialize(pb_ostream_t *s)
 {
-    pb_encode_ex(s, GlobalDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
+    pb_encode_ex(s, SongDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
 }
 
-void GlobalData::Deserialize(pb_istream_t *s)
+void SongData::Deserialize(pb_istream_t *s)
 {
-    pb_decode_ex(s, GlobalDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
+    pb_decode_ex(s, SongDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
 }

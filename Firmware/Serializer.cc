@@ -7,7 +7,6 @@ void Serializer::Init()
     flashPosition = 0;
     ffs_open(GetFilesystem(), &writeFile, 101);
     memset(data, 0, 256);
-    // FlushToFlash();
 }
 uint8_t Serializer::GetNextValue()
 {

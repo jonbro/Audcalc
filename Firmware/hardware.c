@@ -18,7 +18,7 @@ void hardware_init()
     sleep_ms(20);
     gpio_init(BLINK_PIN_LED);
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
-    gpio_put(BLINK_PIN_LED, true);
+    // gpio_put(BLINK_PIN_LED, true);
     set_sys_clock_khz(220000, true);
 
 
@@ -59,7 +59,7 @@ void hardware_init()
     sleep_ms(40);
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(20);
-    gpio_put(BLINK_PIN_LED, false);
+    // gpio_put(BLINK_PIN_LED, false);
 }
 
 void hardware_reboot_usb()

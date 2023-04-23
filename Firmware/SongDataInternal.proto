@@ -1,7 +1,7 @@
 syntax = "proto3";
 import 'nanopb.proto';
 
-message GlobalDataInternal
+message SongDataInternal
 {
     repeated uint32 changeLength    = 1 [(nanopb).int_size = IS_8, (nanopb).max_count = 16, (nanopb).fixed_count = true];
     uint32 syncIn                   = 2 [(nanopb).int_size = IS_8];

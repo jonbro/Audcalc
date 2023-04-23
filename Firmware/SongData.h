@@ -6,7 +6,7 @@ extern "C" {
   #include "ssd1306.h"
 }
 
-#include "GlobalDataInternal.pb.h"
+#include "SongDataInternal.pb.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
 
@@ -17,10 +17,10 @@ enum SyncOutMode {
     SyncOutMode24   = 1 << 2,
 };
 
-class GlobalData
+class SongData
 {
     public:
-        GlobalData()
+        SongData()
         {
             InitDefaults();
         }
@@ -51,7 +51,7 @@ class GlobalData
         void Deserialize(pb_istream_t *s);
 
     private:
-        GlobalDataInternal internalData;
+        SongDataInternal internalData;
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
 };
 

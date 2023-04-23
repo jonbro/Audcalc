@@ -18,10 +18,11 @@ very limited file system, but I have different requirements:
 - no erasing in the hotloop
 - append only files
 - guarenteed write size of 256 bytes
+- REQUIRES WRITE SIZE OF 256!!!
 
 */
 
-#define BLOCK_SIZE 0x10000
+#define BLOCK_SIZE 0x1000
 #define EMPTY_JUMP_PAGE 0xffffffff
 
 typedef struct
