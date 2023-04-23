@@ -77,7 +77,8 @@ int32_t workBuffer2[SAMPLES_PER_BUFFER*2];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
 int16_t toReverbBuffer[SAMPLES_PER_BUFFER];
-int16_t recordBuffer[SAMPLES_PER_BUFFER];
+int16_t recordBuffer[128];
+uint8_t recordBufferOffset = 0;
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
 int16_t last_input;
@@ -99,7 +100,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         int16_t input = input_buffer[i*2];
         // collapse input buffer so its easier to copy to the recording device
         // temporarily use the output buffer
-        recordBuffer[i] = input;
+        recordBuffer[i+recordBufferOffset] = input;
         if(playThroughEnabled)
         {
             workBuffer2[i*2] = input;
@@ -111,6 +112,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         }
         last_input = input>last_input?input:last_input;
     }
+    recordBufferOffset+=SAMPLES_PER_BUFFER;
+    if(recordBufferOffset==128) recordBufferOffset = 0; // this lines up with flushing every 256 bytes
     CalculateTempoIncrement();
     if(!recording)
     {
@@ -391,7 +394,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
 
     if(recording)
     {
-        ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, SAMPLES_PER_BUFFER*2);
+        if(recordBufferOffset == 0)
+            ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t* chan = (output_buffer+i*2);
