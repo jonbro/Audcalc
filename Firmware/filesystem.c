@@ -23,6 +23,8 @@ int __not_in_flash_func(file_write)(uint32_t offset, size_t size, void *buffer)
 
 int __not_in_flash_func(file_erase)(uint32_t offset, size_t size)
 {
+    // flash erase automatically switches between sector & block erase depending on the address alignment and requested erase size
+    // see https://github.com/raspberrypi/pico-bootrom/blob/master/bootrom/program_flash_generic.c#L333
     //printf("ERASE: %p, %d\n", FS_START + offset, size);
     bool lockedout = multicore_lockout_start_timeout_us(50);
     uint32_t ints = save_and_disable_interrupts();

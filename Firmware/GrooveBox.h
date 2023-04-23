@@ -26,9 +26,9 @@ extern "C" {
 
 class GrooveBox {
  public:
-  GrooveBox(uint32_t *_color);
+  void init(uint32_t *_color);
   void OnKeyUpdate(uint key, bool pressed);
-  bool GetTrigger(uint voice, uint step, uint8_t &note, uint4 &key);
+  bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void UpdateDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
@@ -75,7 +75,7 @@ class GrooveBox {
  private:
   MidiParamMapper midiMap;
   bool needsInitialADC; 
-  void TriggerInstrument(uint4 key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
+  void TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
   uint8_t voiceCounter = 0;
@@ -85,7 +85,7 @@ class GrooveBox {
   int drawY = 0;
   uint16_t drawCount = 0;
   int lastNotePlayed = 60;
-  uint4 lastKeyPlayed = {0};
+  uint8_t lastKeyPlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
   uint8_t beatCounter[18] = {0};

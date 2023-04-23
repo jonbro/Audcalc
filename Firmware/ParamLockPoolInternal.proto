@@ -1,0 +1,16 @@
+syntax = "proto3";
+import 'nanopb.proto';
+
+
+message ParamLockPoolInternal
+{
+    message ParamLock {
+        uint32 index                = 1;
+        uint32 step                 = 2 [(nanopb).int_size = IS_8];
+        uint32 param                = 3 [(nanopb).int_size = IS_8];
+        uint32 value                = 4 [(nanopb).int_size = IS_8];
+        uint32 next                 = 5 [(nanopb).int_size = IS_16];
+    }
+    repeated ParamLock locks        = 1;
+    uint32 freeLocks = 2;
+}

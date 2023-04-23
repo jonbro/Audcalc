@@ -1,11 +1,11 @@
 #include "hardware.h"
 
-#define AMP_CONTROL 29
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 #define row_pin_base 11
 #define col_pin_base 6
 #define BLINK_PIN_LED 25
+#define USB_POWER_SENSE 29
 #define SUBSYSTEM_RESET_PIN 21
 
 static bool last_amp_state;
@@ -22,8 +22,9 @@ void hardware_init()
     set_sys_clock_khz(220000, true);
 
 
-    gpio_init(AMP_CONTROL);
-    gpio_set_dir(AMP_CONTROL, GPIO_OUT);
+    gpio_init(USB_POWER_SENSE);
+    gpio_set_dir(USB_POWER_SENSE, GPIO_IN);
+    gpio_pull_down(USB_POWER_SENSE);
 
     // power switch / key 1,1
     gpio_init(23);
@@ -60,6 +61,7 @@ void hardware_init()
     sleep_ms(20);
     gpio_put(BLINK_PIN_LED, false);
 }
+
 void hardware_reboot_usb()
 {
     reset_usb_boot(1<<BLINK_PIN_LED, 0);
@@ -98,20 +100,26 @@ void hardware_get_all_key_state(uint32_t *keyState)
         }
     }
 }
+
 uint8_t hardware_get_battery_level()
 {
     return battery_level;
 }
+
 void hardware_update_battery_level()
 {
     adc_select_input(2);
     // printf("battery level: %i\n", battery_level);
         
-        const float conversion_factor = 3.3f / (1 << 12);
+        const float conversion_factor = 2.5f / (1 << 12);
         uint16_t result = adc_read();
-        // printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
+        //printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor * 2.3368f);
 
     battery_level = adc_read()>>4;
+}
+bool hardware_has_usb_power()
+{
+    return gpio_get(USB_POWER_SENSE);
 }
 
 void hardware_shutdown()
@@ -134,19 +142,6 @@ void hardware_shutdown()
     while(1);
 }
 
-void hardware_set_amp(bool amp_state)
-{
-    hardware_set_amp_force(amp_state, false);
-}
-
-void hardware_set_amp_force(bool amp_state, bool force)
-{
-    if(force || last_amp_state != amp_state)
-    {
-        gpio_put(AMP_CONTROL, amp_state);
-        last_amp_state = amp_state;
-    }
-}
 static bool last_mic_state = false;
 
 void hardware_set_mic(bool mic_state)

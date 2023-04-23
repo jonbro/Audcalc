@@ -6,8 +6,11 @@ check to make sure the "kit" is selected (`GCC for arm-none-eabi 10.2.1`)
 see this as an option for installing the toolchain
 https://github.com/ndabas/pico-setup-windows
 
+*Resource Generation*
 `>C:\Python27\python.exe resources_compiler.py resources/resources.py`
 
+*NanoPB generation* 
+`python nanopb\generator\nanopb_generator.py VoiceData.proto`
 note the forward slashes, it does some kind of replacement on the path to convert to a module name
 
 rates 2x 3/2x 1x 3/4x (triplets) 1/2x 1/4x 1/8x

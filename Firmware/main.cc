@@ -32,6 +32,9 @@ extern "C" {
 #include "filesystem.h"
 #include "ws2812.h"
 #include "hardware.h"
+#include <pb_encode.h>
+#include <pb_decode.h>
+#include "ParamLockPoolInternal.pb.h"
 
 #define POCKETMOD_IMPLEMENTATION
 //#include "pocketmod.h"
@@ -91,7 +94,7 @@ bool initial_sample = false;
 int input_position = 0;
 int initial_sample_count = 0;
 
-GrooveBox *gbox;
+GrooveBox gbox;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
 void __not_in_flash_func(dma_input_handler)() {
     if (dma_hw->ints0 & (1u<<dma_chan_input)) {
@@ -101,9 +104,9 @@ void __not_in_flash_func(dma_input_handler)() {
         capture_buf_offset = (capture_buf_offset+1)%2;
         uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
         uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-        if(!gbox->erasing)
+        if(!gbox.erasing)
         {
-            gbox->Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
+            gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
         }
         else
         {
@@ -264,7 +267,9 @@ uint8_t adc2_prev;
 int main()
 {
     hardware_init();
-    hardware_set_amp_force(false, true);
+    stdio_init_all();
+
+
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
@@ -280,7 +285,6 @@ int main()
     }
 
     SetDisplay(&disp);
-    stdio_init_all();
     {
         // TestFileSystem();
         // TestVoiceData();
@@ -316,8 +320,7 @@ int main()
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
-    gbox = new GrooveBox(color);
-    //gbox->Deserialize();
+    gbox.init(color);
     // fill the silence buffer so we get something out
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -344,8 +347,6 @@ int main()
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
    // usbaudio_init();
-    bool requestSerialize = false;
-    bool requestDeserialize = false;
 
       // initialize the USB microphone interface
     // usb_microphone_set_tx_ready_handler(on_usb_microphone_tx_ready);
@@ -361,12 +362,7 @@ int main()
             uint32_t s = keyState & (1ul<<i);
             if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
             {
-                gbox->OnKeyUpdate(i, s>0); 
-                if(s>0)
-                {
-                    requestSerialize = i==21;
-                    requestDeserialize = i==22;
-                } 
+                gbox.OnKeyUpdate(i, s>0); 
             }
         }
         lastKeyState = keyState;
@@ -376,15 +372,23 @@ int main()
             uint16_t adc_val = adc_read();
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
-            gbox->OnAdcUpdate(adc_val, adc_read());
+            gbox.OnAdcUpdate(adc_val, adc_read());
             hardware_update_battery_level();
             bool flip_complete = false;
             if(queue_try_remove(&complete_queue, &flip_complete))
             {
-                gbox->UpdateDisplay(&disp);
+                gbox.UpdateDisplay(&disp);
                 queue_entry_t entry = {true};
                 queue_add_blocking(&signal_queue, &entry);
             }
+            // if(hardware_has_usb_power())
+            // {
+            //     color[6] = urgb_u32(200, 50, 50);
+            // }
+            // else
+            // {
+            //     color[6] = urgb_u32(0,0,0);
+            // }
             // lostCount++;
             // if(lostCount == 120)
             // {

@@ -4,11 +4,22 @@ cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/nanopb/extra)
+
+find_package(Nanopb REQUIRED)
+include_directories(${NANOPB_INCLUDE_DIRS})
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
+        VoiceDataInternal.proto
+        ParamLockPoolInternal.proto
+        GlobalDataInternal.proto
+)
+# add_definitions(-DPB_FIELD_32BIT)
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_SDK_PATH "C:/Users/jonbro/Documents/Pico/pico-sdk")
-
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR})
 set(PICO_BOARD "tdm_board")
 
@@ -48,6 +59,7 @@ add_executable(tdm
         audio/resources.cc
         audio/random.cc 
         AudioSampleSecondbloop.cpp
+        ${PROTO_SRCS} ${PROTO_HDRS}
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)

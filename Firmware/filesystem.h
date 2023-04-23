@@ -21,7 +21,7 @@ very limited file system, but I have different requirements:
 
 */
 
-#define BLOCK_SIZE 0x1000
+#define BLOCK_SIZE 0x10000
 #define EMPTY_JUMP_PAGE 0xffffffff
 
 typedef struct

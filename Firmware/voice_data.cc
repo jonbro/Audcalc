@@ -3,6 +3,38 @@
 
 ParamLockPool VoiceData::lockPool;
 
+void VoiceData::InitDefaults()
+{
+    for (size_t i = 0; i < 16; i++)
+    {
+        internalData.locksForPattern[i] = ParamLockPool::InvalidLockPosition();
+        internalData.patterns[i].rate = 2*37; // 1x 
+        internalData.patterns[i].length = 15*4; // need to up this to fit into 0xff
+    }
+    internalData.env1.attack = 0x10;
+    internalData.env1.decay = 0x20;
+    internalData.env1.depth = 0x7f;
+
+    internalData.env2.attack = 0x10;
+    internalData.env2.decay = 0x20;
+    internalData.env2.depth = 0x7f;
+
+    internalData.sampleAttack = 0x0;
+    internalData.sampleDecay = 0xff;
+    
+    internalData.color = 0x7f;
+    internalData.timbre = 0x7f;
+
+        internalData.cutoff = 0xff;
+        internalData.resonance = 0;
+        internalData.volume = 0x7f;
+        internalData.pan = 0x7f;
+        
+        internalData.retriggerSpeed = 0;
+        internalData.retriggerLength = 0x7f;
+        internalData.retriggerFade = 0x7f;
+}
+
 // incorporates the lock if any
 uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t pattern)
 {
@@ -12,53 +44,52 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
     {
         switch(param)
         {
-            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:timbre;
-            case Color: return HasLockForStep(step, pattern, Color, value)?value:color;
+            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
+            case Color: return HasLockForStep(step, pattern, Color, value)?value:internalData.color;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_MIDI)
     {
         switch(param)
         {
-            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:timbre;
-            case PlayingMidiNotes: return HasLockForStep(step, pattern, PlayingMidiNotes, value)?value:color;
+            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
+            case PlayingMidiNotes: return HasLockForStep(step, pattern, PlayingMidiNotes, value)?value:internalData.color;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         switch(param)
         {
-            case SampleIn: return HasLockForStep(step, pattern, SampleIn, value)?value:sampleStart[lastNotePlayed];
-            case SampleOut: return HasLockForStep(step, pattern, SampleOut, value)?value:sampleLength[lastNotePlayed];
-            case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:sampleAttackTime;
-            case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:sampleDecayTime;
+            case SampleIn: return HasLockForStep(step, pattern, SampleIn, value)?value:internalData.sampleStart[lastNotePlayed];
+            case SampleOut: return HasLockForStep(step, pattern, SampleOut, value)?value:internalData.sampleLength[lastNotePlayed];
+            case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:internalData.sampleAttack;
+            case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:internalData.sampleDecay;
         }
     }
     switch(param)
     {
-        case Cutoff: return HasLockForStep(step, pattern, Cutoff, value)?value:cutoff;
-        case Resonance: return HasLockForStep(step, pattern, Resonance, value)?value:resonance;
-        case Volume: return HasLockForStep(step, pattern, Volume, value)?value:volume;
-        case Pan: return HasLockForStep(step, pattern, Pan, value)?value:pan;
-        case Octave: return HasLockForStep(step, pattern, Octave, value)?value:octave;
-        case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:attackTime;
-        case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:decayTime;
-        case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:attackTime2;
-        case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:decayTime2;
-        case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:env1Target;
-        case Env1Depth: return HasLockForStep(step, pattern, Env1Depth, value)?value:env1Depth;
-        case Env2Target: return HasLockForStep(step, pattern, Env2Target, value)?value:env2Target;
-        case Env2Depth: return HasLockForStep(step, pattern, Env2Depth, value)?value:env2Depth;
-        case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:lfoRate;
-        case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:lfoDepth;
-        case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:lfo1Target;
-        case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:retriggerSpeed;
-        case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:retriggerLength;
-        case Length: return length[pattern];
-        case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:delaySend;
-        case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:reverbSend;
-        case ConditionMode: return HasLockForStep(step, pattern, ConditionMode, value)?value:conditionMode;
-        case ConditionData: return HasLockForStep(step, pattern, ConditionData, value)?value:conditionData;
+        case Cutoff: return HasLockForStep(step, pattern, Cutoff, value)?value:internalData.cutoff;
+        case Resonance: return HasLockForStep(step, pattern, Resonance, value)?value:internalData.resonance;
+        case Volume: return HasLockForStep(step, pattern, Volume, value)?value:internalData.volume;
+        case Pan: return HasLockForStep(step, pattern, Pan, value)?value:internalData.pan;
+        case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:internalData.env1.attack;
+        case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:internalData.env1.decay;
+        case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:internalData.env1.target;
+        case Env1Depth: return HasLockForStep(step, pattern, Env1Depth, value)?value:internalData.env1.depth;
+        case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:internalData.env2.attack;
+        case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:internalData.env2.decay;
+        case Env2Target: return HasLockForStep(step, pattern, Env2Target, value)?value:internalData.env2.target;
+        case Env2Depth: return HasLockForStep(step, pattern, Env2Depth, value)?value:internalData.env2.depth;
+        case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:internalData.lfoRate;
+        case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:internalData.lfoDepth;
+        case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:internalData.lfoTarget;
+        case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:internalData.retriggerSpeed;
+        case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:internalData.retriggerLength;
+        case Length: return internalData.patterns[pattern].length;
+        case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:internalData.delaySend;
+        case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:internalData.reverbSend;
+        case ConditionMode: return HasLockForStep(step, pattern, ConditionMode, value)?value:internalData.conditionMode;
+        case ConditionData: return HasLockForStep(step, pattern, ConditionData, value)?value:internalData.conditionData;
     }
     return 0;
 }
@@ -70,67 +101,51 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
 {
     if(param == 28)
     {
-        return delaySend;
+        return internalData.delaySend;
     }
     if(param == 29)
     {
-        return reverbSend;
+        return internalData.reverbSend;
     }
     if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
     {
-        return instrumentTypeBare;
+        return internalData.instrumentType;
     }
     
-    if (GetInstrumentType() == INSTRUMENT_GLOBAL)
-    {
-        switch (param)
-        {
-            // 0
-            case 0: return bpm;
-            case 2: return amp_enabled;
-            case 4: return chromatic;
-            case 8: return syncIn;
-            case 9: return syncOut;
-            default:
-                break;
-        }
-    }
-
     // shared instrument params
     switch(param)
     {
-        case 2: return cutoff;
-        case 3: return resonance;
-        case 4: return volume;
-        case 5: return pan;
-        case 6: return octave;
-        case 10: return attackTime2;
-        case 11: return decayTime2;
-        case 12: return lfoRate;
-        case 13: return lfoDepth;
-        case 14: return retriggerSpeed;
-        case 15: return retriggerLength;
-        case 16: return env1Target;
-        case 17: return env1Depth;
-        case 18: return env2Target;
-        case 19: return env2Depth;
-        case 20: return lfo1Target;
-        case 21: return lfo1Delay;
-        case 22: return retriggerFade;
-        case 24: return length[currentPattern];
-        case 25: return rate[currentPattern];
-        case 26: return conditionMode;
-        case 27: return conditionData;
+        case 2: return internalData.cutoff;
+        case 3: return internalData.resonance;
+        case 4: return internalData.volume;
+        case 5: return internalData.pan;
+        case 10: return internalData.env2.attack;
+        case 11: return internalData.env2.decay;
+        case 12: return internalData.lfoRate;
+        case 13: return internalData.lfoDepth;
+        case 14: return internalData.retriggerSpeed;
+        case 15: return internalData.retriggerLength;
+        case 16: return internalData.env1.target;
+        case 17: return internalData.env1.depth;
+        case 18: return internalData.env2.target;
+        case 19: return internalData.env2.depth;
+        case 20: return internalData.lfoTarget;
+        case 21: return internalData.lfoDelay;
+        case 22: return internalData.retriggerFade;
+        case 24: return internalData.patterns[currentPattern].length;
+        case 25: return internalData.patterns[currentPattern].rate;
+        case 26: return internalData.conditionMode;
+        case 27: return internalData.conditionData;
     }
     if(GetInstrumentType() == INSTRUMENT_MACRO)
     {
         switch (param)
         {
-            case 0: return timbre;
-            case 1: return color;
-            case 8: return attackTime;
-            case 9: return decayTime;
-            case 31: return shape;
+            case 0: return internalData.timbre;
+            case 1: return internalData.color;
+            case 8: return internalData.env1.attack;
+            case 9: return internalData.env1.decay;
+            case 31: return internalData.extraTypeUnion.synthShape;
             default:
                 break;
         }
@@ -139,9 +154,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return timbre;
-            case 1: return color;
-            case 31: return midiChannel;
+            case 0: return internalData.timbre;
+            case 1: return internalData.color;
+            case 31: return internalData.extraTypeUnion.midiChannel;
             default:
                 break;
         }
@@ -150,11 +165,11 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
-            case 1: return sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
-            case 8: return sampleAttackTime;
-            case 9: return sampleDecayTime;
-            case 31: return samplerTypeBare;
+            case 0: return internalData.sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 1: return internalData.sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 8: return internalData.sampleAttack;
+            case 9: return internalData.sampleDecay;
+            case 31: return internalData.extraTypeUnion.samplerType;
             default:
                 break;
         }
@@ -233,8 +248,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 14:
             sprintf(strA, "Dely");
             sprintf(strB, "Verb");
-            lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, delaySend, pA);
-            lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, reverbSend, pB);
+            lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, internalData.delaySend, pA);
+            lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, internalData.reverbSend, pB);
             return;
     }
     
@@ -244,20 +259,20 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 7:
             sprintf(strA, "RTsp");
             sprintf(strB, "RTLn");
-            lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, retriggerSpeed, pA);
-            lockB = CheckLockAndSetDisplay(step, pattern, RetriggerLength, retriggerLength, pB);
+            lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, internalData.retriggerSpeed, pA);
+            lockB = CheckLockAndSetDisplay(step, pattern, RetriggerLength, internalData.retriggerLength, pB);
             return;
         case 11:
             sprintf(strA, "RTfd");
             sprintf(strB, "");
-            sprintf(pA, "%i", retriggerFade);
+            sprintf(pA, "%i", internalData.retriggerFade);
             sprintf(pB, "");
             return;
         case 12:
             sprintf(strA, "Len");
             sprintf(strB, "Rate");
-            sprintf(pA, "%i", length[pattern]/4+1);
-            sprintf(pB,rates[(rate[pattern]*7)>>8]);
+            sprintf(pA, "%i", internalData.patterns[pattern].length/4+1);
+            sprintf(pB,rates[(internalData.patterns[pattern].rate*7)>>8]);
             return;
         case 13:
             sprintf(strA, "Cnd");
@@ -271,7 +286,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 conditionModeTmp = GetConditionMode();
             sprintf(pA, "%s", conditionStrings[conditionModeTmp]);
             uint8_t tmp = 0;
-            uint8_t conditionDataTmp = conditionData;
+            uint8_t conditionDataTmp = internalData.conditionData;
             if(HasLockForStep(step, pattern, 27, valB))
             {
                 conditionDataTmp = valB;
@@ -292,7 +307,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             }
             return;
     }
-    int p = pan;
+    int p = internalData.pan;
     if(instrumentType == INSTRUMENT_MACRO || instrumentType == INSTRUMENT_SAMPLE)
     {
         switch (param)
@@ -300,14 +315,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 1:
                 sprintf(strA, "Cut");
                 sprintf(strB, "Res");
-                lockA = CheckLockAndSetDisplay(step, pattern, 2, cutoff, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 3, resonance, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 2, internalData.cutoff, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 3, internalData.resonance, pB);
                 return;
             // volume / pan
             case 2:
                 sprintf(strA, "Volm");
                 sprintf(strB, "Pan");
-                lockA = CheckLockAndSetDisplay(step, pattern, 4, volume, pA);
+                lockA = CheckLockAndSetDisplay(step, pattern, 4, internalData.volume, pA);
                 if(HasLockForStep(step, pattern, 5, valB))
                 {
                     p = valB;
@@ -334,14 +349,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 5:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 10, attackTime2, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 11, decayTime2, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 10, internalData.env2.attack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 11, internalData.env2.decay, pB);
                 return;
             case 6:
                 sprintf(strA, "Rate");
                 sprintf(strB, "Dpth");
-                lockA = CheckLockAndSetDisplay(step, pattern, 12, lfoRate, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 13, lfoDepth, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 12, internalData.lfoRate, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 13, internalData.lfoDepth, pB);
                 return;
             case 8:
                 sprintf(strA, "Trgt");
@@ -352,7 +367,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     lockA = true;
                 }
                 else
-                    sprintf(pA, "%s", envTargets[(((uint16_t)env1Target)*Target_Count)>>8]);
+                    sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env1.target)*Target_Count)>>8]);
                 
                 if(HasLockForStep(step, pattern, 17, valB))
                 {
@@ -360,7 +375,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     lockB = true;
                 }
                 else
-                    sprintf(pB, "%i", (env1Depth-0x80));
+                    sprintf(pB, "%i", (internalData.env1.depth-0x80));
                 return;
             case 9:
                 sprintf(strA, "Trgt");
@@ -371,14 +386,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     lockA = true;
                 }
                 else
-                    sprintf(pA, "%s", envTargets[(((uint16_t)env2Target)*Target_Count)>>8]);
+                    sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env2.target)*Target_Count)>>8]);
                 if(HasLockForStep(step, pattern, 19, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;
                 }
                 else
-                    sprintf(pB, "%i", (env2Depth-0x80));
+                    sprintf(pB, "%i", (internalData.env2.depth-0x80));
                 return;
             case 10:
                 sprintf(strA, "Trgt");
@@ -389,14 +404,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     lockA = true;
                 }
                 else
-                    sprintf(pA, "%s", envTargets[(((uint16_t)lfo1Target)*Target_Count)>>8]);
+                    sprintf(pA, "%s", envTargets[(((uint16_t)internalData.lfoTarget)*Target_Count)>>8]);
                 sprintf(pB, "");
                 return;
             case 12:
                 sprintf(strA, "Len");
                 sprintf(strB, "Rate");
-                sprintf(pA, "%i", length[pattern]/4+1);
-                sprintf(pB,rates[(rate[pattern]*7)>>8]);
+                sprintf(pA, "%i", internalData.patterns[pattern].length/4+1);
+                sprintf(pB,rates[(internalData.patterns[pattern].rate*7)>>8]);
                 return;
         }
     }
@@ -410,20 +425,20 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strB, "Len");
                 if(GetSampler() == SAMPLE_PLAYER_SLICE)
                 {
-                    sprintf(pA, "%i", sampleStart[lastNotePlayed]);
-                    sprintf(pB, "%i", sampleLength[lastNotePlayed]);
+                    sprintf(pA, "%i", internalData.sampleStart[lastNotePlayed]);
+                    sprintf(pB, "%i", internalData.sampleLength[lastNotePlayed]);
                 }
                 else
                 {
-                    sprintf(pA, "%i", sampleStart[0]);
-                    sprintf(pB, "%i", sampleLength[0]);
+                    sprintf(pA, "%i", internalData.sampleStart[0]);
+                    sprintf(pB, "%i", internalData.sampleLength[0]);
                 }
                 return;
             case 4:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 8, sampleAttackTime, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 9, sampleDecayTime, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.sampleAttack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.sampleDecay, pB);
                 return;
             case 15:
                 sprintf(strA, "Type");
@@ -454,14 +469,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 0:
                 sprintf(strA, "Timb");
                 sprintf(strB, "Colr");
-                lockA = CheckLockAndSetDisplay(step, pattern, 0, timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 1, color, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
                 return;
             case 4:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 8, attackTime, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 9, decayTime, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.env1.attack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.env1.decay, pB);
                 return;
             case 15:
                 sprintf(strA, "Type");
@@ -486,15 +501,15 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 0:
                 sprintf(strA, "Vel");
                 sprintf(strB, "NNte");
-                lockA = CheckLockAndSetDisplay(step, pattern, 0, timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 1, color, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
                 return;
             // 0
             case 15:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Midi");
-                sprintf(pB, "%i", (midiChannel>>4)+1);
+                sprintf(pB, "%i", (internalData.extraTypeUnion.midiChannel>>4)+1);
                 return;
             default:
                 return;
@@ -520,7 +535,7 @@ uint8_t head_map[] = {
   0x00, 0x00, 0x00, 0x00, 
 };
 
-void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep)
+void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
@@ -555,7 +570,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, 
     else
     {
         bool lockA = false, lockB = false;
-        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, (uint8_t)lastNotePlayed.value, str+32, str+48, lockA, lockB, showForStep);
+        GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB, showForStep);
         if(lockA)
             ssd1306_draw_square_rounded(disp, column4, 0, width, 15);
         if(lockB)
@@ -568,24 +583,14 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint4 lastNotePlayed, 
     }
 }
 
-void VoiceData::SerializeStatic(Serializer &s)
+void VoiceData::SerializeStatic(pb_ostream_t *s)
 {
-    uint8_t *lockPoolReader = (uint8_t*)&lockPool;
-    for (size_t i = 0; i < sizeof(ParamLockPool); i++)
-    {
-        s.AddData(*lockPoolReader);
-        lockPoolReader++;
-    }
+    lockPool.Serialize(s);
 }
 
-void VoiceData::DeserializeStatic(Serializer &s)
+void VoiceData::DeserializeStatic(pb_istream_t *s)
 {
-    uint8_t *lockPoolReader = (uint8_t*)&lockPool;
-    for (size_t i = 0; i < sizeof(ParamLockPool); i++)
-    {
-        *lockPoolReader = s.GetNextValue();
-        lockPoolReader++;
-    }
+    lockPool.Deserialize(s);
 }
 
 
@@ -609,8 +614,8 @@ void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uin
         lock->param = param;
         lock->step = step;
         lock->value = value;
-        lock->next = locksForPattern[pattern];
-        locksForPattern[pattern] = lockPool.GetLockPosition(lock);
+        lock->next = internalData.locksForPattern[pattern];
+        internalData.locksForPattern[pattern] = lockPool.GetLockPosition(lock);
         // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
         return;
     }
@@ -618,18 +623,18 @@ void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uin
 }
 void VoiceData::ClearParameterLocks(uint8_t pattern)
 {
-    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         ParamLock* nextLock = lockPool.GetLock(lock->next);
         lockPool.ReturnLockToPool(lock);
         lock = nextLock;
     }
-    locksForPattern[pattern] = ParamLockPool::InvalidLockPosition();
+    internalData.locksForPattern[pattern] = ParamLockPool::InvalidLockPosition();
 }
 void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 {
-    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
     ParamLock* lastLock = lock;
     while(lockPool.IsValidLock(lock))
     {
@@ -638,9 +643,9 @@ void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
         {
             lastLock->next = lock->next;
             lockPool.ReturnLockToPool(lock);
-            if(lockPool.GetLockPosition(lock) == locksForPattern[pattern])
+            if(lockPool.GetLockPosition(lock) == internalData.locksForPattern[pattern])
             {
-                locksForPattern[pattern] = lockPool.GetLockPosition(nextLock);
+                internalData.locksForPattern[pattern] = lockPool.GetLockPosition(nextLock);
             }
         }
         else
@@ -652,7 +657,7 @@ void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 }
 void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 {
-    ParamLock* lock = lockPool.GetLock(locksForPattern[fromPattern]);
+    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[fromPattern]);
     while(lockPool.IsValidLock(lock))
     {
         StoreParamLock(lock->param, lock->step, toPattern, lock->value);
@@ -673,7 +678,7 @@ bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uin
 }
 bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 {
-    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         if(lock->step == step)
@@ -686,7 +691,7 @@ bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 }
 bool VoiceData::GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param)
 {
-    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         if(lock->param == param && lock->step == step)
@@ -718,10 +723,10 @@ void TestVoiceData()
         ParamLock *searchingForLock = voiceData.lockPool.GetLock(l);
         bool foundLock = false;
         {
-            for(int p=0;p<16;p++)
+            for(int p=0; p<16; p++)
             {
                 int lockCount = 0;
-                ParamLock *lock = voiceData.lockPool.GetLock(voiceData.locksForPattern[p]);
+                ParamLock *lock = voiceData.lockPool.GetLock(voiceData.GetVoiceData()->locksForPattern[p]);
                 while(voiceData.lockPool.IsValidLock(lock))
                 {
                     if(lock == searchingForLock){

@@ -1,6 +1,9 @@
 #include "GrooveBox.h"
 #include <string.h>
 #include "m6x118pt7b.h"
+#include <pb_encode.h>
+#include <pb_decode.h>
+#include "VoiceDataInternal.pb.h"
 
 #define SAMPLES_PER_BUFFER 64
 
@@ -25,7 +28,7 @@ void OnCCChangedBare(uint8_t cc, uint8_t newValue)
 }
 void GrooveBox::CalculateTempoIncrement()
 {
-    tempoPhaseIncrement = lut_tempo_phase_increment[globalData.bpm];
+    tempoPhaseIncrement = lut_tempo_phase_increment[globalData.GetBpm()];
     // 24ppq
 
     //tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
@@ -34,7 +37,7 @@ void GrooveBox::CalculateTempoIncrement()
     // 4 ppq
     // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
 }
-GrooveBox::GrooveBox(uint32_t *_color)
+void GrooveBox::init(uint32_t *_color)
 {
     needsInitialADC = true;
     groovebox = this;
@@ -47,12 +50,10 @@ GrooveBox::GrooveBox(uint32_t *_color)
         instruments[i].Init(&midi, temp_buffer);
         instruments[i].globalData = &globalData;
     }
-    globalData.bpm = 119;
     for(int i=0;i<16;i++)
     {
         patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
-    printf("voice data size %u\n", (sizeof(patterns[0])*16-sizeof(patterns[0].notes)*16));
     Deserialize();
     //PrintLostLockData();
     // int lostLockCount = GetLostLockCount();
@@ -222,7 +223,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         if(requestedNote >= 0)
         {
             patterns[currentVoice].ClearNextRequestedStep();
-            uint4 _key = lastKeyPlayed;
+            uint8_t _key = lastKeyPlayed;
             TriggerInstrument(_key, requestedNote, 0, 0, true, patterns[currentVoice], currentVoice);
         }
  
@@ -280,7 +281,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                                 rate = 0;
                             break;
                         default:
-                            rate = ((patterns[v].rate[GetCurrentPattern()]*7)>>8);
+                            rate = ((patterns[v].GetRateForPattern(GetCurrentPattern())*7)>>8);
                     }
                     switch(rate)
                     {
@@ -318,7 +319,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                     }
                     // never trigger for the global pattern
                     uint8_t requestedNote;
-                    uint4 requestedKey = {0};
+                    uint8_t requestedKey = {0};
                     if(v!=16 && v!=17 && GetTrigger(v, patternStep[v], requestedNote, requestedKey))
                     {
                         hadTrigger = hadTrigger|(1<<v);
@@ -326,8 +327,8 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         {
                             bool trigger = true;
                             // check to see if the conditions allow us to play
-                            ConditionModeEnum conditionMode = patterns[v].GetConditionMode(patterns[v].GetParamValue(ConditionMode, requestedKey.value, patternStep[v], GetCurrentPattern()));
-                            uint8_t conditionData = patterns[v].GetParamValue(ConditionData, requestedKey.value, patternStep[v], GetCurrentPattern());
+                            ConditionModeEnum conditionMode = patterns[v].GetConditionMode(patterns[v].GetParamValue(ConditionMode, requestedKey, patternStep[v], GetCurrentPattern()));
+                            uint8_t conditionData = patterns[v].GetParamValue(ConditionData, requestedKey, patternStep[v], GetCurrentPattern());
                             switch(conditionMode)
                             {
                                 case CONDITION_MODE_RAND:
@@ -404,7 +405,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     sampleCount++;
     midi.Flush();
 }
-void GrooveBox::TriggerInstrument(uint4 key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
+void GrooveBox::TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {
     // lets just simplify - gang together the instruments that are above each other
     // 1+5, 2+6, 9+13 etc
@@ -431,7 +432,7 @@ void GrooveBox::TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t p
             break;
         }
     }
-    uint4 _key = {0}; 
+    uint8_t _key = {0}; 
     nextPlay->NoteOn(_key, midi_note, step, pattern, true, voiceData);
     if(!foundVoice)
     {
@@ -439,10 +440,10 @@ void GrooveBox::TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t p
         voiceCounter = (++voiceCounter)%VOICE_COUNT;
     }
 }
-bool GrooveBox::GetTrigger(uint voice, uint step, uint8_t &note, uint4 &key)
+bool GrooveBox::GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key)
 {
-    note = patterns[voice].notes[GetCurrentPattern()*64+step];
-    key = patterns[voice].keys[GetCurrentPattern()*64+step];
+    note = patterns[voice].GetNotesForPattern(GetCurrentPattern())[step];
+    key = patterns[voice].GetKeysForPattern(GetCurrentPattern())[step];
     if(note >> 7 == 1)
     {
         note = note&0x7f;
@@ -462,7 +463,7 @@ void GrooveBox::OnCCChanged(uint8_t cc, uint8_t newValue)
     {
         // set the midi mapping
         //lastEditedParam = param*2+1;
-        midiMap.SetCCTarget(cc, currentVoice, lastEditedParam, (uint8_t)lastKeyPlayed.value);
+        midiMap.SetCCTarget(cc, currentVoice, lastEditedParam, lastKeyPlayed);
     }
     else
     {
@@ -510,7 +511,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             {
                 for (size_t j = 0; j < 64; j++)
                 {
-                    patterns[voice].notes[GetCurrentPattern()*64+j] = 0;
+                    patterns[voice].GetNotesForPattern(GetCurrentPattern())[j] = 0;
                 }
             }
         }
@@ -712,7 +713,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         else
         {
             uint8_t note;
-            uint4 _key = {0};
+            uint8_t _key = {0};
             if((patternStep[currentVoice]-1<0?patterns[currentVoice].GetLength(GetCurrentPattern())-1:patternStep[currentVoice]-1)-editPage[currentVoice]*16 == i && IsPlaying())
             {
                 color[key] = urgb_u32(100, 100, 100);
@@ -866,7 +867,7 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     if(holdingWrite && IsPlaying())
     {
         // only store the param lock if the voice has a trigger for this step
-        uint4 _key = {0};
+        uint8_t _key = {0};
         uint8_t _note;
         // for now only store parameter locks for steps that have triggers
         // eventually we might want to do "motion recording", but we will need to refactor the Instrument::UpdateVoiceData
@@ -905,8 +906,8 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         }
         return;
     }
-    uint8_t& current_a = patterns[currentVoice].GetParam(param*2, (uint8_t)lastKeyPlayed.value, GetCurrentPattern());
-    uint8_t& current_b = patterns[currentVoice].GetParam(param*2+1, (uint8_t)lastKeyPlayed.value, GetCurrentPattern());
+    uint8_t& current_a = patterns[currentVoice].GetParam(param*2, lastKeyPlayed, GetCurrentPattern());
+    uint8_t& current_b = patterns[currentVoice].GetParam(param*2+1, lastKeyPlayed, GetCurrentPattern());
     bool voiceNeedsUpdate = false;
     if(paramSetA)
     {
@@ -941,8 +942,9 @@ void GrooveBox::OnFinishRecording()
     {
         for (size_t i = 0; i < 16; i++)
         {
-            patterns[recordingTarget].sampleLength[i] = 16;
-            patterns[recordingTarget].sampleStart[i] = i*16;
+            // TODO: FIX ME
+            // patterns[recordingTarget].sampleLength[i] = 16;
+            // patterns[recordingTarget].sampleStart[i] = i*16;
         }
     }
    
@@ -990,7 +992,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     // page select
     if(x==4&&y==2 && pressed)
     {
-        editPage[currentVoice] = (++editPage[currentVoice])%(patterns[currentVoice].length[GetCurrentPattern()]/64+1);
+        editPage[currentVoice] = (++editPage[currentVoice])%(patterns[currentVoice].GetLengthForPattern(GetCurrentPattern())/64+1);
     }
     if(x<4 && y>0 && !pressed)
     {
@@ -1007,18 +1009,18 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             storingParamLockForStep = 0;
             ResetADCLatch();
             uint8_t note;
-            uint4 key = {0};
+            uint8_t key = {0};
             if(GetTrigger(currentVoice, sequenceStep+editPage[currentVoice]*16, note, key))
             {
                 if(!parameterLocked){
-                    patterns[currentVoice].notes[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = 0;
+                    patterns[currentVoice].GetNotesForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = 0;
                     patterns[currentVoice].RemoveLocksForStep(GetCurrentPattern(), sequenceStep);
                 }
             }
             else
             {
-                patterns[currentVoice].notes[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = (0x7f&lastNotePlayed)|0x80;
-                patterns[currentVoice].keys[GetCurrentPattern()*64+sequenceStep+editPage[currentVoice]*16] = lastKeyPlayed;
+                patterns[currentVoice].GetNotesForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = (0x7f&lastNotePlayed)|0x80;
+                patterns[currentVoice].GetKeysForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = lastKeyPlayed;
             }
         }
 
@@ -1089,14 +1091,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                 int currentPattern = patternChain[0];
                 for (size_t voice = 0; voice < 16; voice++)
                 {
-                    for (size_t step = 0; step < 64; step++)
-                    {
-                        patterns[voice].notes[sequenceStep*64+step] = patterns[voice].notes[currentPattern*64+step]; 
-                        patterns[voice].keys[sequenceStep*64+step] = patterns[voice].keys[currentPattern*64+step]; 
-                    }
-                    // copy the pattern lengths as well
-                    patterns[voice].length[sequenceStep] = patterns[voice].length[currentPattern];
-                    patterns[voice].rate[sequenceStep] = patterns[voice].rate[currentPattern];
+                    patterns[voice].CopyPattern(currentPattern, sequenceStep);
                     // clear all the parameter locks for the target pattern
                     patterns[voice].ClearParameterLocks(sequenceStep);
                     // copy any parameter locks the pattern has
@@ -1127,15 +1122,15 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         else if(!writing)
         {
             lastNotePlayed = needsNoteTrigger = globalData.GetNote(sequenceStep);
-            lastKeyPlayed = {static_cast<unsigned int>(sequenceStep & 0xf)};
+            lastKeyPlayed = sequenceStep;
             ResetADCLatch();
         }
         else if(liveWrite)
         {
-            uint16_t noteToModify = patternChain[chainStep]*64+patternStep[currentVoice];
+            uint16_t noteToModify = patternStep[currentVoice];
             uint8_t newValue = (0x7f&globalData.GetNote(sequenceStep))|0x80;
-            patterns[currentVoice].notes[noteToModify] = newValue;
-            patterns[currentVoice].keys[noteToModify] = {static_cast<unsigned int>(sequenceStep & 0xf)};
+            patterns[currentVoice].GetNotesForPattern(patternChain[chainStep])[noteToModify] = newValue;
+            patterns[currentVoice].GetKeysForPattern(patternChain[chainStep])[noteToModify] = sequenceStep;
         }
         else // writing
         {
@@ -1285,7 +1280,16 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
-#define SAVE_VERSION 18
+bool serialize_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
+{
+   Serializer *s = (Serializer*) stream->state;
+    for (size_t i = 0; i < count; i++)
+    {
+        s->AddData(buf[i]);
+    }
+    return true;
+}
+#define SAVE_VERSION 20
 void GrooveBox::Serialize()
 {
     Serializer s;
@@ -1297,28 +1301,36 @@ void GrooveBox::Serialize()
     s.Init();
     // version
     s.AddData(SAVE_VERSION);
-
-    // save pattern data
-    uint8_t *patternReader = (uint8_t*)patterns;
-    for (size_t i = 0; i < sizeof(VoiceData)*16; i++)
-    {
-        s.AddData(*patternReader);
-        patternReader++;
-    }
     // save the parameter locks
-    VoiceData::SerializeStatic(s);
     
-    patternReader = (uint8_t*)&globalData;
-    for (size_t i = 0; i < sizeof(GlobalData); i++)
-    {
-        s.AddData(*patternReader);
-        patternReader++;
-    }
+    pb_ostream_t serializerStream = {&serialize_callback, &s, SIZE_MAX, 0};
+    globalData.Serialize(&serializerStream);
 
+    for(int i=0;i<16;i++)
+    {
+        VoiceDataInternal *vdi = patterns[i].GetVoiceData();
+        vdi->has_env1 = true;
+        vdi->has_env2 = true;
+        vdi->which_extraTypeUnion = VoiceDataInternal_synthShape_tag;
+        serializerStream.bytes_written = 0;
+        pb_encode_ex(&serializerStream, VoiceDataInternal_fields, vdi, PB_ENCODE_DELIMITED);
+    }
+    serializerStream.bytes_written = 0;
+    VoiceData::SerializeStatic(&serializerStream);
 
     s.Finish();
     printf("serialized file size %i\n", s.writeFile.filesize);
 }
+bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
+{
+   Serializer *s = (Serializer*) stream->state;
+    for (size_t i = 0; i < count; i++)
+    {
+        buf[i] = s->GetNextValue();
+    }
+    return true;
+}
+
 void GrooveBox::Deserialize()
 {
     // should probably put this is some different class
@@ -1326,25 +1338,22 @@ void GrooveBox::Deserialize()
     s.Init();
     if(!s.writeFile.initialized)
         return;
+    uint8_t versionValue = s.GetNextValue();
+    printf("loading version: %i\n", versionValue);
     // save version
-    if(s.GetNextValue() != SAVE_VERSION)
+    if(versionValue != SAVE_VERSION)
         return;
 
+    pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
+    globalData.InitDefaults();
+    globalData.Deserialize(&serializerStream);
+
     // load pattern data
-    uint8_t *patternReader = (uint8_t*)patterns;
-    for (size_t i = 0; i < sizeof(VoiceData)*16; i++)
+    for(int i=0;i<16;i++)
     {
-        *patternReader = s.GetNextValue();
-        patternReader++;
+        pb_decode_ex(&serializerStream, VoiceDataInternal_fields, patterns[i].GetVoiceData(), PB_DECODE_DELIMITED);
     }
-    
-    VoiceData::DeserializeStatic(s);
-    patternReader = (uint8_t*)&globalData;
-    for (size_t i = 0; i < sizeof(GlobalData); i++)
-    {
-        *patternReader = s.GetNextValue();
-        patternReader++;
-    }
+    VoiceData::DeserializeStatic(&serializerStream);
 
     printf("loaded filesize %i\n", s.writeFile.filesize);
 }

@@ -1,3 +1,0 @@
-message Example {
-    required int32 value = 1;
-}

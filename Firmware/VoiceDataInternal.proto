@@ -1,0 +1,67 @@
+syntax = "proto3";
+import 'nanopb.proto';
+
+message VoiceDataInternal {
+    message Pattern {
+        uint32 rate                 = 1 [(nanopb).int_size = IS_8];
+        uint32 length               = 2 [(nanopb).int_size = IS_8];
+        repeated uint32 notes       = 3 [(nanopb).int_size = IS_8, (nanopb).max_count = 64, (nanopb).fixed_count = true];
+        repeated uint32 keys        = 4 [(nanopb).int_size = IS_8, (nanopb).max_count = 64, (nanopb).fixed_count = true];
+    }
+
+    message EnvelopeData {
+        uint32 attack   = 1 [(nanopb).int_size = IS_8];
+        uint32 decay    = 2 [(nanopb).int_size = IS_8];
+        uint32 target   = 3 [(nanopb).int_size = IS_8];
+        uint32 depth    = 4 [(nanopb).int_size = IS_8];
+    }
+    
+    uint32 version                      = 1;
+    
+    repeated uint32 locksForPattern     = 2 [(nanopb).int_size = IS_16, (nanopb).max_count = 16, (nanopb).fixed_count = true];
+    
+    uint32 instrumentType               = 3 [(nanopb).int_size = IS_8];
+
+    oneof extraTypeUnion {
+        uint32 synthShape               = 64 [(nanopb).int_size = IS_8];
+        uint32 samplerType              = 65 [(nanopb).int_size = IS_8];
+        uint32 midiChannel              = 66 [(nanopb).int_size = IS_8];
+    }
+
+    uint32 effectEditTarget              = 6 [(nanopb).int_size = IS_8];
+    uint32 delaySend                     = 7 [(nanopb).int_size = IS_8];
+    uint32 reverbSend                    = 8 [(nanopb).int_size = IS_8];
+    
+    EnvelopeData env1                   = 9;
+    EnvelopeData env2                   = 10;
+    uint32 sampleAttack                 = 67 [(nanopb).int_size = IS_8];
+    uint32 sampleDecay                  = 68 [(nanopb).int_size = IS_8];
+
+    uint32 lfoRate                       = 11 [(nanopb).int_size = IS_8];
+    uint32 lfoDepth                      = 12 [(nanopb).int_size = IS_8];
+    uint32 lfoTarget                     = 13 [(nanopb).int_size = IS_8];
+    uint32 lfoDelay                      = 14 [(nanopb).int_size = IS_8];
+
+    // these are per pattern
+    repeated Pattern patterns           = 69 [(nanopb).max_count = 16, (nanopb).fixed_count = true];
+
+    repeated uint32 sampleStart         = 19 [(nanopb).int_size = IS_8, (nanopb).max_count = 16, (nanopb).fixed_count = true];
+    repeated uint32 sampleLength        = 20 [(nanopb).int_size = IS_8, (nanopb).max_count = 16, (nanopb).fixed_count = true];
+
+    uint32 color                         = 21 [(nanopb).int_size = IS_8];
+    uint32 timbre                        = 22 [(nanopb).int_size = IS_8];
+  
+
+    uint32 conditionMode                 = 23 [(nanopb).int_size = IS_8];
+    uint32 conditionData                 = 24 [(nanopb).int_size = IS_8];
+
+    uint32 cutoff                        = 25 [(nanopb).int_size = IS_8];
+    uint32 resonance                     = 26 [(nanopb).int_size = IS_8];
+    uint32 volume                        = 27 [(nanopb).int_size = IS_8];
+    uint32 pan                           = 28 [(nanopb).int_size = IS_8];
+    
+    uint32 retriggerSpeed                = 29 [(nanopb).int_size = IS_8];
+    uint32 retriggerLength               = 30 [(nanopb).int_size = IS_8];
+    uint32 retriggerFade                 = 31 [(nanopb).int_size = IS_8];
+    uint32 retriggerTargetEnv            = 32 [(nanopb).int_size = IS_8];
+}

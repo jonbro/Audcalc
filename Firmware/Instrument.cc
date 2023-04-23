@@ -123,7 +123,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     // slow fffff
     // holy hell what the fuck is this code, seriously :0
     // should like, maybe, move this into some class or something :P 
-    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalData->bpm];
+    uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[globalData->GetBpm()];
     // 24ppq
     lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
     lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>7)+2);
@@ -363,11 +363,11 @@ void Instrument::Retrigger()
     }
 }
 
-void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
+void Instrument::NoteOn(uint8_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
     if(livePlay)
     {
-        lastPressedKey = (uint8_t)key.value;
+        lastPressedKey = key;
     }
     playingStep = step;
     playingPattern = pattern;
@@ -384,7 +384,7 @@ void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t patte
     {
         microFade = 0;
         UpdateVoiceData(voiceData);
-        playingSlice = (uint8_t)key.value;
+        playingSlice = key;
         file = voiceData.GetFile();
         instrumentType = voiceData.GetInstrumentType();
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
@@ -400,15 +400,15 @@ void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t patte
         }
         if(voiceData.GetSampler() == SAMPLE_PLAYER_SEQL)
         {
-            sampleOffset = (voiceData.sampleStart[0]) * (filesize>>9);
-            sampleEnd = sampleOffset + (voiceData.sampleLength[0]) * (filesize>>9);
+            sampleOffset = (voiceData.GetSampleStart(0)) * (filesize>>9);
+            sampleEnd = sampleOffset + (voiceData.GetSampleLength(0)) * (filesize>>9);
             if(sampleEnd*2 > filesize - 1)
             {
                 sampleEnd = filesize/2 -1;
             }
             // compute the phase increment so it loops in 16 beats
             // first we need to know the number of samples in the loop?
-            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalData->bpm];
+            uint32_t tempoPhaseIncrement = lut_tempo_phase_increment[globalData->GetBpm()];
             // 24ppq
             tempoPhaseIncrement = tempoPhaseIncrement + (tempoPhaseIncrement>>1);
             uint32_t tempoPhase = 0;
@@ -428,12 +428,12 @@ void Instrument::NoteOn(uint4 key, int16_t midinote, uint8_t step, uint8_t patte
             phase_increment = (uint32_t)(((uint64_t)(sampleEnd-sampleOffset)<<31)/((uint64_t)sampleCount)); // q32?
             phase_increment = phase_increment>>6; // q25 our overflow value
             // calculate the actual sample offset based on the pressed key
-            sampleOffset = (sampleEnd-sampleOffset)/16*(uint8_t)key.value+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
+            sampleOffset = (sampleEnd-sampleOffset)/16*key+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
         }
         else
         {
-            sampleOffset = (voiceData.sampleStart[(uint8_t)key.value]) * (filesize>>9);
-            sampleEnd = sampleOffset + (voiceData.sampleLength[(uint8_t)key.value]) * (filesize>>9);
+            sampleOffset = (voiceData.GetSampleStart(key)) * (filesize>>9);
+            sampleEnd = sampleOffset + (voiceData.GetSampleLength(key)) * (filesize>>9);
             if(sampleEnd*2 > filesize - 1)
             {
                 sampleEnd = filesize/2 -1;

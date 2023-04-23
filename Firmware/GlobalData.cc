@@ -2,7 +2,7 @@
 #include "m6x118pt7b.h"
 
 SyncOutMode GlobalData::GetSyncOutMode(){
-    uint8_t bareSyncMode = ((((uint16_t)syncOut)*6) >> 8);
+    uint8_t bareSyncMode = ((((uint16_t)internalData.syncOut)*6) >> 8);
     SyncOutMode mode = SyncOutModeNone;
     switch(bareSyncMode)
     {
@@ -32,32 +32,35 @@ uint8_t& GlobalData::GetParam(uint8_t param, uint8_t pattern)
     switch(param)
     {
         case 1*2:
-            return changeLength[pattern];
+            return internalData.changeLength[pattern];
         case 19*2:
-            return bpm;
+            return internalData.bpm;
         case 19*2+1:
-            return syncOut;
+            return internalData.syncOut;
         case 24*2:
-            return octave;
+            return internalData.octave;
         case 24*2+(25*2): // this offset to the next page must also be doubled
-            return scale;
+            return internalData.scale;
         case 24*2+1:
-            return root;
+            return internalData.root;
     }
     return nothing;
 }
 uint8_t GlobalData::GetRoot()
 {
-    return (root*12)>>8;
+    return (internalData.root*12)>>8;
 }
 uint8_t GlobalData::GetScale()
 {
-    return (((uint16_t)scale)*9)>>8;
+    return (((uint16_t)internalData.scale)*9)>>8;
 }
-
 int8_t GlobalData::GetOctave()
 {
-    return ((int8_t)(octave/51))-2;
+    return ((int8_t)(internalData.octave/51))-2;
+}
+uint8_t GlobalData::GetBpm()
+{
+    return internalData.bpm;
 }
 
 const int keyMap[16] = {
@@ -136,15 +139,15 @@ void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
     {
         case 1:
             sprintf(strA, "chng");
-            sprintf(pA, "%i", changeLength[pattern]/4+1);
+            sprintf(pA, "%i", internalData.changeLength[pattern]/4+1);
             sprintf(strB, "");
             sprintf(pB,"");
             break;
         case 19:
             sprintf(strA, "bpm");
-            sprintf(pA, "%i", bpm+1);
+            sprintf(pA, "%i", internalData.bpm+1);
             sprintf(strB, "Sync");
-            sprintf(pB,syncOutStrings[(syncOut*6)>>8]);
+            sprintf(pB,syncOutStrings[(internalData.syncOut*6)>>8]);
             break;
         case 24:
             sprintf(strA, "Octv");
@@ -165,4 +168,14 @@ void GlobalData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
     
     ssd1306_draw_string_gfxfont(disp, column4-33, 12, str, true, 1, 1, &m6x118pt7b);    
     ssd1306_draw_string_gfxfont(disp, column4-33, 17+12, str+16, true, 1, 1, &m6x118pt7b);
+}
+
+void GlobalData::Serialize(pb_ostream_t *s)
+{
+    pb_encode_ex(s, GlobalDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
+}
+
+void GlobalData::Deserialize(pb_istream_t *s)
+{
+    pb_decode_ex(s, GlobalDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
 }

@@ -3,7 +3,6 @@
 #include "pico/stdlib.h"
 
 using namespace braids;
-#define CHORUS_LENGTH 1000
 #define DELAY_LENGTH 10000
 class Delay2 {
  public:
