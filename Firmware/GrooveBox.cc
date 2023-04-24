@@ -64,8 +64,7 @@ void GrooveBox::init(uint32_t *_color)
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
     {
-        printf("sample file id %i\n", (1<<8)&i);
-        ffs_open(GetFilesystem(), &files[i], (1<<8)&i);
+        ffs_open(GetFilesystem(), &files[i], (1<<8)|i);
         patterns[i].SetFile(&files[i]);
     }
     CalculateTempoIncrement();

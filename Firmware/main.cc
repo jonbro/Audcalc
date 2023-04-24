@@ -273,7 +273,7 @@ int main()
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            //hardware_shutdown();
+            hardware_shutdown();
         }
         // if the user is holding the record key, then reboot in usb mode
         if(hardware_get_key_state(4, 4))
