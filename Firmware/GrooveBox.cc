@@ -64,7 +64,8 @@ void GrooveBox::init(uint32_t *_color)
     // deserialized pointers aren't pointing to the wrong places
     for(int i=0;i<16;i++)
     {
-        ffs_open(GetFilesystem(), &files[i], i);
+        printf("sample file id %i\n", (1<<8)&i);
+        ffs_open(GetFilesystem(), &files[i], (1<<8)&i);
         patterns[i].SetFile(&files[i]);
     }
     CalculateTempoIncrement();
@@ -112,8 +113,11 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
         }
         last_input = input>last_input?input:last_input;
     }
+
+    // our file system only handles appends every 256 bytes, so we need to respect that
     recordBufferOffset+=SAMPLES_PER_BUFFER;
-    if(recordBufferOffset==128) recordBufferOffset = 0; // this lines up with flushing every 256 bytes
+    if(recordBufferOffset==128) recordBufferOffset = 0;
+    
     CalculateTempoIncrement();
     if(!recording)
     {
@@ -1284,6 +1288,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         paramSelectMode = pressed;
     }
 }
+
+/* FILELIST
+*  --------
+*  0xffff: global data (last playing song)
+*  0-15: song data
+*  (1<<8)&0-15: sample data
+*/
+#define GLOBAL_DATA_FILEID 0x7fff
 bool serialize_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
 {
    Serializer *s = (Serializer*) stream->state;
@@ -1293,34 +1305,30 @@ bool serialize_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
     }
     return true;
 }
-/* FILELIST
-*  --------
-*  0: global data (last playing song)
-*  1-16: song data
-*  17-(17+16*16): sample data - this only gives us 1 block per sample (65,536 bytes), but thats ~2 seconds...
-*  the real issue is that we can't be full of both songs and samples, because then we run out of blocks.
-*  this is more of an issue if we stay with the large block size
-*/
-
-#define SAVE_VERSION 20
 void GrooveBox::Serialize()
 {
-    Serializer s;
     // erase the existing file first
-    ffs_file writefile;
+    ffs_file globalDataFile;
     erasing = true;
-    ffs_open(GetFilesystem(), &writefile, 101);
-    absolute_time_t eraseStartTime = get_absolute_time();
-    ffs_erase(GetFilesystem(), &writefile);
-    printf("file erase time: %lld\n", (long long)absolute_time_diff_us(eraseStartTime, get_absolute_time()));
-
-    absolute_time_t saveStartTime = get_absolute_time();
-    s.Init();
-    // version
-    s.AddData(SAVE_VERSION);
-    // save the parameter locks
+    ffs_open(GetFilesystem(), &globalDataFile, GLOBAL_DATA_FILEID);
+    ffs_erase(GetFilesystem(), &globalDataFile);
+    erasing = false;
     
-    pb_ostream_t serializerStream = {&serialize_callback, &s, SIZE_MAX, 0};
+    Serializer globalDataSerializer;
+    globalDataSerializer.Init(GLOBAL_DATA_FILEID);
+
+    pb_ostream_t serializerStream = {&serialize_callback, &globalDataSerializer, SIZE_MAX, 0};
+    pb_encode_ex(&serializerStream, GlobalData_fields, &globalData, PB_ENCODE_DELIMITED);
+    globalDataSerializer.Finish();
+
+    ffs_file songFile;
+    erasing = true;
+    ffs_open(GetFilesystem(), &songFile, globalData.songId);
+    ffs_erase(GetFilesystem(), &songFile);
+    erasing = false;
+
+    Serializer s;
+    serializerStream = {&serialize_callback, &s, SIZE_MAX, 0};
     songData.Serialize(&serializerStream);
 
     for(int i=0;i<16;i++)
@@ -1336,10 +1344,9 @@ void GrooveBox::Serialize()
     VoiceData::SerializeStatic(&serializerStream);
 
     s.Finish();
-    printf("file save time: %lld\n", (long long)absolute_time_diff_us(saveStartTime, get_absolute_time()));
-
-    printf("serialized file size %i\n", s.writeFile.filesize);
+    printf("serialized song file size %i\n", s.writeFile.filesize);
 }
+
 bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
 {
    Serializer *s = (Serializer*) stream->state;
@@ -1352,19 +1359,40 @@ bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
 
 void GrooveBox::Deserialize()
 {
-    // should probably put this is some different class
-    Serializer s;
-    s.Init();
-    if(!s.writeFile.initialized)
-        return;
-    uint8_t versionValue = s.GetNextValue();
-    printf("loading version: %i\n", versionValue);
-    // save version
-    if(versionValue != SAVE_VERSION)
-        return;
-
-    pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
+    // setup our song data
     songData.InitDefaults();
+
+    // should probably put this is some different class
+    Serializer globalDataSerializer;
+    globalDataSerializer.Init(GLOBAL_DATA_FILEID);
+    // my first migration?
+    if(!globalDataSerializer.writeFile.initialized)
+    {
+        globalData.version = 1;
+        // erase all the old sample data that is living where the song data now lives
+        for(int i=0;i<16;i++)
+        {
+            ffs_file sampleFile;
+            erasing = true;
+            ffs_open(GetFilesystem(), &sampleFile, i);
+            ffs_erase(GetFilesystem(), &sampleFile);
+            erasing = false;
+        }
+        // clear out the old songfile
+        {
+            erasing = true;
+            ffs_file preProtobufSong;
+            ffs_open(GetFilesystem(), &preProtobufSong, 101);
+            ffs_erase(GetFilesystem(), &preProtobufSong);
+            erasing = false;
+        }
+        return;
+    }
+
+    // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
+    Serializer s;
+    s.Init(globalData.songId);
+    pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
     songData.Deserialize(&serializerStream);
 
     // load pattern data

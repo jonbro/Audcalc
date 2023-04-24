@@ -8,7 +8,7 @@
 class Serializer
 {
     public:
-        void    Init();
+        void    Init(uint16_t id);
         void    AddData(uint8_t val);
         void    Finish();
         uint8_t GetNextValue();

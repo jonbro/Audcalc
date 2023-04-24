@@ -14,8 +14,8 @@ nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         VoiceDataInternal.proto
         ParamLockPoolInternal.proto
         SongDataInternal.proto
+        GlobalData.proto
 )
-# add_definitions(-DPB_FIELD_32BIT)
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)

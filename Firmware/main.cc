@@ -268,14 +268,12 @@ int main()
 {
     hardware_init();
     stdio_init_all();
-
-
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            hardware_shutdown();
+            //hardware_shutdown();
         }
         // if the user is holding the record key, then reboot in usb mode
         if(hardware_get_key_state(4, 4))
@@ -388,16 +386,6 @@ int main()
             // else
             // {
             //     color[6] = urgb_u32(0,0,0);
-            // }
-            // lostCount++;
-            // if(lostCount == 120)
-            // {
-            //     lostCount = gbox->GetLostLockCount();
-            //     if(lostCount>0)
-            //     {
-            //         printf("lost %i locks\n", lostCount);
-            //     }
-            //     lostCount = 0;
             // }
             ws2812_setColors(color+5);
             needsScreenupdate = false;

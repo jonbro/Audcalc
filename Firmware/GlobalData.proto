@@ -1,0 +1,8 @@
+syntax = "proto3";
+import 'nanopb.proto';
+
+message GlobalData
+{
+    uint32 version                  = 1;
+    uint32 songId                   = 2;
+}

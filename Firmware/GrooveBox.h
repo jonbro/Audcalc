@@ -21,6 +21,7 @@ extern "C" {
 #include "Reverb2.h"
 #include "Delay.h"
 #include "MidiParamMapper.h"
+#include "GlobalData.pb.h"
 
 #define VOICE_COUNT 8
 
@@ -146,6 +147,7 @@ class GrooveBox {
   ffs_file files[16];
   int64_t renderTime = 0;
   int64_t sampleCount = 0;
+  GlobalData globalData = GlobalData_init_zero;
 };
 
 extern GrooveBox *groovebox; // used for the midi callbacks

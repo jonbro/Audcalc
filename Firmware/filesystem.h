@@ -9,7 +9,10 @@
 #include <string.h>
 
 #ifdef __cplusplus
+#include <cassert>
 extern "C" {
+#else
+#include <assert.h>
 #endif
 
 /*

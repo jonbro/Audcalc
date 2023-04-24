@@ -1,11 +1,11 @@
 #include "Serializer.h"
 
 
-void Serializer::Init()
+void Serializer::Init(uint16_t id)
 {
     writePosition = 0;
     flashPosition = 0;
-    ffs_open(GetFilesystem(), &writeFile, 101);
+    ffs_open(GetFilesystem(), &writeFile, id);
     memset(data, 0, 256);
 }
 uint8_t Serializer::GetNextValue()
