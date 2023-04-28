@@ -39,7 +39,7 @@ void GrooveBox::CalculateTempoIncrement()
 }
 void GrooveBox::init(uint32_t *_color)
 {
-    needsInitialADC = true;
+    needsInitialADC = 30;
     groovebox = this;
     midi.Init();
     midi.OnCCChanged = OnCCChangedBare;
@@ -826,11 +826,11 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     AdcInterpolatedB = (((uint32_t)b_in)*(0xffff-interpolationbias) + ((uint32_t)AdcInterpolatedB)*interpolationbias)>>16;
     uint8_t a = AdcInterpolatedA>>4;
     uint8_t b = AdcInterpolatedB>>4; 
-    if(needsInitialADC)
+    if(needsInitialADC > 0)
     {
         lastAdcValA = a;
         lastAdcValB = b;
-        needsInitialADC = false;
+        needsInitialADC--;
         return;
     }
     // check to see if the adcs have moved since we last changed the page

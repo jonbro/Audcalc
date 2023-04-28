@@ -75,7 +75,7 @@ class GrooveBox {
 
  private:
   MidiParamMapper midiMap;
-  bool needsInitialADC; 
+  int8_t needsInitialADC = 30; 
   void TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
