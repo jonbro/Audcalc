@@ -1327,6 +1327,7 @@ void GrooveBox::Serialize()
     erasing = false;
 
     Serializer s;
+    s.Init(0);
     serializerStream = {&serialize_callback, &s, SIZE_MAX, 0};
     songData.Serialize(&serializerStream);
 

@@ -456,7 +456,7 @@ int file_erase(uint32_t offset, size_t size);
 
 void TestFileSystem();
 void InitializeFilesystem(bool fullClear);
-
+void DeleteNonEmpty();
 ffs_filesystem* GetFilesystem();
 
 #ifdef __cplusplus

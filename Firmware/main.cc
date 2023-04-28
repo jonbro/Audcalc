@@ -169,7 +169,6 @@ void draw_screen()
 {
     // this needs to be called here, because the multicore launch relies on
     // the fifo being functional
-    multicore_lockout_victim_init();
     disp.external_vcc=false;
     ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
     ssd1306_poweroff(&disp);
@@ -266,6 +265,8 @@ uint8_t adc2_prev;
 
 int main()
 {
+    //DeleteNonEmpty();
+    // return 1;
     hardware_init();
     stdio_init_all();
     {
@@ -305,8 +306,6 @@ int main()
     bool r = true;
     queue_add_blocking(&complete_queue, &r);
     multicore_launch_core1(draw_screen);
-    multicore_lockout_start_timeout_us(500);
-    multicore_lockout_end_timeout_us(500);
 
     // if the user is holding down specific keys on powerup, then clear the full file system
     InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4));
