@@ -244,9 +244,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
             if(tempoPulse)
             {
-                if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
-                    midi.TimingClock();
-                
+                bool needsMidiSync = false;
                 // advance chain if the global pattern just overflowed on the last beat counter
                 if(beatCounter[16]==0 && patternStep[16] == 0)
                 {
@@ -265,26 +263,28 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                 }
                 // two extra counters
                 // 17: the pattern change counter
-                // 18: the sync output counter
-                for(int v=0;v<18;v++)
+                // 18: the pulse sync output counter
+                // 19: the midi sync
+                for(int v=0;v<19;v++)
                 {
                     bool needsTrigger = beatCounter[v]==0;
                     beatCounter[v]++;
-
-                    // global pattern (pattern change counter) always uses 16th notes
                     uint8_t rate = 0;
                     switch(v)
                     {
-                        case 16:
+                        case 16: // global pattern (pattern change counter) always uses 16th notes
                             rate = 2;
                             break;
-                        case 17:
+                        case 17: // pocket operator / pulse sync
                             if((songData.GetSyncOutMode() & SyncOutModePO) > 0)
                                 rate = 4;
                             else if((songData.GetSyncOutMode() & SyncOutMode24) > 0)
                                 rate = 7;
                             else
                                 rate = 0;
+                            break;
+                        case 18: // midi sync
+                            rate = 7;
                             break;
                         default:
                             rate = ((patterns[v].GetRateForPattern(GetCurrentPattern())*7)>>8);
@@ -321,6 +321,11 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                         continue;
                     if(v==17){
                         sync_count = 6;
+                        continue;
+                    }
+                    if(v==18)
+                    {
+                        needsMidiSync = true;
                         continue;
                     }
                     // never trigger for the global pattern
@@ -366,6 +371,10 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                             patternLoopCount[v]++;
                         }
                     }
+                }
+                if(needsMidiSync && ((songData.GetSyncOutMode()&SyncOutModeMidi) > 0))
+                {
+                    midi.TimingClock();
                 }
             }
         }

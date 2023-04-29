@@ -89,7 +89,7 @@ class GrooveBox {
   uint8_t lastKeyPlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
-  uint8_t beatCounter[18] = {0};
+  uint8_t beatCounter[19] = {0};
   bool playing = false;
   bool writing = false;
   bool holdingWrite = false;
