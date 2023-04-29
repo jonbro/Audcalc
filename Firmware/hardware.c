@@ -23,8 +23,9 @@ void hardware_init()
 
 
     gpio_init(USB_POWER_SENSE);
-    gpio_set_dir(USB_POWER_SENSE, GPIO_IN);
-    gpio_pull_down(USB_POWER_SENSE);
+    // this pin needs to be set as an out, otherwise I get jacked up results on my adc
+    gpio_set_dir(USB_POWER_SENSE, GPIO_OUT);
+    //gpio_pull_down(USB_POWER_SENSE);
 
     // power switch / key 1,1
     gpio_init(23);
