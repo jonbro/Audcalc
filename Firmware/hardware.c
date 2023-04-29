@@ -21,6 +21,10 @@ void hardware_init()
     // gpio_put(BLINK_PIN_LED, true);
     set_sys_clock_khz(220000, true);
 
+    adc_init();
+    adc_gpio_init(26);
+    adc_gpio_init(27);
+    adc_gpio_init(28);
 
     gpio_init(USB_POWER_SENSE);
     // this pin needs to be set as an out, otherwise I get jacked up results on my adc
@@ -120,7 +124,7 @@ void hardware_update_battery_level()
 }
 bool hardware_has_usb_power()
 {
-    return gpio_get(USB_POWER_SENSE);
+    return false;//gpio_get(USB_POWER_SENSE);
 }
 
 void hardware_shutdown()

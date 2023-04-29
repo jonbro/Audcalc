@@ -580,15 +580,15 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
         return;
     }
-    else if(hardware_get_battery_level() < 115)
-    {
-        sprintf(str, "Low Battery!");
-        if((drawCount % 90) < 45)
-            ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-        sprintf(str, "Save and charge.");
-        ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
-        return;
-    }
+    // else if(hardware_get_battery_level() < 115)
+    // {
+    //     sprintf(str, "Low Battery!");
+    //     if((drawCount % 90) < 45)
+    //         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+    //     sprintf(str, "Save and charge.");
+    //     ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
+    //     return;
+    // }
     else if(clearTime == 0 && patternSelectMode && holdingEscape)
     {
         sprintf(str, "pat %i cleared", GetCurrentPattern()+1);

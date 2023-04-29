@@ -169,6 +169,8 @@ void draw_screen()
 {
     // this needs to be called here, because the multicore launch relies on
     // the fifo being functional
+    // multicore_lockout_victim_init();
+    sleep_ms(20);
     disp.external_vcc=false;
     ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
     ssd1306_poweroff(&disp);
@@ -310,10 +312,6 @@ int main()
     // if the user is holding down specific keys on powerup, then clear the full file system
     InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4));
 
-    adc_init();
-    adc_gpio_init(26);
-    adc_gpio_init(27);
-    adc_gpio_init(28);
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
@@ -370,7 +368,7 @@ int main()
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox.OnAdcUpdate(adc_val, adc_read());
-            hardware_update_battery_level();
+            //hardware_update_battery_level();
             bool flip_complete = false;
             if(queue_try_remove(&complete_queue, &flip_complete))
             {
