@@ -12,12 +12,11 @@ int file_read(uint32_t offset, size_t size, void *buffer)
 }
 int __not_in_flash_func(file_write)(uint32_t offset, size_t size, void *buffer)
 {
-    bool lockedOut = multicore_lockout_start_timeout_us(500);
+    multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + offset, buffer, size);
     restore_interrupts(ints);
-    if(lockedOut)
-        multicore_lockout_end_timeout_us(500);
+        multicore_lockout_end_blocking();
     return 0;
 }
 
@@ -26,15 +25,14 @@ int __not_in_flash_func(file_erase)(uint32_t offset, size_t size)
     // flash erase automatically switches between sector & block erase depending on the address alignment and requested erase size
     // see https://github.com/raspberrypi/pico-bootrom/blob/master/bootrom/program_flash_generic.c#L333
     //printf("ERASE: %p, %d\n", FS_START + offset, size);
-    bool lockedout = multicore_lockout_start_timeout_us(50);
+    multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     // // re-enable the audio related interrupts so we don't mess up the dac
     irq_set_enabled(DMA_IRQ_0, true);
     irq_set_enabled(DMA_IRQ_1, true);
     flash_range_erase(FS_START + offset,size);
     restore_interrupts(ints);
-    if(lockedout)
-        multicore_lockout_end_timeout_us(50);
+    multicore_lockout_end_blocking();
     return 0;
 }
 ffs_filesystem filesystem;

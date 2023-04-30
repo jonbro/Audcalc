@@ -165,12 +165,12 @@ typedef struct
 } queue_entry_t;
 queue_t signal_queue;
 queue_t complete_queue;
-void draw_screen()
+void __not_in_flash_func(draw_screen)()
 {
     // this needs to be called here, because the multicore launch relies on
     // the fifo being functional
-    // multicore_lockout_victim_init();
     sleep_ms(20);
+    multicore_lockout_victim_init();
     disp.external_vcc=false;
     ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
     ssd1306_poweroff(&disp);
@@ -267,8 +267,12 @@ uint8_t adc2_prev;
 
 int main()
 {
-    //DeleteNonEmpty();
-    // return 1;
+        // queue_init(&complete_queue, sizeof(bool), 2);
+        // bool jr = true;
+        // queue_add_blocking(&complete_queue, &jr);
+        // multicore_launch_core1(draw_screen);
+        // DeleteNonEmpty();
+        // return 1;
     hardware_init();
     stdio_init_all();
     {
