@@ -35,11 +35,7 @@ extern "C" {
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "ParamLockPoolInternal.pb.h"
-
-#define POCKETMOD_IMPLEMENTATION
-//#include "pocketmod.h"
-//#include "sundown.h"
-//#include "bananasplit.h"
+#include "USBSerialDevice.h"
 
 using namespace braids;
 
@@ -95,6 +91,7 @@ int input_position = 0;
 int initial_sample_count = 0;
 
 GrooveBox gbox;
+USBSerialDevice usbSerialDevice;
 uint16_t work_buf[SAMPLES_PER_BUFFER];
 void __not_in_flash_func(dma_input_handler)() {
     if (dma_hw->ints0 & (1u<<dma_chan_input)) {
@@ -319,7 +316,7 @@ int main()
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
 
-    gbox.init(color);
+    gbox.init(color, &usbSerialDevice);
     // fill the silence buffer so we get something out
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -353,6 +350,7 @@ int main()
     int lostCount = 0;
     while(true)
     {
+        usbSerialDevice.Update();
         hardware_get_all_key_state(&keyState);
         
         // act on keychanges

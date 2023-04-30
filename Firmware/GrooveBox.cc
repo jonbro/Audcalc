@@ -37,8 +37,9 @@ void GrooveBox::CalculateTempoIncrement()
     // 4 ppq
     // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
 }
-void GrooveBox::init(uint32_t *_color)
+void GrooveBox::init(uint32_t *_color, USBSerialDevice *_usbSerialDevice)
 {
+    usbSerialDevice = _usbSerialDevice;
     needsInitialADC = 30;
     groovebox = this;
     midi.Init();
@@ -510,6 +511,14 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         erasing = true;
         Serialize();
         hardware_shutdown();
+    }
+    if(usbSerialDevice->NeedsSongData())
+    {
+        SerializeToSerial();
+    }
+    if(usbSerialDevice->PrepareReceiveData())
+    {
+        DeserializeFromSerial();
     }
 
 
@@ -1342,12 +1351,7 @@ void GrooveBox::Serialize()
 
     for(int i=0;i<16;i++)
     {
-        VoiceDataInternal *vdi = patterns[i].GetVoiceData();
-        vdi->has_env1 = true;
-        vdi->has_env2 = true;
-        vdi->which_extraTypeUnion = VoiceDataInternal_synthShape_tag;
-        serializerStream.bytes_written = 0;
-        pb_encode_ex(&serializerStream, VoiceDataInternal_fields, vdi, PB_ENCODE_DELIMITED);
+        patterns[i].Serialize(&serializerStream);
     }
     serializerStream.bytes_written = 0;
     VoiceData::SerializeStatic(&serializerStream);
@@ -1356,9 +1360,34 @@ void GrooveBox::Serialize()
     printf("serialized song file size %i\n", s.writeFile.filesize);
 }
 
+bool serialize_to_serial_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
+{
+   USBSerialDevice *s = (USBSerialDevice*) stream->state;
+   s->SendData(buf, count);
+   return true;
+}
+
+void GrooveBox::SerializeToSerial()
+{
+    usbSerialDevice->ResetLineBreak();
+    printf("Here comes songdata:\n");
+    pb_ostream_t serializerStream = {&serialize_to_serial_callback, usbSerialDevice, SIZE_MAX, 0};
+    songData.Serialize(&serializerStream);
+    for(int i=0;i<16;i++)
+    {
+        patterns[i].Serialize(&serializerStream);
+    }
+    serializerStream.bytes_written = 0;
+    VoiceData::SerializeStatic(&serializerStream);
+    usbSerialDevice->SignalSongDataComplete();
+    const char readyMsg[7] = "/ready";
+    usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
+    printf("completed send.\n");
+}
+
 bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
 {
-   Serializer *s = (Serializer*) stream->state;
+    Serializer *s = (Serializer*) stream->state;
     for (size_t i = 0; i < count; i++)
     {
         buf[i] = s->GetNextValue();
@@ -1407,9 +1436,40 @@ void GrooveBox::Deserialize()
     // load pattern data
     for(int i=0;i<16;i++)
     {
-        pb_decode_ex(&serializerStream, VoiceDataInternal_fields, patterns[i].GetVoiceData(), PB_DECODE_DELIMITED);
+        patterns[i].Deserialize(&serializerStream);
     }
     VoiceData::DeserializeStatic(&serializerStream);
 
     printf("loaded filesize %i\n", s.writeFile.filesize);
+}
+
+bool deserialize_from_serial_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
+{
+    USBSerialDevice *s = (USBSerialDevice*) stream->state;
+    if(!s->GetData(buf, count))
+        return false;
+    return true;
+}
+
+void GrooveBox::DeserializeFromSerial()
+{
+    // setup our song data
+    songData.InitDefaults();
+
+    // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
+    pb_istream_t serializerStream = {&deserialize_from_serial_callback, usbSerialDevice, SIZE_MAX};
+    // send the signal that we are ready to recieve
+    const char readyMsg[7] = "/ready";
+    usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
+
+    songData.Deserialize(&serializerStream);
+    // load pattern data
+    for(int i=0;i<16;i++)
+    {
+        patterns[i].Deserialize(&serializerStream);
+    }
+    VoiceData::DeserializeStatic(&serializerStream);
+    usbSerialDevice->SignalSongReceiveComplete();
+    printf("finished deserialize from serial\n");
+    ResetADCLatch();
 }

@@ -9,6 +9,8 @@
 #include "ParamLockPool.h"
 #include "Serializer.h"
 #include "VoiceDataInternal.pb.h"
+#include <pb_encode.h>
+#include <pb_decode.h>
 
 extern "C" {
   #include "ssd1306.h"
@@ -89,6 +91,8 @@ class VoiceData
             InitDefaults();
         }
         void InitDefaults();
+        void Serialize(pb_ostream_t *s);
+        void Deserialize(pb_istream_t *s);
         void CopyPattern(uint8_t from, uint8_t to)
         {
             internalData.patterns[to].rate = internalData.patterns[from].rate; // 1x 
@@ -232,6 +236,7 @@ class VoiceData
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         
         static ParamLockPool lockPool;
+        uint16_t locksForPattern[16] = {0};
     private:
         VoiceDataInternal internalData;
         bool GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param);

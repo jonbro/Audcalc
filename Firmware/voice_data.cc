@@ -7,7 +7,7 @@ void VoiceData::InitDefaults()
 {
     for (size_t i = 0; i < 16; i++)
     {
-        internalData.locksForPattern[i] = ParamLockPool::InvalidLockPosition();
+        locksForPattern[i] = ParamLockPool::InvalidLockPosition();
         internalData.patterns[i].rate = 2*37; // 1x 
         internalData.patterns[i].length = 15*4; // need to up this to fit into 0xff
     }
@@ -25,14 +25,74 @@ void VoiceData::InitDefaults()
     internalData.color = 0x7f;
     internalData.timbre = 0x7f;
 
-        internalData.cutoff = 0xff;
-        internalData.resonance = 0;
-        internalData.volume = 0x7f;
-        internalData.pan = 0x7f;
-        
-        internalData.retriggerSpeed = 0;
-        internalData.retriggerLength = 0x7f;
-        internalData.retriggerFade = 0x7f;
+    internalData.cutoff = 0xff;
+    internalData.resonance = 0;
+    internalData.volume = 0x7f;
+    internalData.pan = 0x7f;
+    
+    internalData.retriggerSpeed = 0;
+    internalData.retriggerLength = 0;
+    internalData.retriggerFade = 0x7f;
+}
+bool VoiceDataInternal_encode_locks(pb_ostream_t *ostream, const pb_field_t *field, void * const *arg)
+{
+    uint16_t* locksForPattern = *(uint16_t**)arg;
+
+    // encode all pattern lock pointers
+    for (int i = 0; i < 16; i++)
+    {
+        // skip locks that are pointing at the null lock
+        if(locksForPattern[i] == ParamLockPool::InvalidLockPosition())
+            continue;
+        if (!pb_encode_tag_for_field(ostream, field))
+        {
+            const char * error = PB_GET_ERROR(ostream);
+            return false;
+        }
+        VoiceDataInternal_LockPointer lock = VoiceDataInternal_LockPointer_init_zero;
+        lock.pattern = i;
+        lock.pointer = locksForPattern[i];
+        if (!pb_encode_submessage(ostream, VoiceDataInternal_LockPointer_fields, &lock))
+        {
+            const char * error = PB_GET_ERROR(ostream);
+            printf("VoiceDataInternal_encode_locks error: %s", error);
+            return false;
+        }
+    }
+    return true;
+}
+
+void VoiceData::Serialize(pb_ostream_t *s)
+{
+    s->bytes_written = 0;
+    internalData.has_env1 = true;
+    internalData.has_env2 = true;
+    internalData.which_extraTypeUnion = VoiceDataInternal_synthShape_tag;
+    internalData.locksForPattern.funcs.encode = &VoiceDataInternal_encode_locks;
+    internalData.locksForPattern.arg = locksForPattern;
+    pb_encode_ex(s, VoiceDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
+}
+bool VoiceDataInternal_decode_locks(pb_istream_t *stream, const pb_field_iter_t *field, void **arg)
+{
+    uint16_t* locksForPattern = *(uint16_t**)arg;
+    VoiceDataInternal_LockPointer lock = VoiceDataInternal_LockPointer_init_zero;
+    if (!pb_decode(stream, VoiceDataInternal_LockPointer_fields, &lock))
+        return false;
+    locksForPattern[lock.pattern] = lock.pointer;
+    return true;
+}
+
+
+void VoiceData::Deserialize(pb_istream_t *s)
+{
+    internalData.locksForPattern.funcs.decode = &VoiceDataInternal_decode_locks;
+    internalData.locksForPattern.arg = locksForPattern;
+    if(!pb_decode_ex(s, VoiceDataInternal_fields, &internalData, PB_DECODE_DELIMITED))
+    {
+        const char * error = PB_GET_ERROR(s);
+        printf("VoiceData deserialize error: %s\n", error);
+    }
+
 }
 
 // incorporates the lock if any
@@ -614,8 +674,8 @@ void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uin
         lock->param = param;
         lock->step = step;
         lock->value = value;
-        lock->next = internalData.locksForPattern[pattern];
-        internalData.locksForPattern[pattern] = lockPool.GetLockPosition(lock);
+        lock->next = locksForPattern[pattern];
+        locksForPattern[pattern] = lockPool.GetLockPosition(lock);
         // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
         return;
     }
@@ -623,18 +683,18 @@ void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uin
 }
 void VoiceData::ClearParameterLocks(uint8_t pattern)
 {
-    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         ParamLock* nextLock = lockPool.GetLock(lock->next);
         lockPool.ReturnLockToPool(lock);
         lock = nextLock;
     }
-    internalData.locksForPattern[pattern] = ParamLockPool::InvalidLockPosition();
+    locksForPattern[pattern] = ParamLockPool::InvalidLockPosition();
 }
 void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 {
-    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     ParamLock* lastLock = lock;
     while(lockPool.IsValidLock(lock))
     {
@@ -643,9 +703,9 @@ void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
         {
             lastLock->next = lock->next;
             lockPool.ReturnLockToPool(lock);
-            if(lockPool.GetLockPosition(lock) == internalData.locksForPattern[pattern])
+            if(lockPool.GetLockPosition(lock) == locksForPattern[pattern])
             {
-                internalData.locksForPattern[pattern] = lockPool.GetLockPosition(nextLock);
+                locksForPattern[pattern] = lockPool.GetLockPosition(nextLock);
             }
         }
         else
@@ -657,7 +717,7 @@ void VoiceData::RemoveLocksForStep(uint8_t pattern, uint8_t step)
 }
 void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 {
-    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[fromPattern]);
+    ParamLock* lock = lockPool.GetLock(locksForPattern[fromPattern]);
     while(lockPool.IsValidLock(lock))
     {
         StoreParamLock(lock->param, lock->step, toPattern, lock->value);
@@ -678,7 +738,7 @@ bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uin
 }
 bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 {
-    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         if(lock->step == step)
@@ -691,7 +751,7 @@ bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 }
 bool VoiceData::GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param)
 {
-    ParamLock* lock = lockPool.GetLock(internalData.locksForPattern[pattern]);
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {
         if(lock->param == param && lock->step == step)
@@ -726,7 +786,7 @@ void TestVoiceData()
             for(int p=0; p<16; p++)
             {
                 int lockCount = 0;
-                ParamLock *lock = voiceData.lockPool.GetLock(voiceData.GetVoiceData()->locksForPattern[p]);
+                ParamLock *lock = voiceData.lockPool.GetLock(voiceData.locksForPattern[p]);
                 while(voiceData.lockPool.IsValidLock(lock))
                 {
                     if(lock == searchingForLock){

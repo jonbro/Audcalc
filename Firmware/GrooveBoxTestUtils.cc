@@ -17,7 +17,7 @@ int GrooveBox::GetLostLockCount()
             for(int p=0;p<16;p++)
             {
                 int lockCount = 0;
-                ParamLock *lock = patterns[0].lockPool.GetLock(patterns[i].GetVoiceData()->locksForPattern[p]);
+                ParamLock *lock = patterns[0].lockPool.GetLock(patterns[i].locksForPattern[p]);
                 while(patterns[0].lockPool.IsValidLock(lock))
                 {
                     if(lock == searchingForLock){

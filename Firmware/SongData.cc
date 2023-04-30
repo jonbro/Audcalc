@@ -177,5 +177,9 @@ void SongData::Serialize(pb_ostream_t *s)
 
 void SongData::Deserialize(pb_istream_t *s)
 {
-    pb_decode_ex(s, SongDataInternal_fields, &internalData, PB_ENCODE_DELIMITED);
+    if(!pb_decode_ex(s, SongDataInternal_fields, &internalData, PB_ENCODE_DELIMITED))
+    {
+        const char * error = PB_GET_ERROR(s);
+        printf("SongData deserialize error: %s\n", error);
+    }
 }

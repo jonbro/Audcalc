@@ -15,10 +15,14 @@ message VoiceDataInternal {
         uint32 target   = 3 [(nanopb).int_size = IS_8];
         uint32 depth    = 4 [(nanopb).int_size = IS_8];
     }
+    message LockPointer {
+        uint32 pattern    = 1 [(nanopb).int_size = IS_8];
+        uint32 pointer    = 2 [(nanopb).int_size = IS_16];
+    }
     
     uint32 version                      = 1;
-    
-    repeated uint32 locksForPattern     = 2 [(nanopb).int_size = IS_16, (nanopb).max_count = 16, (nanopb).fixed_count = true];
+
+    repeated LockPointer locksForPattern = 2;
     
     uint32 instrumentType               = 3 [(nanopb).int_size = IS_8];
 

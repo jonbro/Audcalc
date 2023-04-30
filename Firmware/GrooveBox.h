@@ -22,12 +22,13 @@ extern "C" {
 #include "Delay.h"
 #include "MidiParamMapper.h"
 #include "GlobalData.pb.h"
+#include "USBSerialDevice.h"
 
 #define VOICE_COUNT 8
 
 class GrooveBox {
  public:
-  void init(uint32_t *_color);
+  void init(uint32_t *_color, USBSerialDevice *_usbSerialDevice);
   void OnKeyUpdate(uint key, bool pressed);
   bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void UpdateDisplay(ssd1306_t *p);
@@ -74,8 +75,11 @@ class GrooveBox {
   void OnCCChanged(uint8_t cc, uint8_t newValue);
 
  private:
+  USBSerialDevice *usbSerialDevice;
   MidiParamMapper midiMap;
   int8_t needsInitialADC = 30; 
+  void SerializeToSerial();
+  void DeserializeFromSerial();
   void TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();

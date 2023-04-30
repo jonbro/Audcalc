@@ -36,8 +36,6 @@ pico_sdk_init()
 add_executable(tdm
         main.cc
         # usb_audio.c
-        # usb_descriptors.c
-        usb_microphone.c
         usb_descriptors.c
         GrooveBox.cc
         GrooveBoxTestUtils.cc
@@ -52,6 +50,7 @@ add_executable(tdm
         ws2812.c
         hardware.c
         Serializer.cc
+        USBSerialDevice.cc
         filesystem.c
         audio/macro_oscillator.cc
         audio/analog_oscillator.cc
