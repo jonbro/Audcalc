@@ -4,7 +4,7 @@
 class USBSerialDevice
 {
 public:
-    USBSerialDevice();
+    void Init();
     bool NeedsSongData();
     bool PrepareReceiveData() { return prepareRecv; }
     void Update();

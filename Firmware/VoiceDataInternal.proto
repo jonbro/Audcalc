@@ -68,4 +68,5 @@ message VoiceDataInternal {
     uint32 retriggerLength               = 30 [(nanopb).int_size = IS_8];
     uint32 retriggerFade                 = 31 [(nanopb).int_size = IS_8];
     uint32 retriggerTargetEnv            = 32 [(nanopb).int_size = IS_8];
+    uint32 octave                        = 33 [(nanopb).int_size = IS_8];
 }

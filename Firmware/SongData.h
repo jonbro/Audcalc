@@ -32,19 +32,17 @@ class SongData
             }
             internalData.syncOut = 0x2b; // this is equal to mode 1
             internalData.bpm = 119;
-            internalData.octave = 0x7f;
         }
         uint8_t GetLength(uint8_t pattern)
         {
             return internalData.changeLength[pattern]/4+1;
         }
-        uint8_t GetNote(uint8_t key);
-        int8_t GetOctave();
+        uint8_t GetNote(uint8_t key, int8_t octave);
         uint8_t GetRoot();
         uint8_t GetBpm();
         uint8_t GetScale();
         SyncOutMode GetSyncOutMode();
-        void DrawParamString(uint8_t param, uint8_t pattern, char *str);
+        void DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t octave);
         uint8_t& GetParam(uint8_t param, uint8_t pattern);
 
         void Serialize(pb_ostream_t *s);

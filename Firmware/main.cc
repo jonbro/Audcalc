@@ -315,7 +315,7 @@ int main()
 
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
-
+    usbSerialDevice.Init();
     gbox.init(color, &usbSerialDevice);
     // fill the silence buffer so we get something out
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)

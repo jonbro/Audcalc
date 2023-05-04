@@ -1,10 +1,9 @@
 #include "USBSerialDevice.h"
 
-USBSerialDevice::USBSerialDevice()
+void USBSerialDevice::Init()
 {
     tud_init(BOARD_TUD_RHPORT);
 }
-
 void USBSerialDevice::Update()
 {
     tud_task();

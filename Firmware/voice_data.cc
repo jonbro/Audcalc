@@ -33,7 +33,9 @@ void VoiceData::InitDefaults()
     internalData.retriggerSpeed = 0;
     internalData.retriggerLength = 0;
     internalData.retriggerFade = 0x7f;
+    internalData.octave = 0x7f;
 }
+
 bool VoiceDataInternal_encode_locks(pb_ostream_t *ostream, const pb_field_t *field, void * const *arg)
 {
     uint16_t* locksForPattern = *(uint16_t**)arg;
@@ -61,7 +63,6 @@ bool VoiceDataInternal_encode_locks(pb_ostream_t *ostream, const pb_field_t *fie
     }
     return true;
 }
-
 void VoiceData::Serialize(pb_ostream_t *s)
 {
     s->bytes_written = 0;
@@ -92,9 +93,16 @@ void VoiceData::Deserialize(pb_istream_t *s)
         const char * error = PB_GET_ERROR(s);
         printf("VoiceData deserialize error: %s\n", error);
     }
-
+}
+void VoiceData::SerializeStatic(pb_ostream_t *s)
+{
+    lockPool.Serialize(s);
 }
 
+void VoiceData::DeserializeStatic(pb_istream_t *s)
+{
+    lockPool.Deserialize(s);
+}
 // incorporates the lock if any
 uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t pattern)
 {
@@ -171,7 +179,10 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         return internalData.instrumentType;
     }
-    
+    if(param == 48)
+    {
+        return internalData.octave;
+    }
     // shared instrument params
     switch(param)
     {
@@ -643,16 +654,11 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     }
 }
 
-void VoiceData::SerializeStatic(pb_ostream_t *s)
-{
-    lockPool.Serialize(s);
-}
 
-void VoiceData::DeserializeStatic(pb_istream_t *s)
+int8_t VoiceData::GetOctave()
 {
-    lockPool.Deserialize(s);
+    return ((int8_t)(internalData.octave/51))-2;
 }
-
 
 /* PARAMETER LOCK BEHAVIOR */
 void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)

@@ -9,5 +9,4 @@ message SongDataInternal
     uint32 bpm                      = 4 [(nanopb).int_size = IS_8];
     uint32 scale                    = 6 [(nanopb).int_size = IS_8];
     uint32 root                     = 7 [(nanopb).int_size = IS_8];
-    uint32 octave                   = 8 [(nanopb).int_size = IS_8];
 }

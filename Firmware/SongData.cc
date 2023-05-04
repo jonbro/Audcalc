@@ -37,8 +37,6 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
             return internalData.bpm;
         case 19*2+1:
             return internalData.syncOut;
-        case 24*2:
-            return internalData.octave;
         case 24*2+(25*2): // this offset to the next page must also be doubled
             return internalData.scale;
         case 24*2+1:
@@ -53,10 +51,6 @@ uint8_t SongData::GetRoot()
 uint8_t SongData::GetScale()
 {
     return (((uint16_t)internalData.scale)*9)>>8;
-}
-int8_t SongData::GetOctave()
-{
-    return ((int8_t)(internalData.octave/51))-2;
 }
 uint8_t SongData::GetBpm()
 {
@@ -82,10 +76,10 @@ const int scales[] = {
     0, 1, 3, 5, 6, 8, 10, //Locr
 };
 
-uint8_t SongData::GetNote(uint8_t key)
+uint8_t SongData::GetNote(uint8_t key, int8_t octave)
 {
     key = keyMap[key];
-    return scales[GetScale()*7+key%7]+12*(key/7)+12*GetOctave()+GetRoot() + 60;
+    return scales[GetScale()*7+key%7]+12*(key/7)+12*octave+GetRoot() + 60;
 }
 
 const char *syncOutStrings[6] = { 
@@ -124,7 +118,7 @@ const char *scaleStrings[9] = {
 "Locr"
 };
 
-void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
+void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t octave)
 {
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
@@ -151,7 +145,7 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str)
             break;
         case 24:
             sprintf(strA, "Octv");
-            sprintf(pA, "%i", GetOctave());
+            sprintf(pA, "%i", octave);
             sprintf(strB, "Root");
             sprintf(pB,rootStrings[GetRoot()]);
             break;

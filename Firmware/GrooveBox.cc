@@ -53,6 +53,7 @@ void GrooveBox::init(uint32_t *_color, USBSerialDevice *_usbSerialDevice)
     }
     for(int i=0;i<16;i++)
     {
+        patterns[i].InitDefaults();
         patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
     Deserialize();
@@ -540,7 +541,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
                 }
             }
         }
-        ssd1306_draw_string(p, 0, 8, 1, str);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
     else if(holdingArm && holdingEscape)
@@ -598,19 +599,35 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
         return;
     }
-    // else if(hardware_get_battery_level() < 115)
-    // {
-    //     sprintf(str, "Low Battery!");
-    //     if((drawCount % 90) < 45)
-    //         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-    //     sprintf(str, "Save and charge.");
-    //     ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
-    //     return;
-    // }
     else if(clearTime == 0 && patternSelectMode && holdingEscape)
     {
         sprintf(str, "pat %i cleared", GetCurrentPattern()+1);
-        ssd1306_draw_string(p, 0, 8, 1, str);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        return;
+    }
+    else if(recording)
+    {
+        uint32_t allFileSizes = 0;
+        for(int i=0;i<16;i++)
+        {
+            allFileSizes += ffs_file_size(GetFilesystem(), &files[i]);
+        }
+        sprintf(str, "Sampling to %i", recordingTarget+1);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        sprintf(str, "%i Secs Remaining", (16*1024*1024-0x40000-allFileSizes)/64000);
+        ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
+        return;
+    }
+    else if(patternSelectMode && holdingWrite)
+    {
+        sprintf(str, "copy pat %i to", GetCurrentPattern()+1);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        return;
+    }
+    else if(soundSelectMode && holdingWrite)
+    {
+        sprintf(str, "copy voice %i to", currentVoice+1);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
     else if(!patternSelectMode)
@@ -628,19 +645,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
 
     // copy pattern
-    if(patternSelectMode && holdingWrite)
-    {
-        sprintf(str, "copy pat %i to", GetCurrentPattern()+1);
-        ssd1306_draw_string(p, 0, 8, 1, str);
-        return;
-    }
-
-    if(soundSelectMode && holdingWrite)
-    {
-        sprintf(str, "copy voice %i to", currentVoice+1);
-        ssd1306_draw_string(p, 0, 8, 1, str);
-        return;
-    }
 
     if(patternSelectMode && clearTime < 0 && !holdingWrite)
     {
@@ -662,21 +666,12 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             }
         }
     }
-    else if(recording)
-    {
-        uint32_t allFileSizes = 0;
-        for(int i=0;i<16;i++)
-        {
-            allFileSizes += ffs_file_size(GetFilesystem(), &files[i]);
-        }
-        sprintf(str, "Remaining: %i", (16*1024*1024-0x40000-allFileSizes)/64000);
-        ssd1306_draw_string(p, 0, 0, 1, str);
-    }
     else
     {
         if(selectedGlobalParam)
         {
-            songData.DrawParamString(param, GetCurrentPattern(), str);
+            // special casing the octave display
+            songData.DrawParamString(param, GetCurrentPattern(), str, patterns[currentVoice].GetOctave());
         }
         else
         {
@@ -822,11 +817,18 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 }
 void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
 {
-    uint8_t& current_a = songData.GetParam(param*2, GetCurrentPattern());
+    // references must be initialized and can't change
+    uint8_t* current_a = &songData.GetParam(param*2, GetCurrentPattern());;
+    // this needs to be special cased just for the octave setting - which is on a global param button, but stored
+    // in the active voice
+    if(param == 24)
+    {
+        current_a = &patterns[currentVoice].GetParam(param*2, lastKeyPlayed, GetCurrentPattern());
+    }
     uint8_t& current_b = songData.GetParam(param*2+1, GetCurrentPattern());
     if(paramSetA)
     {
-        current_a = a;
+        *current_a = a;
         lastAdcValA = a;
     }
     if(paramSetB)
@@ -1146,14 +1148,14 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(!writing)
         {
-            lastNotePlayed = needsNoteTrigger = songData.GetNote(sequenceStep);
+            lastNotePlayed = needsNoteTrigger = songData.GetNote(sequenceStep, patterns[currentVoice].GetOctave());
             lastKeyPlayed = sequenceStep;
             ResetADCLatch();
         }
         else if(liveWrite)
         {
             uint16_t noteToModify = patternStep[currentVoice];
-            uint8_t newValue = (0x7f&songData.GetNote(sequenceStep))|0x80;
+            uint8_t newValue = (0x7f&songData.GetNote(sequenceStep, patterns[currentVoice].GetOctave()))|0x80;
             patterns[currentVoice].GetNotesForPattern(patternChain[chainStep])[noteToModify] = newValue;
             patterns[currentVoice].GetKeysForPattern(patternChain[chainStep])[noteToModify] = sequenceStep;
         }
@@ -1289,7 +1291,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             if(holdingEscape && pressed)
             {
-                clearTime = 180*2;
+                clearTime = 180;
             }
             patternSelectMode = pressed;
             if(pressed)
