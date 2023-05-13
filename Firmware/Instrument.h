@@ -58,6 +58,7 @@ class Instrument
         }
         void GetParamString(uint8_t param, char *str);
         void TempoPulse();
+        void ClearRetriggers();
         MacroOscillator osc;
         uint8_t delaySend = 0;
         uint8_t reverbSend = 0;
@@ -67,6 +68,7 @@ class Instrument
     private:
         VoiceData *playingVoice;
         void Retrigger();
+        q15_t GetLfoState();
         // lets hardcode some retriggers here
         uint8_t retriggerNextPulse = 0;
         uint8_t retriggersRemaining = 0;
@@ -95,6 +97,8 @@ class Instrument
         int8_t playingSlice = -1;
         int16_t *sample;
         q15_t volume = 0x7fff;
+        q15_t retriggerVolume = 0xffff;
+        q15_t retriggerFade;
         q15_t param1Base;
         q15_t param2Base;
         q15_t timbre;
@@ -115,7 +119,8 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
         int8_t playingMidiNotes[16];
-        EnvTargets env1Target, env2Target, lfo1Target;
+        EnvTargets env1Target, env2Target;
+        LfoTargets lfo1Target;
         int16_t pitch;
         q15_t env1Depth, env2Depth;
         q15_t distortionAmount;

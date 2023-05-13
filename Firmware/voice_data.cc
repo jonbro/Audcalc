@@ -153,6 +153,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:internalData.lfoTarget;
         case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:internalData.retriggerSpeed;
         case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:internalData.retriggerLength;
+        case RetriggerFade: return HasLockForStep(step, pattern, RetriggerFade, value)?value:internalData.retriggerFade;
         case Length: return internalData.patterns[pattern].length;
         case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:internalData.delaySend;
         case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:internalData.reverbSend;
@@ -280,6 +281,22 @@ const char *envTargets[7] = {
     "Pan"
 };
 
+const char *lfoTargets[13] = { 
+    "Vol",
+    "Timb",
+    "Col",
+    "Cut",
+    "Res",
+    "Pit",
+    "Pan",
+    "Ev1A",
+    "Ev1D",
+    "Ev2A",
+    "Ev2D",
+    "E12A",
+    "E12D"
+};
+
 // this can probably be done with some math. I'm not going to do that tonight, my brain
 
 const uint8_t ConditionalEvery[70] = {
@@ -331,12 +348,24 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             sprintf(strA, "RTsp");
             sprintf(strB, "RTLn");
             lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, internalData.retriggerSpeed, pA);
-            lockB = CheckLockAndSetDisplay(step, pattern, RetriggerLength, internalData.retriggerLength, pB);
+            if(HasLockForStep(step, pattern, RetriggerLength, valB))
+            {
+                sprintf(pB, "%i", (valB*8)>>8);
+                lockB = true;
+            }
+            else
+                sprintf(pB, "%i", (internalData.retriggerLength*8)>>8);
             return;
         case 11:
             sprintf(strA, "RTfd");
             sprintf(strB, "");
-            sprintf(pA, "%i", internalData.retriggerFade);
+            if(HasLockForStep(step, pattern, (RetriggerFade), valB))
+            {
+                sprintf(pA, "%i", (valB-0x80));
+                lockA = true;
+            }
+            else
+                sprintf(pA, "%i", (internalData.retriggerFade-0x80));
             sprintf(pB, "");
             return;
         case 12:
@@ -471,11 +500,11 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(strB, "");
                 if(HasLockForStep(step, pattern, 20, valB))
                 {
-                    sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
+                    sprintf(pA, "%s", lfoTargets[(((uint16_t)valA)*Lfo_Target_Count) >> 8]);
                     lockA = true;
                 }
                 else
-                    sprintf(pA, "%s", envTargets[(((uint16_t)internalData.lfoTarget)*Target_Count)>>8]);
+                    sprintf(pA, "%s", lfoTargets[(((uint16_t)internalData.lfoTarget)*Lfo_Target_Count)>>8]);
                 sprintf(pB, "");
                 return;
             case 12:

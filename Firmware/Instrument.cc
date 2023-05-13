@@ -71,11 +71,13 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
   phase_increment >>= num_shifts;
   return phase_increment;
 }
-
+q15_t Instrument::GetLfoState()
+{
+    return mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
+}
 #define SAMPLES_PER_BUFFER 64
 void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
 {
-    
     if(instrumentType == INSTRUMENT_MIDI)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -94,24 +96,24 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     q15_t cutoffWithMods = mainCutoff;
     q15_t pitchWithMods = pitch;
     panWithMods = panning;
-    q15_t lfo = mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
+    q15_t lfo = GetLfoState();
     switch(lfo1Target)
     {
-        case Target_Volume:
+        case Lfo_Target_Volume:
             break;
-        case Target_Timbre:
+        case Lfo_Target_Timbre:
             param1_withMods = add_q15(param1_withMods, lfo);
             break;
-        case Target_Color:
+        case Lfo_Target_Color:
             param2_withMods = add_q15(param2_withMods, lfo);
             break;
-        case Target_Cutoff:
+        case Lfo_Target_Cutoff:
             cutoffWithMods = add_q15(cutoffWithMods, lfo);
             break;
-        case Target_Pitch:
+        case Lfo_Target_Pitch:
             pitchWithMods = pitchWithMods+(lfo>>4);
             break;
-        case Target_Pan:
+        case Lfo_Target_Pan:
             panWithMods = add_q15(panWithMods, lfo);
             break;
         default:
@@ -126,7 +128,7 @@ void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
     uint32_t lfoPhaseIncrement = lut_tempo_phase_increment[songData->GetBpm()];
     // 24ppq
     lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
-    lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>7)+2);
+    lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>4)+2);
     //int32_t phaseOff = ((uint32_t)(0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7fffff; 
     lfo_phase += lfoPhaseIncrement;//((0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7ffff; //((lfo_rate*(0xabf0000-0xfffff))>>4)+0xfffff;
 
@@ -279,7 +281,7 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         // int32_t shiftedSample = mult_q15(buffer[i], f32_to_q15(0.5));// + distortionAmount; // I think this is the overdrive amount? 
         // buffer[i] = Interpolate88(ws_moderate_overdrive, shiftedSample);
         // buffer[i] = mult_q15(buffer[i], f32_to_q15(1));
-
+        buffer[i] = mult_q15(buffer[i], retriggerVolume);
         buffer[i] = mult_q15(buffer[i], volume);
     }
 }
@@ -299,13 +301,51 @@ void Instrument::SetOscillator(uint8_t oscillator)
 
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
+    lfo1Target = (LfoTargets)((((uint16_t)voiceData.GetParamValue(Lfo1Target, lastPressedKey, playingStep, playingPattern))*Lfo_Target_Count)>>8);
+
     delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
     reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
     volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
     panning = ((q15_t)voiceData.GetParamValue(Pan, lastPressedKey, playingStep, playingPattern))<<7;
+
+    q15_t env1A = voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)<<7;
+    q15_t env1D = voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)<<7;
+    q15_t env2A = voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)<<7;
+    q15_t env2D = voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)<<7;
+    q15_t lfoState = GetLfoState();
+    switch(lfo1Target)
+    {
+        case Lfo_Target_Env1Attack:
+            env1A = add_q15(env1A, lfoState);
+            break;
+        case Lfo_Target_Env2Attack:
+            env2A = add_q15(env2A, lfoState);
+            break;
+        case Lfo_Target_Env1Decay:
+            env1D = add_q15(env1D, lfoState);
+            break;
+        case Lfo_Target_Env2Decay:
+            env2D = add_q15(env1A, lfoState);
+            break;
+        case Lfo_Target_Env12Attack:
+            env1A = add_q15(env1A, lfoState);
+            env2A = add_q15(env2A, lfoState);
+            break;
+        case Lfo_Target_Env12Decay:
+            env1D = add_q15(env1D, lfoState);
+            env2D = add_q15(env1D, lfoState);
+            break;
+        default:
+            break;
+    }
+    if(env1D < 0) env1D = 0;
+    if(env1A < 0) env1A = 0;
+    if(env2D < 0) env2D = 0;
+    if(env2A < 0) env2A = 0;
     if(instrumentType == INSTRUMENT_SAMPLE || instrumentType == INSTRUMENT_MACRO)
     {
-        env2.Update(voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)>>1);
+        env.Update(env1A>>8, env1D>>8);
+        env2.Update(env2A>>8, env2D>>8);
         lfo_depth = (voiceData.GetParamValue(LFODepth, lastPressedKey, playingStep, playingPattern)>>1)<<7;
         lfo_rate = (voiceData.GetParamValue(LFORate, lastPressedKey, playingStep, playingPattern)>>1)<<7;
         mainCutoff = (voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7;
@@ -315,19 +355,13 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
         env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
-        lfo1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Lfo1Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
         distortionAmount = (voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern))<<7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
-        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
         // copy parameters from voice
         param1Base = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7;
         param2Base = voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7;
-    }
-    if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
-    {
-        env.Update(voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)>>1, voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)>>1);
     }
 }
 
@@ -344,7 +378,10 @@ void Instrument::TempoPulse()
         Retrigger();
     }
 }
-
+void Instrument::ClearRetriggers()
+{
+    retriggersRemaining = 0;
+}
 void Instrument::Retrigger()
 {
     if(playingVoice->GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -356,6 +393,7 @@ void Instrument::Retrigger()
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        retriggerVolume = add_q15(retriggerVolume, retriggerFade);
     }
     else if(playingVoice->GetInstrumentType() == INSTRUMENT_MIDI)
     {
@@ -378,6 +416,26 @@ void Instrument::NoteOn(uint8_t key, int16_t midinote, uint8_t step, uint8_t pat
         retriggerNextPulse = voiceData.GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern);
         retriggersRemaining = ((uint16_t)retriggersRemaining*8)>>8;
         retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
+
+        int16_t fade = voiceData.GetParamValue(RetriggerFade, lastPressedKey, playingStep, playingPattern) << 7;
+        fade = (fade-0x4000)*2; // center at zero
+        
+        // lets just fade out all the retriggers - so the retrigger volume multiplier starts at full, and fades down
+        if(fade > 0)
+        {
+            retriggerVolume = sub_q15(f32_to_q15(1.0f), fade);
+        }
+        else
+        {
+            retriggerVolume = f32_to_q15(1.0f);
+        }
+        // how much we are going to fade per retrigger
+        fade /= retriggersRemaining;
+        retriggerFade = fade; // how much we change every frame
+    }
+    else
+    {
+        retriggerVolume = f32_to_q15(1.0f);
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {

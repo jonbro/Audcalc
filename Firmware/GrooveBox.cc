@@ -1214,6 +1214,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             }
             else
             {
+                for(int i=0;i<VOICE_COUNT;i++)
+                {
+                    instruments[i].ClearRetriggers();
+                }
                 if((songData.GetSyncOutMode()&SyncOutModeMidi) > 0)
                     midi.StopSequence();
             }

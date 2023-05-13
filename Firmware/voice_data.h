@@ -44,6 +44,22 @@ enum EnvTargets {
     Target_Pan,
     Target_Count
 };
+enum LfoTargets {
+    Lfo_Target_Volume,
+    Lfo_Target_Timbre,
+    Lfo_Target_Color,
+    Lfo_Target_Cutoff,
+    Lfo_Target_Resonance,
+    Lfo_Target_Pitch,
+    Lfo_Target_Pan,
+    Lfo_Target_Env1Attack,
+    Lfo_Target_Env1Decay,
+    Lfo_Target_Env2Attack,
+    Lfo_Target_Env2Decay,
+    Lfo_Target_Env12Attack,
+    Lfo_Target_Env12Decay,
+    Lfo_Target_Count
+};
 enum ParamType {
     Timbre = 0,
     SampleIn = 0,
@@ -68,6 +84,7 @@ enum ParamType {
     Env2Target = 18,
     Env2Depth = 19,
     Lfo1Target = 20,
+    RetriggerFade = 22,
     Length = 24,
     ConditionMode = 26,
     ConditionData = 27,
