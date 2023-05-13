@@ -24,6 +24,8 @@ extern "C" {
 #include "ssd1306.h"
 //#include "usb_audio.h"
 }
+#include "m6x118pt7b.h"
+
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 
@@ -36,15 +38,10 @@ extern "C" {
 #include <pb_decode.h>
 #include "ParamLockPoolInternal.pb.h"
 #include "USBSerialDevice.h"
+#include "diagnostics.h"
 
 using namespace braids;
 
-// I2C defines
-// This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define I2C_PORT i2c1
-#define I2C_SDA 2
-#define I2C_SCL 3
 
 #define TLV_I2C_ADDR            0x18
 #define TLV_REG_PAGESELECT	    0
@@ -137,12 +134,6 @@ static inline void put_pixel(uint32_t pixel_grb) {
     pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
 }
 
-static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
-    return
-            ((uint32_t) (r) << 8) |
-            ((uint32_t) (g) << 16) |
-            (uint32_t) (b);
-}
 bool needsScreenupdate;
 bool repeating_timer_callback(struct repeating_timer *t) {
     needsScreenupdate = true;
@@ -168,13 +159,14 @@ void __not_in_flash_func(draw_screen)()
     // the fifo being functional
     sleep_ms(20);
     multicore_lockout_victim_init();
-    disp.external_vcc=false;
-    ssd1306_init(&disp, 128, 32, 0x3C, I2C_PORT);
-    ssd1306_poweroff(&disp);
+    ssd1306_t* disp = GetDisplay();
+    disp->external_vcc=false;
+    ssd1306_init(disp, 128, 32, 0x3C, I2C_PORT);
+    ssd1306_poweroff(disp);
     sleep_ms(3);
-    ssd1306_poweron(&disp);
-    ssd1306_clear(&disp);
-    ssd1306_contrast(&disp, 0x7f); // lower brightness / power requirement
+    ssd1306_poweron(disp);
+    ssd1306_clear(disp);
+    ssd1306_contrast(disp, 0x7f); // lower brightness / power requirement
     while(true)
     {
         queue_entry_t entry;
@@ -182,7 +174,7 @@ void __not_in_flash_func(draw_screen)()
         queue_remove_blocking(&signal_queue, &entry);
         if(entry.screen_flip_ready)
         {
-            ssd1306_show(&disp);
+            ssd1306_show(disp);
             bool result = true;
             queue_add_blocking(&complete_queue, &result);
         }
@@ -262,22 +254,29 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
+// hardware verify
+// Diagnostics diag;
+// int main()
+// {
+//     diag.run();
+// }
+
 int main()
 {
-        // queue_init(&complete_queue, sizeof(bool), 2);
-        // bool jr = true;
-        // queue_add_blocking(&complete_queue, &jr);
-        // multicore_launch_core1(draw_screen);
-        // DeleteNonEmpty();
-        // return 1;
-    hardware_init();
+    // queue_init(&complete_queue, sizeof(bool), 2);
+    // bool jr = true;
+    // queue_add_blocking(&complete_queue, &jr);
+    // multicore_launch_core1(draw_screen);
+    // DeleteNonEmpty();
+    // return 1;
     stdio_init_all();
+    hardware_init();
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            hardware_shutdown();
+            //hardware_shutdown();
         }
         // if the user is holding the record key, then reboot in usb mode
         if(hardware_get_key_state(4, 4))
@@ -286,7 +285,6 @@ int main()
         }
     }
 
-    SetDisplay(&disp);
     {
         // TestFileSystem();
         // TestVoiceData();
@@ -297,13 +295,6 @@ int main()
     }
     ws2812_init();
     
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-
-    // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
     queue_init(&signal_queue, sizeof(queue_entry_t), 2);
     queue_init(&complete_queue, sizeof(bool), 2);
     bool r = true;
@@ -315,7 +306,7 @@ int main()
 
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
-    usbSerialDevice.Init();
+    //usbSerialDevice.Init();
     gbox.init(color, &usbSerialDevice);
     // fill the silence buffer so we get something out
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -350,7 +341,7 @@ int main()
     int lostCount = 0;
     while(true)
     {
-        usbSerialDevice.Update();
+        //usbSerialDevice.Update();
         hardware_get_all_key_state(&keyState);
         
         // act on keychanges
@@ -374,7 +365,7 @@ int main()
             bool flip_complete = false;
             if(queue_try_remove(&complete_queue, &flip_complete))
             {
-                gbox.UpdateDisplay(&disp);
+                gbox.UpdateDisplay(GetDisplay());
                 queue_entry_t entry = {true};
                 queue_add_blocking(&signal_queue, &entry);
             }

@@ -37,6 +37,7 @@ add_executable(tdm
         main.cc
         # usb_audio.c
         usb_descriptors.c
+        diagnostics.cc
         GrooveBox.cc
         GrooveBoxTestUtils.cc
         voice_data.cc
@@ -58,6 +59,7 @@ add_executable(tdm
         audio/resources.cc
         audio/random.cc 
         AudioSampleSecondbloop.cpp
+        m6x118pt7b.cc
         ${PROTO_SRCS} ${PROTO_HDRS}
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
@@ -68,6 +70,7 @@ pico_set_program_version(tdm "0.1")
 
 pico_enable_stdio_usb(tdm 0)
 pico_enable_stdio_uart(tdm 1)
+
 
 target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 

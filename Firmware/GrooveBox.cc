@@ -7,12 +7,6 @@
 
 #define SAMPLES_PER_BUFFER 64
 
-static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
-    return
-            ((uint32_t) (r) << 0) |
-            ((uint32_t) (g) << 16) |
-            ((uint32_t) (b) << 8);
-}
 static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
     *r = (urgb>>0)&0xff;
     *g = (urgb>>16)&0xff;

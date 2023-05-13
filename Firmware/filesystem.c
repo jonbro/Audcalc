@@ -78,26 +78,27 @@ bool ConfirmErasedPage(int offset)
     }
     return true;
 }
-void DeleteNonEmpty()
+
+bool DeleteNonEmpty(ffs_filesystemClearState *state)
 {
-    // loop through from our startpoint, to our endpoint, and delete anything that isn't already empty
-    for(int i=0;i<16*1024*1024-0x40000;i+=0x1000)
+    uint8_t buffer;
+    bool res = false;
+    for(int j=0;j<0x1000;j++)
     {
-        for(int j=0;j<0x1000;j++)
+        file_read(state->offset+j, 1, &buffer);
+        if(buffer != 0xff)
         {
-            uint8_t buffer;
-            file_read(i+j, 1, &buffer);
-            if(buffer != 0xff)
-            {
-                // need to erase this sector
-                printf("found nonempty sector %i\n", i);
-                file_erase(i, 0x1000);
-                ConfirmErasedPage(i);
-                break;
-            }
+            // need to erase this sector
+            file_erase(state->offset, 0x1000);
+            state->error = !ConfirmErasedPage(state->offset);
+            break;
         }
     }
+    state->offset += 0x1000;
+    state->complete = state->offset >= (16*1024*1024-0x40000);
+    return !state->complete;
 }
+
 void TestFileSystem()
 {
     printf("starting filesystem test\n");

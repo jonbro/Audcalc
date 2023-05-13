@@ -33,15 +33,11 @@ SOFTWARE.
 #include "ssd1306.h"
 #include "font.h"
 
-ssd1306_t *display;
+ssd1306_t disp;
 
-void SetDisplay(ssd1306_t* display_)
-{
-    display = display_;
-}
 ssd1306_t* GetDisplay()
 {
-    return display;
+    return &disp;
 }
 
 inline static void fancy_write(i2c_inst_t *i2c, uint8_t addr, const uint8_t *src, size_t len, char *name) {

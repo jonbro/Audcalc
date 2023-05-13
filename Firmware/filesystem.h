@@ -450,13 +450,26 @@ FFS_DEF int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t si
 }
 #endif //FFS_IMPLEMENTATION
 
+
+
 int file_read(uint32_t offset, size_t size, void *buffer);
 int file_write(uint32_t offset, size_t size, void *buffer);
 int file_erase(uint32_t offset, size_t size);
 
 void TestFileSystem();
 void InitializeFilesystem(bool fullClear);
-void DeleteNonEmpty();
+
+typedef struct 
+{
+    bool complete;
+    int offset;
+    int error;
+} ffs_filesystemClearState;
+
+#define ffs_filesystemClearState_init               {0, 0, 0}
+
+bool DeleteNonEmpty(ffs_filesystemClearState *state);
+
 ffs_filesystem* GetFilesystem();
 
 #ifdef __cplusplus

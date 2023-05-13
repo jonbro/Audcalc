@@ -1,4 +1,5 @@
 #include "hardware.h"
+#include "ssd1306.h"
 
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
@@ -8,10 +9,13 @@
 #define USB_POWER_SENSE 29
 #define SUBSYSTEM_RESET_PIN 21
 
+// I2C defines
+#define I2C_SDA 2
+#define I2C_SCL 3
+
 static bool last_amp_state;
 static uint8_t battery_level;
-ssd1306_t disp;
-
+    
 void hardware_init()
 {
     // give all the caps some time to warm up
@@ -64,9 +68,36 @@ void hardware_init()
     sleep_ms(40);
     gpio_put(SUBSYSTEM_RESET_PIN, 1);
     sleep_ms(20);
+
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
+    // I2C Initialisation. Using it at 400Khz.
+    i2c_init(I2C_PORT, 400*1000);
+
     // gpio_put(BLINK_PIN_LED, false);
 }
+void hardware_check_i2c_pullups(bool *scl, bool *sda)
+{
+    gpio_set_function(I2C_SDA, GPIO_FUNC_NULL);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_NULL);
+    gpio_set_pulls(I2C_SDA, false, false);
+    gpio_set_pulls(I2C_SCL, false, false);
 
+    gpio_set_dir(I2C_SDA, GPIO_IN);
+    gpio_set_dir(I2C_SCL, GPIO_IN);
+    *scl = gpio_get(I2C_SCL);
+    *sda = gpio_get(I2C_SDA);
+
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+    i2c_init(I2C_PORT, 400*1000);
+
+}
 void hardware_reboot_usb()
 {
     reset_usb_boot(1<<BLINK_PIN_LED, 0);
@@ -145,6 +176,10 @@ void hardware_shutdown()
     }
     watchdog_enable(1,true);
     while(1);
+}
+bool hardware_disable_power_latch()
+{
+    gpio_set_pulls(23, false, false);
 }
 
 static bool last_mic_state = false;

@@ -34,12 +34,6 @@ void USBSerialDevice::Update()
                     }
                 }
             }
-            // Echo back
-            // Note: Skip echo by commenting out write() and write_flush()
-            // for throughput test e.g
-            //    $ dd if=/dev/zero of=/dev/ttyACM0 count=10000
-            // tud_cdc_write(buf, count);
-            // tud_cdc_write_flush();
         }
     }
 }

@@ -72,6 +72,13 @@ typedef struct {
 	int dma_chan_output;
 	bool string_invert;
 } ssd1306_t;
+// our colors actually go the other way around gbr
+static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
+    return
+            (uint32_t) (r) |
+            ((uint32_t) (g) << 16) |
+            ((uint32_t) (b) << 8);
+}
 
 void SetDisplay(ssd1306_t* display_);
 ssd1306_t* GetDisplay();
