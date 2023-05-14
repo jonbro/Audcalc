@@ -37,6 +37,10 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
             return internalData.bpm;
         case 19*2+1:
             return internalData.syncOut;
+        case 22*2+(25*2): // this offset to the next page must also be doubled
+            return internalData.delayFeedback;
+        case 22*2+(25*2)+1: // this offset to the next page must also be doubled
+            return internalData.delayTime;
         case 24*2+(25*2): // this offset to the next page must also be doubled
             return internalData.scale;
         case 24*2+1:
@@ -154,6 +158,12 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             sprintf(pA, scaleStrings[GetScale()]);
             sprintf(strB, "");
             sprintf(pB,"");
+            break;
+        case 22+25:
+            sprintf(strA, "DlyFb");
+            sprintf(pA, "%i", internalData.delayFeedback);
+            sprintf(strB, "DlyT");
+            sprintf(pB, "%i", internalData.delayTime);
             break;
     }
     

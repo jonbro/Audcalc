@@ -90,6 +90,10 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
     last_input = 0;
     
+    // update some song parameters
+    delay.SetFeedback(songData.GetDelayFeedback());
+    delay.SetTime(songData.GetDelayTime());
+
     //printf("input %i\n", workBuffer2[0]);
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -1099,10 +1103,22 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(paramSelectMode)
         {
-            if(sequenceStep != param)
-                paramSetA = paramSetB = false;
-            param = sequenceStep;
+            uint8_t targetParam = x+y*5;
+            // hardcode handlers for the delay edit
             selectedGlobalParam = false;
+            if(targetParam == 22)
+            {
+                switch(param)
+                {
+                    case 22:
+                        targetParam = 22+25;
+                        selectedGlobalParam = true;
+                        break;
+                }
+            }
+            if(targetParam != param)
+                paramSetA = paramSetB = false;
+            param = targetParam;
         }
         else if(holdingMute)
         {

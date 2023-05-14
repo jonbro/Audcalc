@@ -32,11 +32,20 @@ class SongData
             }
             internalData.syncOut = 0x2b; // this is equal to mode 1
             internalData.bpm = 119;
+            internalData.delayFeedback  = 0x7f;
+            internalData.delayTime      = 0x7f;
         }
         uint8_t GetLength(uint8_t pattern)
         {
             return internalData.changeLength[pattern]/4+1;
         }
+        uint8_t GetDelayFeedback(){
+            return internalData.delayFeedback;
+        }
+        uint8_t GetDelayTime(){
+            return internalData.delayTime;
+        }
+
         uint8_t GetNote(uint8_t key, int8_t octave);
         uint8_t GetRoot();
         uint8_t GetBpm();

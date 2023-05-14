@@ -112,7 +112,7 @@ class GrooveBox {
   int16_t lastEditedParam = -1;
   
   bool selectedGlobalParam = false;
-  uint8_t param = 0;
+  uint8_t param = 5;
   uint32_t *color;
   uint16_t hadTrigger = 0;
   // defaults to allow all playback
@@ -146,7 +146,7 @@ class GrooveBox {
   uint8_t lastAdcValB = 0;
   uint16_t AdcInterpolatedA = 0;
   uint16_t AdcInterpolatedB = 0;
-  Delay2 delay;
+  Delay delay;
   Reverb2 verb;
   ffs_file files[16];
   int64_t renderTime = 0;

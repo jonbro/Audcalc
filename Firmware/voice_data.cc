@@ -168,15 +168,15 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
 // last n
 uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
-    if(param == 28)
+    if(param == 44)
     {
         return internalData.delaySend;
     }
-    if(param == 29)
+    if(param == 45)
     {
         return internalData.reverbSend;
     }
-    if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 30)
+    if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 46)
     {
         return internalData.instrumentType;
     }
@@ -187,37 +187,37 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     // shared instrument params
     switch(param)
     {
-        case 2: return internalData.cutoff;
-        case 3: return internalData.resonance;
-        case 4: return internalData.volume;
-        case 5: return internalData.pan;
-        case 10: return internalData.env2.attack;
-        case 11: return internalData.env2.decay;
-        case 12: return internalData.lfoRate;
-        case 13: return internalData.lfoDepth;
-        case 14: return internalData.retriggerSpeed;
-        case 15: return internalData.retriggerLength;
-        case 16: return internalData.env1.target;
-        case 17: return internalData.env1.depth;
-        case 18: return internalData.env2.target;
-        case 19: return internalData.env2.depth;
-        case 20: return internalData.lfoTarget;
-        case 21: return internalData.lfoDelay;
-        case 22: return internalData.retriggerFade;
-        case 24: return internalData.patterns[currentPattern].length;
-        case 25: return internalData.patterns[currentPattern].rate;
-        case 26: return internalData.conditionMode;
-        case 27: return internalData.conditionData;
+        case 12: return internalData.cutoff;
+        case 13: return internalData.resonance;
+        case 14: return internalData.volume;
+        case 15: return internalData.pan;
+        case 22: return internalData.env2.attack;
+        case 23: return internalData.env2.decay;
+        case 24: return internalData.lfoRate;
+        case 25: return internalData.lfoDepth;
+        case 26: return internalData.retriggerSpeed;
+        case 27: return internalData.retriggerLength;
+        case 30: return internalData.env1.target;
+        case 31: return internalData.env1.depth;
+        case 32: return internalData.env2.target;
+        case 33: return internalData.env2.depth;
+        case 34: return internalData.lfoTarget;
+        case 35: return internalData.lfoDelay;
+        case 36: return internalData.retriggerFade;
+        case 40: return internalData.patterns[currentPattern].length;
+        case 41: return internalData.patterns[currentPattern].rate;
+        case 42: return internalData.conditionMode;
+        case 43: return internalData.conditionData;
     }
     if(GetInstrumentType() == INSTRUMENT_MACRO)
     {
         switch (param)
         {
-            case 0: return internalData.timbre;
-            case 1: return internalData.color;
-            case 8: return internalData.env1.attack;
-            case 9: return internalData.env1.decay;
-            case 31: return internalData.extraTypeUnion.synthShape;
+            case 10: return internalData.timbre;
+            case 11: return internalData.color;
+            case 20: return internalData.env1.attack;
+            case 21: return internalData.env1.decay;
+            case 47: return internalData.extraTypeUnion.synthShape;
             default:
                 break;
         }
@@ -226,9 +226,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return internalData.timbre;
-            case 1: return internalData.color;
-            case 31: return internalData.extraTypeUnion.midiChannel;
+            case 10: return internalData.timbre;
+            case 11: return internalData.color;
+            case 47: return internalData.extraTypeUnion.midiChannel;
             default:
                 break;
         }
@@ -237,11 +237,11 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         switch (param)
         {
-            case 0: return internalData.sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
-            case 1: return internalData.sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
-            case 8: return internalData.sampleAttack;
-            case 9: return internalData.sampleDecay;
-            case 31: return internalData.extraTypeUnion.samplerType;
+            case 10: return internalData.sampleStart[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 11: return internalData.sampleLength[GetSampler()!=SAMPLE_PLAYER_SLICE?0:lastNotePlayed];
+            case 20: return internalData.sampleAttack;
+            case 21: return internalData.sampleDecay;
+            case 47: return internalData.extraTypeUnion.samplerType;
             default:
                 break;
         }
@@ -333,7 +333,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     ConditionModeEnum conditionModeTmp = CONDITION_MODE_NONE;
     switch(param)
     {
-        case 14:
+        case 22:
             sprintf(strA, "Dely");
             sprintf(strB, "Verb");
             lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, internalData.delaySend, pA);
@@ -344,7 +344,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     // all non global instruments
     switch (param)
     {
-        case 7:
+        case 13:
             sprintf(strA, "RTsp");
             sprintf(strB, "RTLn");
             lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, internalData.retriggerSpeed, pA);
@@ -356,7 +356,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             else
                 sprintf(pB, "%i", (internalData.retriggerLength*8)>>8);
             return;
-        case 11:
+        case 18:
             sprintf(strA, "RTfd");
             sprintf(strB, "");
             if(HasLockForStep(step, pattern, (RetriggerFade), valB))
@@ -368,13 +368,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 sprintf(pA, "%i", (internalData.retriggerFade-0x80));
             sprintf(pB, "");
             return;
-        case 12:
+        case 20:
             sprintf(strA, "Len");
             sprintf(strB, "Rate");
             sprintf(pA, "%i", internalData.patterns[pattern].length/4+1);
             sprintf(pB,rates[(internalData.patterns[pattern].rate*7)>>8]);
             return;
-        case 13:
+        case 21:
             sprintf(strA, "Cnd");
             sprintf(strB, "Rate");
             if(HasLockForStep(step, pattern, 26, valA))
@@ -412,14 +412,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     {
         switch (param)
         {
-            case 1:
+            case 6:
                 sprintf(strA, "Cut");
                 sprintf(strB, "Res");
                 lockA = CheckLockAndSetDisplay(step, pattern, 2, internalData.cutoff, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 3, internalData.resonance, pB);
                 return;
             // volume / pan
-            case 2:
+            case 7:
                 sprintf(strA, "Volm");
                 sprintf(strB, "Pan");
                 lockA = CheckLockAndSetDisplay(step, pattern, 4, internalData.volume, pA);
@@ -440,25 +440,25 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     sprintf(pB, "R:%i", (p-0x7f));
                 }
                 return;
-            case 3:
+            case 8:
                 // sprintf(strA, "Octv");
                 // sprintf(strB, "");
                 // sprintf(pA, "%i", GetOctave());
                 // sprintf(pB, "");
                 return;
-            case 5:
+            case 11:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
                 lockA = CheckLockAndSetDisplay(step, pattern, 10, internalData.env2.attack, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 11, internalData.env2.decay, pB);
                 return;
-            case 6:
+            case 12:
                 sprintf(strA, "Rate");
                 sprintf(strB, "Dpth");
                 lockA = CheckLockAndSetDisplay(step, pattern, 12, internalData.lfoRate, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 13, internalData.lfoDepth, pB);
                 return;
-            case 8:
+            case 15:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
                 if(HasLockForStep(step, pattern, 16, valA))
@@ -477,7 +477,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 else
                     sprintf(pB, "%i", (internalData.env1.depth-0x80));
                 return;
-            case 9:
+            case 16:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
                 if(HasLockForStep(step, pattern, 18, valA))
@@ -495,7 +495,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 else
                     sprintf(pB, "%i", (internalData.env2.depth-0x80));
                 return;
-            case 10:
+            case 17:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "");
                 if(HasLockForStep(step, pattern, 20, valB))
@@ -507,7 +507,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     sprintf(pA, "%s", lfoTargets[(((uint16_t)internalData.lfoTarget)*Lfo_Target_Count)>>8]);
                 sprintf(pB, "");
                 return;
-            case 12:
+            case 20:
                 sprintf(strA, "Len");
                 sprintf(strB, "Rate");
                 sprintf(pA, "%i", internalData.patterns[pattern].length/4+1);
@@ -520,7 +520,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         switch (param)
         {
             // 0
-            case 0:
+            case 5:
                 sprintf(strA, "In");
                 sprintf(strB, "Len");
                 if(GetSampler() == SAMPLE_PLAYER_SLICE)
@@ -534,13 +534,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                     sprintf(pB, "%i", internalData.sampleLength[0]);
                 }
                 return;
-            case 4:
+            case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
                 lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.sampleAttack, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.sampleDecay, pB);
                 return;
-            case 15:
+            case 23:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Samp");
@@ -566,19 +566,19 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         switch (param)
         {
             // 0
-            case 0:
+            case 5:
                 sprintf(strA, "Timb");
                 sprintf(strB, "Colr");
                 lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
                 return;
-            case 4:
+            case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
                 lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.env1.attack, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.env1.decay, pB);
                 return;
-            case 15:
+            case 23:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Synt");
@@ -598,14 +598,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     {
         switch (param)
         {
-            case 0:
+            case 5:
                 sprintf(strA, "Vel");
                 sprintf(strB, "NNte");
                 lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
                 lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
                 return;
             // 0
-            case 15:
+            case 23:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Midi");
@@ -640,7 +640,7 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 3)
+    if(param == 8)
     {
         // lol
         uint8_t x = 0;
