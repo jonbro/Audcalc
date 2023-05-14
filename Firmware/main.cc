@@ -39,7 +39,7 @@ extern "C" {
 #include "ParamLockPoolInternal.pb.h"
 #include "USBSerialDevice.h"
 #include "diagnostics.h"
-#include "multicore.h"
+#include "multicore_support.h"
 
 using namespace braids;
 
@@ -157,32 +157,33 @@ void __not_in_flash_func(draw_screen)()
     while(true)
     {
         queue_entry_t entry;
-        if(queue_try_remove(&signal_queue, &entry))
+        queue_remove_blocking(&signal_queue, &entry);
+        //if(queue_try_remove(&signal_queue, &entry))
         {
             if(entry.screen_flip_ready)
             {
                 ssd1306_show(disp);
-                hasMoreDisplay = true;
-            }
-            if(entry.renderInstrument >= 0)
-            {
-                gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
-                queue_entry_complete_t result;
-                result.screenFlipComplete = false;
-                result.renderInstrumentComplete = true;
-                queue_add_blocking(&renderCompleteQueue, &result);
-            }
-        }
-        if(hasMoreDisplay)
-        {
-            if(ssd1306_show_more(disp))
-            {
+                // while(!ssd1306_show_more(disp))
+                // {
+                //     tight_loop_contents();
+                // }
                 hasMoreDisplay = false;
                 queue_entry_complete_t result;
                 result.screenFlipComplete = true;
                 result.renderInstrumentComplete = false;
                 queue_add_blocking(&complete_queue, &result);
             }
+            // if(entry.renderInstrument >= 0)
+            // {
+            //     gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
+            //     queue_entry_complete_t result;
+            //     result.screenFlipComplete = false;
+            //     result.renderInstrumentComplete = true;
+            //     queue_add_blocking(&renderCompleteQueue, &result);
+            // }
+        }
+        if(hasMoreDisplay)
+        {
         }
     }
 }

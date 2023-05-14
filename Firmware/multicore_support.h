@@ -1,6 +1,9 @@
 #pragma once
 #include "pico/multicore.h"
 #include "pico/util/queue.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct
 {
@@ -19,3 +22,6 @@ typedef struct
 extern queue_t signal_queue;
 extern queue_t complete_queue;
 extern queue_t renderCompleteQueue;
+#ifdef __cplusplus
+}
+#endif

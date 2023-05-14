@@ -5,7 +5,7 @@
 #include <pb_decode.h>
 #include "VoiceDataInternal.pb.h"
 #include "tlv320driver.h"
-#include "multicore.h"
+#include "multicore_support.h"
 #define SAMPLES_PER_BUFFER 64
 
 static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -128,22 +128,22 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
             memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
             bool hasSecondCore = false;
-            if(v<2)
-            {
+            // if(v<2)
+            // {
                 // memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
                 // queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
                 // queue_add_blocking(&signal_queue, &entry);
                 // hasSecondCore = true;
                 // v++;
-            }
+            // }
             // queue_add_blocking(&signal_queue, &entry);
             instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
             // block until second thread render complete
-            if(hasSecondCore)
-            {
-                queue_entry_complete_t result;
-                queue_remove_blocking(&renderCompleteQueue, &result);
-            }
+            // if(hasSecondCore)
+            // {
+            //     queue_entry_complete_t result;
+            //     queue_remove_blocking(&renderCompleteQueue, &result);
+            // }
 
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)

@@ -279,9 +279,10 @@ void ssd1306_show(ssd1306_t *p) {
         ssd1306_write(p, payload[i]);
 
     // prefix the buffer with something?
-    p->writeRemain = p->bufsize;
-    p->writeBuffer = p->buffer;
-    //fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
+    // p->writeRemain = p->bufsize;
+    // p->writeBuffer = p->buffer;
+    *(p->buffer-1)=0x40;
+    fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
 }
 bool ssd1306_show_more(ssd1306_t *p)
 {
