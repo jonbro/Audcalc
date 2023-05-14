@@ -375,29 +375,34 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             }
         }
     }
-    if(sync_count > 0 && (songData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
+    if((songData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
     {
         for(int i=0;i<SAMPLES_PER_BUFFER;i++)
         {
             int16_t* chan = (output_buffer+i*2);
-            // we need to provide the peak to peak swing so pocket operator can hear the sync signal
-            if(sync_count > 3)
-            {
-                chan[0] = -32767;
-            }
-            else if(sync_count > 0)
-            {
-                chan[0] = 32767;
-            }
-            else
-            {
-                chan[0] = 0;
-            }
+            chan[0] = 0;
         }
-        sync_count--;
-    }
-    {
-        sync_count = 0;
+        if(sync_count > 0)
+        {
+            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            {
+                int16_t* chan = (output_buffer+i*2);
+                // we need to provide the peak to peak swing so pocket operator can hear the sync signal
+                if(sync_count > 3)
+                {
+                    chan[0] = -32767;
+                }
+                else if(sync_count > 0)
+                {
+                    chan[0] = 32767;
+                }
+                else
+                {
+                    chan[0] = 0;
+                }
+            }
+            sync_count--;
+        }
     }
 
     if(recording)
