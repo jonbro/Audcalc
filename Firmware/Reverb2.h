@@ -101,11 +101,6 @@ class Reverb2 {
  private:
     inline int16_t ProcessAllPass(int16_t in, AllPassFilter *ap)
     {
-        // ap->phase += ap->phaseOffset;
-        // int16_t lfo = Interpolate824(wav_sine, ap->phase);
-        // lfo = mult_q15(lfo, 0x3fff);
-        // int32_t offset = ((int32_t)ap->length*(int32_t)(lfo>>1));
-        // int16_t apdelayed = TapAp(offset>>16, ap);
         int16_t apdelayed = ap->buf[ap->count];
         int16_t inSum = ap->buf[ap->count] = add_q15(mult_q15(-ap->c, apdelayed), in);
         ap->count = (++ap->count) % ap->length;
