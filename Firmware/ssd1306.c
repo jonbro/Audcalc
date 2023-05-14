@@ -32,6 +32,8 @@ SOFTWARE.
 
 #include "ssd1306.h"
 #include "font.h"
+#include "i2c_dma.h"
+#include "hardware.h"
 
 ssd1306_t disp;
 
@@ -276,9 +278,27 @@ void ssd1306_show(ssd1306_t *p) {
     for(size_t i=0; i<sizeof(payload); ++i)
         ssd1306_write(p, payload[i]);
 
-    *(p->buffer-1)=0x40;
+    // prefix the buffer with something?
+    p->writeRemain = p->bufsize;
+    p->writeBuffer = p->buffer;
+    //fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
+}
+bool ssd1306_show_more(ssd1306_t *p)
+{
+    if(p->writeRemain == 0)
+    {
+        return true;
+    }
+    size_t writeAmountAvailable = i2c_get_write_available(p->i2c_i);
+    size_t toWriteAmt = p->writeRemain<writeAmountAvailable?p->writeRemain:writeAmountAvailable;
+    if(toWriteAmt == 0)
+        return false;
+    *(p->writeBuffer-1)=0x40;
 
-    fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
+    fancy_write(p->i2c_i, p->address, p->writeBuffer-1, toWriteAmt+1, "ssd1306_show");
+    p->writeBuffer+=toWriteAmt;
+    p->writeRemain-=toWriteAmt;
+    return p->writeRemain==0;
 }
 void ssd1306_set_string_color(ssd1306_t *p, bool invert)
 {

@@ -39,6 +39,7 @@ extern "C" {
 #include "ParamLockPoolInternal.pb.h"
 #include "USBSerialDevice.h"
 #include "diagnostics.h"
+#include "multicore.h"
 
 using namespace braids;
 
@@ -98,16 +99,7 @@ void __not_in_flash_func(dma_input_handler)() {
         capture_buf_offset = (capture_buf_offset+1)%2;
         uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
         uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-        if(!gbox.erasing)
-        {
-            gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
-        }
-        else
-        {
-            // todo monitor / passthrough here
-            // for now, just clear it
-            memset(output, 0, SAMPLES_PER_BUFFER*4);
-        }
+        gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
         capture_buf_offset = (capture_buf_offset+1)%2;
     }
 }
@@ -147,12 +139,6 @@ bool usb_timer_callback(struct repeating_timer *t) {
 
 bool screen_flip_ready = false;
 int drawY = 0;
-typedef struct
-{
-    bool screen_flip_ready;
-} queue_entry_t;
-queue_t signal_queue;
-queue_t complete_queue;
 void __not_in_flash_func(draw_screen)()
 {
     // this needs to be called here, because the multicore launch relies on
@@ -167,16 +153,36 @@ void __not_in_flash_func(draw_screen)()
     ssd1306_poweron(disp);
     ssd1306_clear(disp);
     ssd1306_contrast(disp, 0x7f); // lower brightness / power requirement
+    bool hasMoreDisplay = false;
     while(true)
     {
         queue_entry_t entry;
-        // this should spinlock here
-        queue_remove_blocking(&signal_queue, &entry);
-        if(entry.screen_flip_ready)
+        if(queue_try_remove(&signal_queue, &entry))
         {
-            ssd1306_show(disp);
-            bool result = true;
-            queue_add_blocking(&complete_queue, &result);
+            if(entry.screen_flip_ready)
+            {
+                ssd1306_show(disp);
+                hasMoreDisplay = true;
+            }
+            if(entry.renderInstrument >= 0)
+            {
+                gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
+                queue_entry_complete_t result;
+                result.screenFlipComplete = false;
+                result.renderInstrumentComplete = true;
+                queue_add_blocking(&renderCompleteQueue, &result);
+            }
+        }
+        if(hasMoreDisplay)
+        {
+            if(ssd1306_show_more(disp))
+            {
+                hasMoreDisplay = false;
+                queue_entry_complete_t result;
+                result.screenFlipComplete = true;
+                result.renderInstrumentComplete = false;
+                queue_add_blocking(&complete_queue, &result);
+            }
         }
     }
 }
@@ -295,10 +301,13 @@ int main()
     }
     ws2812_init();
     
-    queue_init(&signal_queue, sizeof(queue_entry_t), 2);
-    queue_init(&complete_queue, sizeof(bool), 2);
-    bool r = true;
-    queue_add_blocking(&complete_queue, &r);
+    queue_init(&signal_queue, sizeof(queue_entry_t), 3);
+    queue_init(&complete_queue, sizeof(queue_entry_complete_t), 2);
+    queue_init(&renderCompleteQueue, sizeof(queue_entry_complete_t), 2);
+    queue_entry_complete_t result;
+    result.screenFlipComplete = true;
+    result.renderInstrumentComplete = false;
+    queue_add_blocking(&complete_queue, &result);
     multicore_launch_core1(draw_screen);
 
     // if the user is holding down specific keys on powerup, then clear the full file system
@@ -362,11 +371,11 @@ int main()
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox.OnAdcUpdate(adc_val, adc_read());
             //hardware_update_battery_level();
-            bool flip_complete = false;
-            if(queue_try_remove(&complete_queue, &flip_complete))
+            queue_entry_complete_t result;
+            if(queue_try_remove(&complete_queue, &result) && result.screenFlipComplete)
             {
                 gbox.UpdateDisplay(GetDisplay());
-                queue_entry_t entry = {true};
+                queue_entry_t entry = {true, -1};
                 queue_add_blocking(&signal_queue, &entry);
             }
             // if(hardware_has_usb_power())

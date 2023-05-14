@@ -4,7 +4,7 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "VoiceDataInternal.pb.h"
-
+#include "multicore.h"
 #define SAMPLES_PER_BUFFER 64
 
 static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -69,6 +69,7 @@ void GrooveBox::init(uint32_t *_color, USBSerialDevice *_usbSerialDevice)
 }
 
 int16_t workBuffer[SAMPLES_PER_BUFFER];
+int16_t workBuffer3[SAMPLES_PER_BUFFER];
 int32_t workBuffer2[SAMPLES_PER_BUFFER*2];
 static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
 int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
@@ -122,9 +123,27 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
     {
         for(int v=0;v<VOICE_COUNT;v++)
         {
+            // put in a request to render the other voice on the second core
             memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
             memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+            bool hasSecondCore = false;
+            if(v<2)
+            {
+                // memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+                // queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
+                // queue_add_blocking(&signal_queue, &entry);
+                // hasSecondCore = true;
+                // v++;
+            }
+            // queue_add_blocking(&signal_queue, &entry);
             instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
+            // block until second thread render complete
+            if(hasSecondCore)
+            {
+                queue_entry_complete_t result;
+                queue_remove_blocking(&renderCompleteQueue, &result);
+            }
+
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)
             {
@@ -132,6 +151,13 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
                 workBuffer2[i*2+1] += mult_q15(workBuffer[i], instruments[v].GetPan());
                 toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
                 toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].reverbSend)<<7));
+                // if(hasSecondCore)
+                // {
+                //     workBuffer2[i*2] += mult_q15(workBuffer3[i], 0x7fff-instruments[v-1].GetPan());
+                //     workBuffer2[i*2+1] += mult_q15(workBuffer3[i], instruments[v-1].GetPan());
+                //     toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].delaySend)<<7));
+                //     toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].reverbSend)<<7));
+                // }
             }
         }
         bool clipping = false;

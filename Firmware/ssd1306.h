@@ -69,6 +69,9 @@ typedef struct {
     bool external_vcc; 	/**< whether display uses external vcc */ 
     uint8_t *buffer;	/**< display buffer */
     size_t bufsize;		/**< buffer size */
+	// tracking for our partial screenwrites
+	size_t writeRemain;
+	uint8_t *writeBuffer;
 	int dma_chan_output;
 	bool string_invert;
 } ssd1306_t;
@@ -139,6 +142,8 @@ void ssd1306_invert(ssd1306_t *p, uint8_t inv);
 
 */
 void ssd1306_show(ssd1306_t *p);
+
+bool ssd1306_show_more(ssd1306_t *p);
 
 /**
 	@brief clear display buffer
