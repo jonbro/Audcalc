@@ -76,7 +76,7 @@ q15_t Instrument::GetLfoState()
     return mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
 }
 #define SAMPLES_PER_BUFFER 64
-void Instrument::Render(const uint8_t* sync, int16_t* buffer, size_t size)
+void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     if(instrumentType == INSTRUMENT_MIDI)
     {
@@ -365,7 +365,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     }
 }
 
-void Instrument::TempoPulse()
+void __not_in_flash_func(Instrument::TempoPulse)()
 {
     if(retriggersRemaining == 0)
         return;
@@ -382,7 +382,7 @@ void Instrument::ClearRetriggers()
 {
     retriggersRemaining = 0;
 }
-void Instrument::Retrigger()
+void __not_in_flash_func(Instrument::Retrigger)()
 {
     if(playingVoice->GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
@@ -400,7 +400,7 @@ void Instrument::Retrigger()
     }
 }
 
-void Instrument::NoteOn(uint8_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
+void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
     if(livePlay)
     {

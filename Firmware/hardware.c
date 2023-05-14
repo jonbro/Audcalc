@@ -15,11 +15,13 @@
 
 static bool last_amp_state;
 static uint8_t battery_level;
-    
+
+i2c_dma_t* i2c_dma;
+
 void hardware_init()
 {
     // give all the caps some time to warm up
-    sleep_ms(20);
+    sleep_ms(100);
     gpio_init(BLINK_PIN_LED);
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
     // gpio_put(BLINK_PIN_LED, true);
@@ -75,6 +77,9 @@ void hardware_init()
     gpio_pull_up(I2C_SCL);
 
     // I2C Initialisation. Using it at 400Khz.
+    // const int rc = i2c_dma_init(&i2c_dma, I2C_PORT, 400*1000, I2C_SDA, I2C_SCL);
+    // gpio_pull_up(I2C_SDA);
+    // gpio_pull_up(I2C_SCL);
     i2c_init(I2C_PORT, 400*1000);
 
     // gpio_put(BLINK_PIN_LED, false);
@@ -101,6 +106,10 @@ void hardware_check_i2c_pullups(bool *scl, bool *sda)
 void hardware_reboot_usb()
 {
     reset_usb_boot(1<<BLINK_PIN_LED, 0);
+}
+i2c_dma_t* hardware_get_i2c()
+{
+    return i2c_dma;
 }
 
 bool hardware_get_key_state(uint8_t x, uint8_t y)

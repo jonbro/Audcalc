@@ -35,6 +35,7 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 add_executable(tdm
         main.cc
+        multicore.c
         # usb_audio.c
         usb_descriptors.c
         diagnostics.cc
@@ -54,6 +55,7 @@ add_executable(tdm
         USBSerialDevice.cc
         filesystem.c
         audio/macro_oscillator.cc
+        i2c_dma.c
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
         audio/resources.cc

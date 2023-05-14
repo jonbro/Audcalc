@@ -48,8 +48,8 @@ void Diagnostics::run()
 
     // check to see if the screen and codec are there
     uint8_t rxdata;
-    bool foundScreen = i2c_read_blocking(I2C_PORT, 0x3C, &rxdata, 1, false) >= 0;
-    bool foundCodec = i2c_read_blocking(I2C_PORT, 0x18, &rxdata, 1, false) >= 0;
+    bool foundScreen = i2c_dma_read(hardware_get_i2c(), 0x3C, &rxdata, 1) >= 0;
+    bool foundCodec = i2c_dma_read(hardware_get_i2c(), 0x18, &rxdata, 1) >= 0;
 
     ws2812_init();
     if(!foundScreen)

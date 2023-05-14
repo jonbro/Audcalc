@@ -18,9 +18,9 @@
 #include "hardware/structs/clocks.h"
 #include "input_output_copy_i2s.pio.h"
 #include "ws2812.pio.h"
+#include "tlv320driver.h"
 
 extern "C" {
-#include "tlv320driver.h"
 #include "ssd1306.h"
 //#include "usb_audio.h"
 }

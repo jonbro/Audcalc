@@ -4,6 +4,7 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "VoiceDataInternal.pb.h"
+#include "tlv320driver.h"
 #include "multicore.h"
 #define SAMPLES_PER_BUFFER 64
 
@@ -82,7 +83,7 @@ int16_t last_input;
 uint32_t counter = 0;
 uint32_t countToHalfSecond = 0;
 uint8_t sync_count = 0;
-void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t size)
+void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
     memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER*2);
@@ -185,7 +186,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             verb.process(toReverbBuffer[i], l, r);
             lres = l;
             rres = r;
-            // lower delay volume
+            // lower verb volume
             lres *= 0xe0;
             rres *= 0xe0;
             lres = lres >> 8;
@@ -193,16 +194,7 @@ void GrooveBox::Render(int16_t* output_buffer, int16_t* input_buffer, size_t siz
             mainL += l;
             mainR += r;
 
-            chan[0] = mainL;
-            chan[1] = mainR;
-            
-            // lets do a master volume
-            // mainL *= 0xe0;
-            // mainR *= 0xe0;
-            // mainL = mainL >> 8;
-            // mainR = mainR >> 8;
-
-            // one more headroom clip (rip :( )
+            // one more headroom clip
 
             // and then hard limit so we don't get overflows
             int32_t max = 0x7fff;
@@ -539,6 +531,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         // store song here
         erasing = true;
+        driver_set_mute(true);
         Serialize();
         hardware_shutdown();
     }
@@ -623,6 +616,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         if(shutdownTime == 0)
         {
             erasing = true;
+            driver_set_mute(true);
             Serialize();
             hardware_shutdown();
         }
@@ -847,7 +841,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
 {
     // references must be initialized and can't change
-    uint8_t* current_a = &songData.GetParam(param*2, GetCurrentPattern());;
+    uint8_t* current_a = &songData.GetParam(param*2, GetCurrentPattern());
     // this needs to be special cased just for the octave setting - which is on a global param button, but stored
     // in the active voice
     if(param == 24)

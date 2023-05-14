@@ -1,4 +1,5 @@
 #include "tlv320driver.h"
+#include "i2c_dma.h"
 
 #define I2C_PORT i2c1
 #define I2C_SDA 2
@@ -222,7 +223,11 @@ void tlvDriverInit()
     // enable headphone detection
     write(0, 0x43, 0x80);
 }
-
+void driver_set_mute(bool mute)
+{
+    write(1, 0x10, mute?0x40:0x00);
+    write(1, 0x11, mute?0x40:0x00);
+}
 void driver_set_mic(bool mic_state)
 {
     // return;
