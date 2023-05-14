@@ -1297,6 +1297,8 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             holdingWrite = pressed;
             if(pressed)
             {
+                // need to clear param sets so we don't immediately start doing parameter records
+                paramSetA = paramSetB = false;
                 liveWrite = false;
                 writing = !writing;
                 color[x+y*5] = writing?urgb_u32(20, 10, 12):urgb_u32(0,0,0);

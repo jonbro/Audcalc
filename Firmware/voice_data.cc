@@ -377,7 +377,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 21:
             sprintf(strA, "Cnd");
             sprintf(strB, "Rate");
-            if(HasLockForStep(step, pattern, 26, valA))
+            if(HasLockForStep(step, pattern, ConditionMode, valA))
             {
                 conditionModeTmp = GetConditionMode(valA);
                 lockA = true;
@@ -387,7 +387,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             sprintf(pA, "%s", conditionStrings[conditionModeTmp]);
             uint8_t tmp = 0;
             uint8_t conditionDataTmp = internalData.conditionData;
-            if(HasLockForStep(step, pattern, 27, valB))
+            if(HasLockForStep(step, pattern, ConditionData, valB))
             {
                 conditionDataTmp = valB;
                 lockB = true;
@@ -415,15 +415,15 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 6:
                 sprintf(strA, "Cut");
                 sprintf(strB, "Res");
-                lockA = CheckLockAndSetDisplay(step, pattern, 2, internalData.cutoff, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 3, internalData.resonance, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, Cutoff, internalData.cutoff, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, Resonance, internalData.resonance, pB);
                 return;
             // volume / pan
             case 7:
                 sprintf(strA, "Volm");
                 sprintf(strB, "Pan");
-                lockA = CheckLockAndSetDisplay(step, pattern, 4, internalData.volume, pA);
-                if(HasLockForStep(step, pattern, 5, valB))
+                lockA = CheckLockAndSetDisplay(step, pattern, Volume, internalData.volume, pA);
+                if(HasLockForStep(step, pattern, Pan, valB))
                 {
                     p = valB;
                     lockB = true;
@@ -449,19 +449,19 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 11:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 10, internalData.env2.attack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 11, internalData.env2.decay, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime2, internalData.env2.attack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime2, internalData.env2.decay, pB);
                 return;
             case 12:
                 sprintf(strA, "Rate");
                 sprintf(strB, "Dpth");
-                lockA = CheckLockAndSetDisplay(step, pattern, 12, internalData.lfoRate, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 13, internalData.lfoDepth, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, LFORate, internalData.lfoRate, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, LFODepth, internalData.lfoDepth, pB);
                 return;
             case 15:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                if(HasLockForStep(step, pattern, 16, valA))
+                if(HasLockForStep(step, pattern, Env1Target, valA))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
                     lockA = true;
@@ -469,7 +469,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env1.target)*Target_Count)>>8]);
                 
-                if(HasLockForStep(step, pattern, 17, valB))
+                if(HasLockForStep(step, pattern, Env1Depth, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;
@@ -480,14 +480,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 16:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                if(HasLockForStep(step, pattern, 18, valA))
+                if(HasLockForStep(step, pattern, Env2Target, valA))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
                     lockA = true;
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env2.target)*Target_Count)>>8]);
-                if(HasLockForStep(step, pattern, 19, valB))
+                if(HasLockForStep(step, pattern, Env2Depth, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;
@@ -498,7 +498,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 17:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "");
-                if(HasLockForStep(step, pattern, 20, valB))
+                if(HasLockForStep(step, pattern, Lfo1Target, valB))
                 {
                     sprintf(pA, "%s", lfoTargets[(((uint16_t)valA)*Lfo_Target_Count) >> 8]);
                     lockA = true;
@@ -537,8 +537,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.sampleAttack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.sampleDecay, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime, internalData.sampleAttack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime, internalData.sampleDecay, pB);
                 return;
             case 23:
                 sprintf(strA, "Type");
@@ -569,20 +569,20 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 5:
                 sprintf(strA, "Timb");
                 sprintf(strB, "Colr");
-                lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, Timbre, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, Color, internalData.color, pB);
                 return;
             case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, 8, internalData.env1.attack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 9, internalData.env1.decay, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime, internalData.env1.attack, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime, internalData.env1.decay, pB);
                 return;
             case 23:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Synt");
-                if(HasLockForStep(step, pattern, 31, valB))
+                if(HasLockForStep(step, pattern, 47, valB))
                 {
                     sprintf(pB, "%s", algo_values[(MacroOscillatorShape)((((uint16_t)valB)*41) >> 8)]);
                     lockB = true;
@@ -601,8 +601,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 5:
                 sprintf(strA, "Vel");
                 sprintf(strB, "NNte");
-                lockA = CheckLockAndSetDisplay(step, pattern, 0, internalData.timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, 1, internalData.color, pB);
+                lockA = CheckLockAndSetDisplay(step, pattern, Timbre, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(step, pattern, Color, internalData.color, pB);
                 return;
             // 0
             case 23:
