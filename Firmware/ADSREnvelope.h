@@ -40,6 +40,7 @@ class ADSREnvelope {
     target_[ADSR_ENV_SEGMENT_DECAY] = 0;
     target_[ADSR_ENV_SEGMENT_DEAD] = 0;
     increment_[ADSR_ENV_SEGMENT_DEAD] = 0;
+    priorValue_ = 0;
   }
 
   inline ADSREnvelopeSegment segment() const {
@@ -57,6 +58,7 @@ class ADSREnvelope {
     }
     a_ = value_;
     b_ = target_[segment];
+    priorValue_ = value_;
     segment_ = segment;
     phase_ = 0;
   }
@@ -93,6 +95,7 @@ class ADSREnvelope {
   uint16_t a_;
   uint16_t b_;
   uint16_t value_;
+  uint16_t priorValue_;
   uint32_t phase_;
 
   DISALLOW_COPY_AND_ASSIGN(ADSREnvelope);

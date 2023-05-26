@@ -28,7 +28,7 @@ extern "C" {
 
 class GrooveBox {
  public:
-  void init(uint32_t *_color, USBSerialDevice *_usbSerialDevice);
+  void init(uint32_t *_color);
   void OnKeyUpdate(uint key, bool pressed);
   bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void UpdateDisplay(ssd1306_t *p);

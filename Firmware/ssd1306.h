@@ -68,6 +68,7 @@ typedef struct {
     i2c_inst_t *i2c_i; 	/**< i2c connection instance */
     bool external_vcc; 	/**< whether display uses external vcc */ 
     uint8_t *buffer;	/**< display buffer */
+    uint16_t *sendBuffer;	/**< buffer for dma sending */
     size_t bufsize;		/**< buffer size */
 	// tracking for our partial screenwrites
 	size_t writeRemain;

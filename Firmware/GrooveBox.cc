@@ -32,9 +32,9 @@ void GrooveBox::CalculateTempoIncrement()
     // 4 ppq
     // tempoPhaseIncrement = tempoPhaseIncrement >> 1;
 }
-void GrooveBox::init(uint32_t *_color, USBSerialDevice *_usbSerialDevice)
+void GrooveBox::init(uint32_t *_color)
 {
-    usbSerialDevice = _usbSerialDevice;
+    // usbSerialDevice = _usbSerialDevice;
     needsInitialADC = 30;
     groovebox = this;
     midi.Init();
@@ -128,22 +128,22 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
             memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
             bool hasSecondCore = false;
-            // if(v<2)
-            // {
-                // memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-                // queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
-                // queue_add_blocking(&signal_queue, &entry);
-                // hasSecondCore = true;
-                // v++;
-            // }
+
+            {
+                memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+                queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
+                queue_add_blocking(&signal_queue, &entry);
+                hasSecondCore = true;
+                v++;
+            }
             // queue_add_blocking(&signal_queue, &entry);
             instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
             // block until second thread render complete
-            // if(hasSecondCore)
-            // {
-            //     queue_entry_complete_t result;
-            //     queue_remove_blocking(&renderCompleteQueue, &result);
-            // }
+            if(hasSecondCore)
+            {
+                queue_entry_complete_t result;
+                queue_remove_blocking(&renderCompleteQueue, &result);
+            }
 
             // mix in the instrument
             for(int i=0;i<SAMPLES_PER_BUFFER;i++)
@@ -152,13 +152,13 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                 workBuffer2[i*2+1] += mult_q15(workBuffer[i], instruments[v].GetPan());
                 toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].delaySend)<<7));
                 toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer[i], ((int16_t)instruments[v].reverbSend)<<7));
-                // if(hasSecondCore)
-                // {
-                //     workBuffer2[i*2] += mult_q15(workBuffer3[i], 0x7fff-instruments[v-1].GetPan());
-                //     workBuffer2[i*2+1] += mult_q15(workBuffer3[i], instruments[v-1].GetPan());
-                //     toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].delaySend)<<7));
-                //     toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].reverbSend)<<7));
-                // }
+                if(hasSecondCore)
+                {
+                    workBuffer2[i*2] += mult_q15(workBuffer3[i], 0x7fff-instruments[v-1].GetPan());
+                    workBuffer2[i*2+1] += mult_q15(workBuffer3[i], instruments[v-1].GetPan());
+                    toDelayBuffer[i] = add_q15(toDelayBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].delaySend)<<7));
+                    toReverbBuffer[i] = add_q15(toReverbBuffer[i], mult_q15(workBuffer3[i], ((int16_t)instruments[v-1].reverbSend)<<7));
+                }
             }
         }
         bool clipping = false;
@@ -523,9 +523,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     screen_lfo_phase += 0x2ffffff;
 
     // 5 minutes & 20 minutes 
-    #define TWOMINS 0x1c20
-    #define FIVEMINS 0x4650
-    #define TWENTYMINS 0x11940
+    #define TWOMINS 0x1c20>>1
+    #define FIVEMINS 0x4650>>1
+    #define TWENTYMINS 0x11940>>1
     
     if((!IsPlaying() && framesSinceLastTouch > TWOMINS) || (IsPlaying() && framesSinceLastTouch > TWENTYMINS))
     {
@@ -535,14 +535,14 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         Serialize();
         hardware_shutdown();
     }
-    if(usbSerialDevice->NeedsSongData())
-    {
-        SerializeToSerial();
-    }
-    if(usbSerialDevice->PrepareReceiveData())
-    {
-        DeserializeFromSerial();
-    }
+    // if(usbSerialDevice->NeedsSongData())
+    // {
+    //     SerializeToSerial();
+    // }
+    // if(usbSerialDevice->PrepareReceiveData())
+    // {
+    //     DeserializeFromSerial();
+    // }
 
 
     ssd1306_clear(p);
@@ -550,7 +550,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     ssd1306_set_string_color(p, false);
     if(clearTime > 0 && holdingEscape)
     {
-        sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/60);
+        sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/30);
         clearTime--;
         if(clearTime == 0)
         {
@@ -579,6 +579,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             {
                 color[key] = urgb_u32(200, 50, 50);
             }
+            else
+            {
+                color[key] = urgb_u32(0,0,0);
+            }
         }
         return;
     }
@@ -605,12 +609,16 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             {
                 color[key] = urgb_u32(200, 50, 50);
             }
+            else
+            {
+                color[key] = urgb_u32(0,0,0);
+            }
         }
         return;
     }
     else if(shutdownTime > 0 && holdingEscape)
     {
-        sprintf(str, "shutdown in %i", shutdownTime/60);
+        sprintf(str, "shutdown in %i", shutdownTime/30);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         shutdownTime--;  
         if(shutdownTime == 0)
@@ -1315,7 +1323,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     if(holdingEscape && soundSelectMode)
     {
         // start countdown to save & shutdown / bootselect
-        shutdownTime = 60*3;
+        shutdownTime = 30*3;
     }
 
     // pattern select
@@ -1332,7 +1340,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             if(holdingEscape && pressed)
             {
-                clearTime = 180;
+                clearTime = 90;
             }
             patternSelectMode = pressed;
             if(pressed)
@@ -1405,27 +1413,27 @@ void GrooveBox::Serialize()
 
 bool serialize_to_serial_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
 {
-   USBSerialDevice *s = (USBSerialDevice*) stream->state;
-   s->SendData(buf, count);
+//    USBSerialDevice *s = (USBSerialDevice*) stream->state;
+//    s->SendData(buf, count);
    return true;
 }
 
 void GrooveBox::SerializeToSerial()
 {
-    usbSerialDevice->ResetLineBreak();
-    printf("Here comes songdata:\n");
-    pb_ostream_t serializerStream = {&serialize_to_serial_callback, usbSerialDevice, SIZE_MAX, 0};
-    songData.Serialize(&serializerStream);
-    for(int i=0;i<16;i++)
-    {
-        patterns[i].Serialize(&serializerStream);
-    }
-    serializerStream.bytes_written = 0;
-    VoiceData::SerializeStatic(&serializerStream);
-    usbSerialDevice->SignalSongDataComplete();
-    const char readyMsg[7] = "/ready";
-    usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
-    printf("completed send.\n");
+    // usbSerialDevice->ResetLineBreak();
+    // printf("Here comes songdata:\n");
+    // pb_ostream_t serializerStream = {&serialize_to_serial_callback, usbSerialDevice, SIZE_MAX, 0};
+    // songData.Serialize(&serializerStream);
+    // for(int i=0;i<16;i++)
+    // {
+    //     patterns[i].Serialize(&serializerStream);
+    // }
+    // serializerStream.bytes_written = 0;
+    // VoiceData::SerializeStatic(&serializerStream);
+    // usbSerialDevice->SignalSongDataComplete();
+    // const char readyMsg[7] = "/ready";
+    // usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
+    // printf("completed send.\n");
 }
 
 bool deserialize_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
@@ -1488,31 +1496,31 @@ void GrooveBox::Deserialize()
 
 bool deserialize_from_serial_callback(pb_istream_t *stream, uint8_t *buf, size_t count)
 {
-    USBSerialDevice *s = (USBSerialDevice*) stream->state;
-    if(!s->GetData(buf, count))
-        return false;
+    // USBSerialDevice *s = (USBSerialDevice*) stream->state;
+    // if(!s->GetData(buf, count))
+    //     return false;
     return true;
 }
 
 void GrooveBox::DeserializeFromSerial()
 {
-    // setup our song data
-    songData.InitDefaults();
+    // // setup our song data
+    // songData.InitDefaults();
 
-    // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
-    pb_istream_t serializerStream = {&deserialize_from_serial_callback, usbSerialDevice, SIZE_MAX};
-    // send the signal that we are ready to recieve
-    const char readyMsg[7] = "/ready";
-    usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
+    // // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
+    // pb_istream_t serializerStream = {&deserialize_from_serial_callback, usbSerialDevice, SIZE_MAX};
+    // // send the signal that we are ready to recieve
+    // const char readyMsg[7] = "/ready";
+    // usbSerialDevice->SendData((uint8_t*)&readyMsg, 7);
 
-    songData.Deserialize(&serializerStream);
-    // load pattern data
-    for(int i=0;i<16;i++)
-    {
-        patterns[i].Deserialize(&serializerStream);
-    }
-    VoiceData::DeserializeStatic(&serializerStream);
-    usbSerialDevice->SignalSongReceiveComplete();
-    printf("finished deserialize from serial\n");
-    ResetADCLatch();
+    // songData.Deserialize(&serializerStream);
+    // // load pattern data
+    // for(int i=0;i<16;i++)
+    // {
+    //     patterns[i].Deserialize(&serializerStream);
+    // }
+    // VoiceData::DeserializeStatic(&serializerStream);
+    // usbSerialDevice->SignalSongReceiveComplete();
+    // printf("finished deserialize from serial\n");
+    // ResetADCLatch();
 }

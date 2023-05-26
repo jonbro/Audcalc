@@ -48,8 +48,8 @@ void Diagnostics::run()
 
     // check to see if the screen and codec are there
     uint8_t rxdata;
-    bool foundScreen = i2c_dma_read(hardware_get_i2c(), 0x3C, &rxdata, 1) >= 0;
-    bool foundCodec = i2c_dma_read(hardware_get_i2c(), 0x18, &rxdata, 1) >= 0;
+    bool foundScreen = i2c_read_blocking(I2C_PORT, 0x3C, &rxdata, 1, false) >= 0;
+    bool foundCodec = i2c_read_blocking(I2C_PORT, 0x18, &rxdata, 1, false) >= 0;
 
     ws2812_init();
     if(!foundScreen)
@@ -61,19 +61,6 @@ void Diagnostics::run()
             color[6] = foundCodec?urgb_u32(0, 50, 200):urgb_u32(200, 50, 0);
             ws2812_setColors(color+5);
             ws2812_trigger();
-        }
-    }
-    {
-        // if the user isn't holding the powerkey, 
-        // or if holding power & esc then immediately shutdown
-        if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
-        {
-            // hardware_shutdown();
-        }
-        // if the user is holding the record key, then reboot in usb mode
-        if(hardware_get_key_state(4, 4))
-        {
-            hardware_reboot_usb();
         }
     }
     ssd1306_t* disp = GetDisplay();
@@ -105,8 +92,9 @@ void Diagnostics::run()
     {
         memset(color, 0, 25 * sizeof(uint32_t));
 
-        color[0+1*5] = urgb_u32(0, 200, 250);
+        color[0+1*5] = urgb_u32(200, 10, 10);
         color[1+1*5] = urgb_u32(0, 200, 250);
+        color[2+1*5] = urgb_u32(10, 200, 10);
 
         ssd1306_clear(disp);
         sprintf(str, "lit tests");
@@ -129,6 +117,10 @@ void Diagnostics::run()
                 if(x==1 && y==1)
                 {
                     buttonTest();
+                }
+                if(x==2 && y==1)
+                {
+                    hardware_shutdown();
                 }
             }
         }

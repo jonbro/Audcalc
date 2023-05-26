@@ -81,6 +81,16 @@ void hardware_init()
     // gpio_pull_up(I2C_SDA);
     // gpio_pull_up(I2C_SCL);
     i2c_init(I2C_PORT, 400*1000);
+    
+    // setup the screen
+    ssd1306_t* disp = GetDisplay();
+    disp->external_vcc=false;
+    ssd1306_init(disp, 128, 32, 0x3C, I2C_PORT);
+    ssd1306_poweroff(disp);
+    sleep_ms(3);
+    ssd1306_poweron(disp);
+    ssd1306_clear(disp);
+    ssd1306_contrast(disp, 0x7f); // lower brightness / power requirement
 
     // gpio_put(BLINK_PIN_LED, false);
 }
@@ -107,6 +117,7 @@ void hardware_reboot_usb()
 {
     reset_usb_boot(1<<BLINK_PIN_LED, 0);
 }
+
 i2c_dma_t* hardware_get_i2c()
 {
     return i2c_dma;

@@ -34,6 +34,7 @@ SOFTWARE.
 #include "font.h"
 #include "i2c_dma.h"
 #include "hardware.h"
+#define I2C_DMA_CHANNEL_WRITE 11
 
 ssd1306_t disp;
 
@@ -42,37 +43,24 @@ ssd1306_t* GetDisplay()
     return &disp;
 }
 
-inline static void fancy_write(i2c_inst_t *i2c, uint8_t addr, const uint8_t *src, size_t len, char *name) {
-    // while possible, write non-blocking to the screen
-    // while(!i2c_get_write_available(i2c))
-    // {
-    //     // size_t writeAmountAvailable = i2c_get_write_available(i2c);
-    //     // if(writeAmountAvailable > 0)
-    //     // {
-    //     //     size_t amountToWrite = len<writeAmountAvailable?len:writeAmountAvailable;
-    //     //     i2c_write_blocking(i2c, addr, src, amountToWrite, false);
-    //     //     len -= amountToWrite;
-    //     //     src += amountToWrite;
-    //     // }
-    //     tight_loop_contents();
-    // }
+inline static void fancy_write(i2c_inst_t *i2c, uint8_t addr, uint8_t *src, size_t len, char *name) {
+    i2c_get_hw(i2c)->enable = 0;
+    i2c_get_hw(i2c)->tar = addr;
+    i2c_get_hw(i2c)->enable = 1;
+    dma_channel_config c = dma_channel_get_default_config(I2C_DMA_CHANNEL_WRITE);
+    channel_config_set_read_increment(&c, true);
+    channel_config_set_write_increment(&c, false);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_16);
+    channel_config_set_dreq(&c, i2c_get_dreq(i2c, true));
+    dma_channel_configure(I2C_DMA_CHANNEL_WRITE, &c,
+                          &i2c_get_hw(i2c)->data_cmd, src, len, true);
     // i2c_write_blocking(i2c, addr, src, len, false);
-    switch(i2c_write_blocking(i2c, addr, src, len, false)) {
-    case PICO_ERROR_GENERIC:
-        printf("[%s] addr not acknowledged!\n", name);
-        break;
-    case PICO_ERROR_TIMEOUT:
-        printf("[%s] timeout!\n", name);
-        break;
-    default:
-        //printf("[%s] wrote successfully %lu bytes!\n", name, len);
-        break;
-    }
+
 }
 
 inline static void ssd1306_write(ssd1306_t *p, uint8_t val) {
     uint8_t d[2]= {0x00, val};
-    fancy_write(p->i2c_i, p->address, d, 2, "ssd1306_write");
+    i2c_write_blocking(p->i2c_i, p->address, d, 2, false);
 }
 
 bool ssd1306_init(ssd1306_t *p, uint16_t width, uint16_t height, uint8_t address, i2c_inst_t *i2c_instance) {
@@ -89,7 +77,11 @@ bool ssd1306_init(ssd1306_t *p, uint16_t width, uint16_t height, uint8_t address
         p->bufsize=0;
         return false;
     }
-
+    if((p->sendBuffer=malloc((p->bufsize+2)*sizeof(uint16_t)))==NULL) {
+        p->bufsize=0;
+        return false;
+    }
+    
     ++(p->buffer);
 
 	// from https://github.com/makerportal/rpi-pico-ssd1306
@@ -269,20 +261,33 @@ void ssd1306_draw_string(ssd1306_t *p, uint32_t x, uint32_t y, uint32_t scale, c
 }
 
 void ssd1306_show(ssd1306_t *p) {
-    uint8_t payload[]= {SET_COL_ADDR, 0, p->width-1, SET_PAGE_ADDR, 0, p->pages-1};
+    // the last item in the payload sets the startline to zero
+    uint8_t payload[]= {SET_COL_ADDR, 0, p->width-1, SET_PAGE_ADDR, 0, p->pages-1, 0x40};
     if(p->width==64) {
         payload[1]+=32;
         payload[2]+=32;
     }
 
-    for(size_t i=0; i<sizeof(payload); ++i)
+    for(size_t i=0; i<sizeof(payload); ++i){
         ssd1306_write(p, payload[i]);
+    }
 
     // prefix the buffer with something?
-    // p->writeRemain = p->bufsize;
-    // p->writeBuffer = p->buffer;
-    *(p->buffer-1)=0x40;
-    fancy_write(p->i2c_i, p->address, p->buffer-1, p->bufsize+1, "ssd1306_show");
+    memset(p->sendBuffer, 0, 2*(p->bufsize+2));
+
+    // signal that we are about to write ram / data
+    p->sendBuffer[0]=0x40;
+    // copy the bits into the sendbuffer
+    for(int i=0;i<p->bufsize;i++)
+    {
+        p->sendBuffer[i+1] = *(p->buffer+i);
+    }
+    // p->sendBuffer[1] = 0xff;
+    // p->sendBuffer[2] = 0xff;
+    p->sendBuffer[0] |= I2C_IC_DATA_CMD_RESTART_BITS;
+    p->sendBuffer[p->bufsize] |= I2C_IC_DATA_CMD_STOP_BITS;
+
+    fancy_write(p->i2c_i, p->address, (uint8_t*)p->sendBuffer, p->bufsize+1, "ssd1306_show");
 }
 bool ssd1306_show_more(ssd1306_t *p)
 {

@@ -307,12 +307,12 @@ const uint8_t ConditionalEvery[70] = {
 };
 
 
-bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
+bool VoiceData::CheckLockAndSetDisplay(bool showForStep, uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString)
 {
     uint8_t valA = 0;
     // we use the high bit here to signal if we are checking for a step or not
     // so it needs to be stripped befor asking about the specific step
-    if((step & 0x80) && HasLockForStep(step&0x7f, pattern, param, valA))
+    if(showForStep && HasLockForStep(step, pattern, param, valA))
     {
         sprintf(paramString, "%i", valA);
         return true;
@@ -324,10 +324,7 @@ bool VoiceData::CheckLockAndSetDisplay(uint8_t step, uint8_t pattern, uint8_t pa
 void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep)
 {
 
-    // use the high bit here to signal that we want to actually check the lock for a particular step
-    if(showForStep)
-        step = step | 0x80;
-    
+    // use the high bit here to signal that we want to actually check the lock for a particular step    
     uint8_t valA = 0, valB = 0;
     InstrumentType instrumentType = GetInstrumentType();
     ConditionModeEnum conditionModeTmp = CONDITION_MODE_NONE;
@@ -336,8 +333,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 22:
             sprintf(strA, "Dely");
             sprintf(strB, "Verb");
-            lockA = CheckLockAndSetDisplay(step, pattern, DelaySend, internalData.delaySend, pA);
-            lockB = CheckLockAndSetDisplay(step, pattern, ReverbSend, internalData.reverbSend, pB);
+            lockA = CheckLockAndSetDisplay(showForStep, step, pattern, DelaySend, internalData.delaySend, pA);
+            lockB = CheckLockAndSetDisplay(showForStep, step, pattern, ReverbSend, internalData.reverbSend, pB);
             return;
     }
     
@@ -347,8 +344,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 13:
             sprintf(strA, "RTsp");
             sprintf(strB, "RTLn");
-            lockA = CheckLockAndSetDisplay(step, pattern, RetriggerSpeed, internalData.retriggerSpeed, pA);
-            if(HasLockForStep(step, pattern, RetriggerLength, valB))
+            lockA = CheckLockAndSetDisplay(showForStep, step, pattern, RetriggerSpeed, internalData.retriggerSpeed, pA);
+            if(showForStep && HasLockForStep(step, pattern, RetriggerLength, valB))
             {
                 sprintf(pB, "%i", (valB*8)>>8);
                 lockB = true;
@@ -359,7 +356,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 18:
             sprintf(strA, "RTfd");
             sprintf(strB, "");
-            if(HasLockForStep(step, pattern, (RetriggerFade), valB))
+            if(showForStep && HasLockForStep(step, pattern, (RetriggerFade), valB))
             {
                 sprintf(pA, "%i", (valB-0x80));
                 lockA = true;
@@ -377,7 +374,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         case 21:
             sprintf(strA, "Cnd");
             sprintf(strB, "Rate");
-            if(HasLockForStep(step, pattern, ConditionMode, valA))
+            if(showForStep && HasLockForStep(step, pattern, ConditionMode, valA))
             {
                 conditionModeTmp = GetConditionMode(valA);
                 lockA = true;
@@ -387,7 +384,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             sprintf(pA, "%s", conditionStrings[conditionModeTmp]);
             uint8_t tmp = 0;
             uint8_t conditionDataTmp = internalData.conditionData;
-            if(HasLockForStep(step, pattern, ConditionData, valB))
+            if(showForStep && HasLockForStep(step, pattern, ConditionData, valB))
             {
                 conditionDataTmp = valB;
                 lockB = true;
@@ -415,15 +412,15 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 6:
                 sprintf(strA, "Cut");
                 sprintf(strB, "Res");
-                lockA = CheckLockAndSetDisplay(step, pattern, Cutoff, internalData.cutoff, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, Resonance, internalData.resonance, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Cutoff, internalData.cutoff, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, Resonance, internalData.resonance, pB);
                 return;
             // volume / pan
             case 7:
                 sprintf(strA, "Volm");
                 sprintf(strB, "Pan");
-                lockA = CheckLockAndSetDisplay(step, pattern, Volume, internalData.volume, pA);
-                if(HasLockForStep(step, pattern, Pan, valB))
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Volume, internalData.volume, pA);
+                if(showForStep && HasLockForStep(step, pattern, Pan, valB))
                 {
                     p = valB;
                     lockB = true;
@@ -449,19 +446,19 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 11:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime2, internalData.env2.attack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime2, internalData.env2.decay, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, AttackTime2, internalData.env2.attack, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, DecayTime2, internalData.env2.decay, pB);
                 return;
             case 12:
                 sprintf(strA, "Rate");
                 sprintf(strB, "Dpth");
-                lockA = CheckLockAndSetDisplay(step, pattern, LFORate, internalData.lfoRate, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, LFODepth, internalData.lfoDepth, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, LFORate, internalData.lfoRate, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, LFODepth, internalData.lfoDepth, pB);
                 return;
             case 15:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                if(HasLockForStep(step, pattern, Env1Target, valA))
+                if(showForStep && HasLockForStep(step, pattern, Env1Target, valA))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
                     lockA = true;
@@ -469,7 +466,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env1.target)*Target_Count)>>8]);
                 
-                if(HasLockForStep(step, pattern, Env1Depth, valB))
+                if(showForStep && HasLockForStep(step, pattern, Env1Depth, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;
@@ -480,14 +477,14 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 16:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "Dpth");
-                if(HasLockForStep(step, pattern, Env2Target, valA))
+                if(showForStep && HasLockForStep(step, pattern, Env2Target, valA))
                 {
                     sprintf(pA, "%s", envTargets[(((uint16_t)valA)*Target_Count) >> 8]);
                     lockA = true;
                 }
                 else
                     sprintf(pA, "%s", envTargets[(((uint16_t)internalData.env2.target)*Target_Count)>>8]);
-                if(HasLockForStep(step, pattern, Env2Depth, valB))
+                if(showForStep && HasLockForStep(step, pattern, Env2Depth, valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));
                     lockB = true;
@@ -498,7 +495,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 17:
                 sprintf(strA, "Trgt");
                 sprintf(strB, "");
-                if(HasLockForStep(step, pattern, Lfo1Target, valB))
+                if(showForStep && HasLockForStep(step, pattern, Lfo1Target, valB))
                 {
                     sprintf(pA, "%s", lfoTargets[(((uint16_t)valA)*Lfo_Target_Count) >> 8]);
                     lockA = true;
@@ -537,8 +534,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime, internalData.sampleAttack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime, internalData.sampleDecay, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, AttackTime, internalData.sampleAttack, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, DecayTime, internalData.sampleDecay, pB);
                 return;
             case 23:
                 sprintf(strA, "Type");
@@ -569,20 +566,20 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 5:
                 sprintf(strA, "Timb");
                 sprintf(strB, "Colr");
-                lockA = CheckLockAndSetDisplay(step, pattern, Timbre, internalData.timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, Color, internalData.color, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Timbre, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, Color, internalData.color, pB);
                 return;
             case 10:
                 sprintf(strA, "Atk");
                 sprintf(strB, "Dcy");
-                lockA = CheckLockAndSetDisplay(step, pattern, AttackTime, internalData.env1.attack, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, DecayTime, internalData.env1.decay, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, AttackTime, internalData.env1.attack, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, DecayTime, internalData.env1.decay, pB);
                 return;
             case 23:
                 sprintf(strA, "Type");
                 sprintf(strB, "");
                 sprintf(pA, "Synt");
-                if(HasLockForStep(step, pattern, 47, valB))
+                if(showForStep && HasLockForStep(step, pattern, 47, valB))
                 {
                     sprintf(pB, "%s", algo_values[(MacroOscillatorShape)((((uint16_t)valB)*41) >> 8)]);
                     lockB = true;
@@ -601,8 +598,8 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 5:
                 sprintf(strA, "Vel");
                 sprintf(strB, "NNte");
-                lockA = CheckLockAndSetDisplay(step, pattern, Timbre, internalData.timbre, pA);
-                lockB = CheckLockAndSetDisplay(step, pattern, Color, internalData.color, pB);
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Timbre, internalData.timbre, pA);
+                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, Color, internalData.color, pB);
                 return;
             // 0
             case 23:
@@ -693,6 +690,7 @@ int8_t VoiceData::GetOctave()
 void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
 {
     ParamLock *lock;
+    // strip the highbit
     if(GetLockForStep(&lock, step, pattern, param))
     {
         lock->value = value;
@@ -711,7 +709,6 @@ void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uin
         lock->value = value;
         lock->next = locksForPattern[pattern];
         locksForPattern[pattern] = lockPool.GetLockPosition(lock);
-        // printf("added param lock step: %i param: %i value: %i at lock position: %i\n", step, param, value, lockPool.GetLockPosition(lock));
         return;
     }
     printf("failed to add param lock\n");
@@ -762,7 +759,6 @@ void VoiceData::CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern)
 bool VoiceData::HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value)
 {
     // because we use the highbit to signal if we are checking a specific step in the callsite, this must be stripped here
-    step = step&0x7f;
     ParamLock *lock;
     if(GetLockForStep(&lock, step, pattern, param))
     {

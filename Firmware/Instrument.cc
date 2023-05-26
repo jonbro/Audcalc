@@ -245,23 +245,14 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
             //     lastSample = buffer[i];
             // }
         }
-        // I think this might be better for cache locality?
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            buffer[i] = svf.Process(buffer[i]);
-        }
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-        {
-            lastenv2val = env2.Render();
-            q15_t envval = env.Render() >> 1;
-            buffer[i] = mult_q15(volume, mult_q15(buffer[i], envval));
-        }
-        return;
     }
-    osc.set_pitch(pitchWithMods);
-    osc.set_parameter_1(param1_withMods);
-    osc.set_parameter_2(param2_withMods);
-    osc.Render(sync, buffer, size);
+    else if(instrumentType == INSTRUMENT_MACRO)
+    {
+        osc.set_pitch(pitchWithMods);
+        osc.set_parameter_1(param1_withMods);
+        osc.set_parameter_2(param2_withMods);
+        osc.Render(sync, buffer, size);
+    }
     RenderGlobal(sync, buffer, size);
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
@@ -385,7 +376,12 @@ void Instrument::ClearRetriggers()
 void __not_in_flash_func(Instrument::Retrigger)()
 {
     if(playingVoice->GetInstrumentType() == INSTRUMENT_SAMPLE)
-    {
+    { 
+        sampleSegment = SMP_PLAYING;
+        sampleOffset = lastTriggerSampleOffset;
+        env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        retriggerVolume = add_q15(retriggerVolume, retriggerFade);
     }
     if(playingVoice->GetInstrumentType() == INSTRUMENT_MACRO)
     {
@@ -485,7 +481,7 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
             phase_increment = (uint32_t)(((uint64_t)(sampleEnd-sampleOffset)<<31)/((uint64_t)sampleCount)); // q32?
             phase_increment = phase_increment>>6; // q25 our overflow value
             // calculate the actual sample offset based on the pressed key
-            sampleOffset = (sampleEnd-sampleOffset)/16*key+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
+            lastTriggerSampleOffset = sampleOffset = (sampleEnd-sampleOffset)/16*key+sampleOffset;//((uint64_t)sampleCount)*((uint32_t)(key))/(uint32_t)16+sampleOffset;
         }
         else
         {

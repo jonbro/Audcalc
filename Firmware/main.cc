@@ -145,45 +145,19 @@ void __not_in_flash_func(draw_screen)()
     // the fifo being functional
     sleep_ms(20);
     multicore_lockout_victim_init();
-    ssd1306_t* disp = GetDisplay();
-    disp->external_vcc=false;
-    ssd1306_init(disp, 128, 32, 0x3C, I2C_PORT);
-    ssd1306_poweroff(disp);
-    sleep_ms(3);
-    ssd1306_poweron(disp);
-    ssd1306_clear(disp);
-    ssd1306_contrast(disp, 0x7f); // lower brightness / power requirement
-    bool hasMoreDisplay = false;
     while(true)
     {
         queue_entry_t entry;
-        queue_remove_blocking(&signal_queue, &entry);
-        //if(queue_try_remove(&signal_queue, &entry))
+        if(queue_try_remove(&signal_queue, &entry))
         {
-            if(entry.screen_flip_ready)
+            if(entry.renderInstrument >= 0)
             {
-                ssd1306_show(disp);
-                // while(!ssd1306_show_more(disp))
-                // {
-                //     tight_loop_contents();
-                // }
-                hasMoreDisplay = false;
+                gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
                 queue_entry_complete_t result;
-                result.screenFlipComplete = true;
-                result.renderInstrumentComplete = false;
-                queue_add_blocking(&complete_queue, &result);
+                result.screenFlipComplete = false;
+                result.renderInstrumentComplete = true;
+                queue_add_blocking(&renderCompleteQueue, &result);
             }
-            // if(entry.renderInstrument >= 0)
-            // {
-            //     gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
-            //     queue_entry_complete_t result;
-            //     result.screenFlipComplete = false;
-            //     result.renderInstrumentComplete = true;
-            //     queue_add_blocking(&renderCompleteQueue, &result);
-            // }
-        }
-        if(hasMoreDisplay)
-        {
         }
     }
 }
@@ -270,12 +244,6 @@ uint8_t adc2_prev;
 
 int main()
 {
-    // queue_init(&complete_queue, sizeof(bool), 2);
-    // bool jr = true;
-    // queue_add_blocking(&complete_queue, &jr);
-    // multicore_launch_core1(draw_screen);
-    // DeleteNonEmpty();
-    // return 1;
     stdio_init_all();
     hardware_init();
     {
@@ -285,21 +253,16 @@ int main()
         {
             //hardware_shutdown();
         }
-        // if the user is holding the record key, then reboot in usb mode
-        if(hardware_get_key_state(4, 4))
+        if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
+        {
+            Diagnostics diag;
+            diag.run();
+        } else if(hardware_get_key_state(4, 4))
         {
             hardware_reboot_usb();
         }
     }
-
-    {
-        // TestFileSystem();
-        // TestVoiceData();
-        // ParamLockPoolTest testLockPool = ParamLockPoolTest();
-        // testLockPool.RunTest();
-        // return 0;
-
-    }
+    
     ws2812_init();
     
     queue_init(&signal_queue, sizeof(queue_entry_t), 3);
@@ -317,7 +280,7 @@ int main()
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
     //usbSerialDevice.Init();
-    gbox.init(color, &usbSerialDevice);
+    gbox.init(color);
     // fill the silence buffer so we get something out
     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
     {
@@ -335,19 +298,13 @@ int main()
     uint32_t lastKeyState = 0;
 
     struct repeating_timer timer;
-     add_repeating_timer_ms(-16, repeating_timer_callback, NULL, &timer);
+    add_repeating_timer_ms(-33, repeating_timer_callback, NULL, &timer);
     struct repeating_timer timer2;
-    //add_repeating_timer_us(-50,usb_timer_callback, NULL, &timer2);
-    // Select ADC input 0 (GPIO26)
+
     adc_select_input(0);
     int16_t touchCounter = 0x7fff;
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
-   // usbaudio_init();
-
-      // initialize the USB microphone interface
-    // usb_microphone_set_tx_ready_handler(on_usb_microphone_tx_ready);
-    // lets do a lost lock count every second
     int lostCount = 0;
     while(true)
     {
@@ -373,20 +330,8 @@ int main()
             gbox.OnAdcUpdate(adc_val, adc_read());
             //hardware_update_battery_level();
             queue_entry_complete_t result;
-            if(queue_try_remove(&complete_queue, &result) && result.screenFlipComplete)
-            {
-                gbox.UpdateDisplay(GetDisplay());
-                queue_entry_t entry = {true, -1};
-                queue_add_blocking(&signal_queue, &entry);
-            }
-            // if(hardware_has_usb_power())
-            // {
-            //     color[6] = urgb_u32(200, 50, 50);
-            // }
-            // else
-            // {
-            //     color[6] = urgb_u32(0,0,0);
-            // }
+            gbox.UpdateDisplay(GetDisplay());
+            ssd1306_show(GetDisplay());
             ws2812_setColors(color+5);
             needsScreenupdate = false;
             ws2812_trigger();

@@ -105,8 +105,10 @@ class Instrument
         q15_t mainCutoff;
         q15_t panning;
         q15_t panWithMods;
+        
         uint8_t resonance;
-        uint32_t sampleOffset; 
+        uint32_t sampleOffset;
+        uint32_t lastTriggerSampleOffset; 
         uint32_t lfo_phase = 0;
         uint32_t lfo_phase_increment = 0;
         q15_t lfo_depth = 0;
