@@ -1,5 +1,6 @@
 #include "Instrument.h"
 #include "AudioSampleSecondbloop.h"
+#include "GlobalDefines.h"
 
 static const uint16_t kPitchTableStart = 128 * 128;
 static const uint16_t kOctave = 12 * 128;
@@ -75,12 +76,11 @@ q15_t Instrument::GetLfoState()
 {
     return mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
 }
-#define SAMPLES_PER_BUFFER 64
 void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffer, size_t size)
 {
     if(instrumentType == INSTRUMENT_MIDI)
     {
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             noteOffSchedule--;
             if(noteOffSchedule == 0)
@@ -182,7 +182,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
         uint32_t filesize = ffs_file_size(GetFilesystem(), file);
         if(!file || filesize == 0 || sampleSegment == SMP_COMPLETE)
         {
-            memset(buffer, 0, SAMPLES_PER_BUFFER*2);
+            memset(buffer, 0, SAMPLES_PER_BLOCK*2);
             return;
         }
         // double check the file length
@@ -190,7 +190,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
             sampleSegment = SMP_COMPLETE;
         if(sampleSegment == SMP_COMPLETE)
         {
-            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            for(int i=0;i<SAMPLES_PER_BLOCK;i++)
             {
                 buffer[i] = 0;
             }
@@ -207,7 +207,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
         // uint16_t readAmount = (sampleOffset*2+2*128*5)>filesize?filesize-sampleOffset*2:2*128*5;
         // ffs_read(GetFilesystem(), file, wave, readAmount);
         uint32_t startingSampleOffset = sampleOffset;
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             if(sampleOffset > sampleEnd - 1)
             {
@@ -257,7 +257,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
 {
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    for(int i=0;i<SAMPLES_PER_BLOCK;i++)
     {
         lastenv2val = env2.Render();
         lastenvval = env.Render();
@@ -470,7 +470,7 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
             while(beatCount < 6*16)
             {
                 tempoPhase += tempoPhaseIncrement;
-                sampleCount+=SAMPLES_PER_BUFFER;
+                sampleCount+=SAMPLES_PER_BLOCK;
                 if((tempoPhase >> 31) > 0)
                 {
                     tempoPhase &= 0x7fffffff;

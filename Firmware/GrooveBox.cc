@@ -6,7 +6,7 @@
 #include "VoiceDataInternal.pb.h"
 #include "tlv320driver.h"
 #include "multicore_support.h"
-#define SAMPLES_PER_BUFFER 64
+#include "GlobalDefines.h"
 
 static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
     *r = (urgb>>0)&0xff;
@@ -14,7 +14,7 @@ static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
     *b = (urgb>>8)&0xff;
 }
 
-int16_t temp_buffer[SAMPLES_PER_BUFFER];
+int16_t temp_buffer[SAMPLES_PER_BLOCK];
 GrooveBox* groovebox;
 
 void OnCCChangedBare(uint8_t cc, uint8_t newValue)
@@ -69,12 +69,12 @@ void GrooveBox::init(uint32_t *_color)
     lastKeyPlayed = {static_cast<unsigned int>(0 & 0xf)};
 }
 
-int16_t workBuffer[SAMPLES_PER_BUFFER];
-int16_t workBuffer3[SAMPLES_PER_BUFFER];
-int32_t workBuffer2[SAMPLES_PER_BUFFER*2];
-static uint8_t sync_buffer[SAMPLES_PER_BUFFER];
-int16_t toDelayBuffer[SAMPLES_PER_BUFFER];
-int16_t toReverbBuffer[SAMPLES_PER_BUFFER];
+int16_t workBuffer[SAMPLES_PER_BLOCK];
+int16_t workBuffer3[SAMPLES_PER_BLOCK];
+int32_t workBuffer2[SAMPLES_PER_BLOCK*2];
+static uint8_t sync_buffer[SAMPLES_PER_BLOCK];
+int16_t toDelayBuffer[SAMPLES_PER_BLOCK];
+int16_t toReverbBuffer[SAMPLES_PER_BLOCK];
 int16_t recordBuffer[128];
 uint8_t recordBufferOffset = 0;
 //absolute_time_t lastRenderTime = -1;
@@ -86,10 +86,10 @@ uint8_t sync_count = 0;
 void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
-    memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BUFFER*2);
-    memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-    memset(toReverbBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
-    memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+    memset(workBuffer2, 0, sizeof(int32_t)*SAMPLES_PER_BLOCK*2);
+    memset(toDelayBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
+    memset(toReverbBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
+    memset(output_buffer, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
     last_input = 0;
     
     // update some song parameters
@@ -97,7 +97,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     delay.SetTime(songData.GetDelayTime());
 
     //printf("input %i\n", workBuffer2[0]);
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+    for(int i=0;i<SAMPLES_PER_BLOCK;i++)
     {
         int16_t input = input_buffer[i*2];
         // collapse input buffer so its easier to copy to the recording device
@@ -116,7 +116,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     }
 
     // our file system only handles appends every 256 bytes, so we need to respect that
-    recordBufferOffset+=SAMPLES_PER_BUFFER;
+    recordBufferOffset+=SAMPLES_PER_BLOCK;
     if(recordBufferOffset==128) recordBufferOffset = 0;
     
     CalculateTempoIncrement();
@@ -125,19 +125,19 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         for(int v=0;v<VOICE_COUNT;v++)
         {
             // put in a request to render the other voice on the second core
-            memset(sync_buffer, 0, SAMPLES_PER_BUFFER);
-            memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+            memset(sync_buffer, 0, SAMPLES_PER_BLOCK);
+            memset(workBuffer, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
             bool hasSecondCore = false;
 
             {
-                memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BUFFER);
+                memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
                 queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
                 queue_add_blocking(&signal_queue, &entry);
                 hasSecondCore = true;
                 v++;
             }
             // queue_add_blocking(&signal_queue, &entry);
-            instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BUFFER);
+            instruments[v].Render(sync_buffer, workBuffer, SAMPLES_PER_BLOCK);
             // block until second thread render complete
             if(hasSecondCore)
             {
@@ -146,7 +146,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             }
 
             // mix in the instrument
-            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            for(int i=0;i<SAMPLES_PER_BLOCK;i++)
             {
                 workBuffer2[i*2] += mult_q15(workBuffer[i], 0x7fff-instruments[v].GetPan());
                 workBuffer2[i*2+1] += mult_q15(workBuffer[i], instruments[v].GetPan());
@@ -162,7 +162,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             }
         }
         bool clipping = false;
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             int16_t* chan = (output_buffer+i*2);
             int32_t mainL = 0;
@@ -225,7 +225,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         }
         // if(clipping)
         // {
-        //     for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        //     for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         //     {
         //         int16_t* chan = (output_buffer+i*2);
         //         chan[0] = 0;
@@ -399,14 +399,14 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     }
     if((songData.GetSyncOutMode()&(SyncOutModePO|SyncOutMode24)) > 0)
     {
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             int16_t* chan = (output_buffer+i*2);
             chan[0] = 0;
         }
         if(sync_count > 0)
         {
-            for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+            for(int i=0;i<SAMPLES_PER_BLOCK;i++)
             {
                 int16_t* chan = (output_buffer+i*2);
                 // we need to provide the peak to peak swing so pocket operator can hear the sync signal
@@ -431,7 +431,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     {
         if(recordBufferOffset == 0)
             ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
-        for(int i=0;i<SAMPLES_PER_BUFFER;i++)
+        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             int16_t* chan = (output_buffer+i*2);
             chan[0] = workBuffer2[i*2];

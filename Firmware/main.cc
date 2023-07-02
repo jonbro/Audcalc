@@ -40,6 +40,7 @@ extern "C" {
 #include "USBSerialDevice.h"
 #include "diagnostics.h"
 #include "multicore_support.h"
+#include "GlobalDefines.h"
 
 using namespace braids;
 
@@ -50,7 +51,7 @@ using namespace braids;
 #define TLV_REG_RESET   	    1
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
-#define SAMPLES_PER_BUFFER 64
+#define SAMPLES_PER_BUFFER 128
 #define USING_DEMO_BOARD 0
 // TDM board defines
 #if USING_DEMO_BOARD
@@ -74,49 +75,52 @@ static float clip(float value)
 int dma_chan_input;
 int dma_chan_output;
 uint sm;
-uint32_t capture_buf[SAMPLES_PER_BUFFER*2];
-int capture_buf_offset = 0;
-int output_buf_offset = 0;
 
-uint32_t output_buf[SAMPLES_PER_BUFFER*3];
-uint32_t silence_buf[SAMPLES_PER_BUFFER*2];
-bool flipFlop = false;
-int dmacount = 0;
-extern uint32_t __flash_binary_end;
+bool audioInReady = false;
+bool audioOutReady = false;
+uint32_t capture_buf[SAMPLES_PER_BLOCK*BLOCKS_PER_SEND*2];
+uint32_t output_buf[SAMPLES_PER_BLOCK*BLOCKS_PER_SEND*2];
 
-bool initial_sample = false;
-int input_position = 0;
-int initial_sample_count = 0;
-
+int outBufOffset = 0;
+int inBufOffset = 0;
+int audioGenOffset = 0;
 GrooveBox gbox;
 USBSerialDevice usbSerialDevice;
-uint16_t work_buf[SAMPLES_PER_BUFFER];
-void __not_in_flash_func(dma_input_handler)() {
-    if (dma_hw->ints0 & (1u<<dma_chan_input)) {
-        uint32_t *next_capture_buf = capture_buf+((capture_buf_offset+1)%2)*SAMPLES_PER_BUFFER;
-        dma_hw->ints0 = (1u << dma_chan_input);
-        dma_channel_set_write_addr(dma_chan_input, next_capture_buf, true);
-        capture_buf_offset = (capture_buf_offset+1)%2;
-        uint32_t *input = capture_buf+capture_buf_offset*SAMPLES_PER_BUFFER;
-        uint32_t *output = output_buf+output_buf_offset*SAMPLES_PER_BUFFER;
-        gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BUFFER);
-        capture_buf_offset = (capture_buf_offset+1)%2;
-    }
-}
-bool hi = false;
-int16_t out_count = 0;
-int flipflopout = 0;
+auto_init_mutex(audioProcessMutex);
 
 int triCount = 0;
 int note = 60;
 
-int needsNewAudioBuffer = 0;
+
+/*
+* double buffered audio - if the signal that the next frame of audio hasn't completed sending,
+*/ 
+
+void __not_in_flash_func(dma_input_handler)() {
+    if (dma_hw->ints0 & (1u<<dma_chan_input)) {
+        dma_hw->ints0 = (1u << dma_chan_input);
+        dma_channel_set_write_addr(dma_chan_input, capture_buf+(inBufOffset)*SAMPLES_PER_SEND, true);
+        uint32_t x;
+        if(mutex_try_enter(&audioProcessMutex, &x))
+        {
+            inBufOffset = (inBufOffset+1)%2;
+            audioInReady = true;
+            mutex_exit(&audioProcessMutex);
+        }
+    }
+}
 
 void __not_in_flash_func(dma_output_handler)() {
     if (dma_hw->ints0 & (1u<<dma_chan_output)) {
         dma_hw->ints0 = 1u << dma_chan_output;
-        dma_channel_set_read_addr(dma_chan_output, output_buf+output_buf_offset*SAMPLES_PER_BUFFER, true);
-        output_buf_offset = (output_buf_offset+1)%3;
+        dma_channel_set_read_addr(dma_chan_output, output_buf+(outBufOffset)*SAMPLES_PER_SEND, true);
+        uint32_t x;
+        if(mutex_try_enter(&audioProcessMutex, &x))
+        {
+            outBufOffset = (outBufOffset+1)%2;
+            audioOutReady = true;
+            mutex_exit(&audioProcessMutex);
+        }
     }
 }
 
@@ -152,7 +156,7 @@ void __not_in_flash_func(draw_screen)()
         {
             if(entry.renderInstrument >= 0)
             {
-                gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, SAMPLES_PER_BUFFER);
+                gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, 64);
                 queue_entry_complete_t result;
                 result.screenFlipComplete = false;
                 result.renderInstrumentComplete = true;
@@ -198,7 +202,7 @@ void configure_audio_driver()
         &c,
         capture_buf, // Destination pointer
         &pio->rxf[sm], // Source pointer
-        SAMPLES_PER_BUFFER, // Number of transfers
+        SAMPLES_PER_SEND, // Number of transfers
         true// Start immediately
     );
     // Tell the DMA to raise IRQ line 0 when the channel finishes a block
@@ -219,8 +223,8 @@ void configure_audio_driver()
         dma_chan_output,
         &cc,
         &pio->txf[sm], // Destination pointer
-        silence_buf, // Source pointer
-        SAMPLES_PER_BUFFER, // Number of transfers
+        output_buf, // Source pointer
+        SAMPLES_PER_SEND, // Number of transfers
         true// Start immediately
     );
     dma_channel_set_irq0_enabled(dma_chan_output, true);
@@ -235,13 +239,6 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
-// hardware verify
-// Diagnostics diag;
-// int main()
-// {
-//     diag.run();
-// }
-
 int main()
 {
     stdio_init_all();
@@ -251,7 +248,7 @@ int main()
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            //hardware_shutdown();
+            hardware_shutdown();
         }
         if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
         {
@@ -262,7 +259,6 @@ int main()
             hardware_reboot_usb();
         }
     }
-    
     ws2812_init();
     
     queue_init(&signal_queue, sizeof(queue_entry_t), 3);
@@ -281,13 +277,9 @@ int main()
     memset(color, 0, 25 * sizeof(uint32_t));
     //usbSerialDevice.Init();
     gbox.init(color);
-    // fill the silence buffer so we get something out
-    for(int i=0;i<SAMPLES_PER_BUFFER;i++)
-    {
-        uint16_t* chan = (uint16_t*)(silence_buf+i);
-        chan[0] = 0;
-        chan[1] = 0;
-    }
+
+    memset(output_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
+    memset(capture_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
 
     configure_audio_driver();
 
@@ -308,7 +300,19 @@ int main()
     int lostCount = 0;
     while(true)
     {
-        //usbSerialDevice.Update();
+        if(audioOutReady && audioInReady)
+        {
+            mutex_enter_blocking(&audioProcessMutex); 
+            for(int i=0;i<2;i++)
+            {
+                uint32_t *input = capture_buf+inBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
+                uint32_t *output = output_buf+outBufOffset*SAMPLES_PER_BUFFER+SAMPLES_PER_BLOCK*i;
+                gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
+            }
+            audioInReady = false;
+            audioOutReady = false;
+            mutex_exit(&audioProcessMutex);
+        }
         hardware_get_all_key_state(&keyState);
         
         // act on keychanges
@@ -328,7 +332,7 @@ int main()
             adc_select_input(0);
             // I think that even though adc_read returns 16 bits, the value is only in the top 12
             gbox.OnAdcUpdate(adc_val, adc_read());
-            //hardware_update_battery_level();
+            hardware_update_battery_level();
             queue_entry_complete_t result;
             gbox.UpdateDisplay(GetDisplay());
             ssd1306_show(GetDisplay());
