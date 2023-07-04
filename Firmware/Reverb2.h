@@ -54,6 +54,7 @@ class Reverb2 {
         allpass[8].buf = buf+bufCount; bufCount+= VERB_AP7; allpass[8].length = VERB_AP7;
         allpass[9].buf = buf+bufCount; bufCount+= VERB_AP8; allpass[9].length = VERB_AP8;
         allpass[7].buf = buf+bufCount; bufCount+= VERB_D2; allpass[7].length = VERB_D2;
+        
         position[0] = f32_to_q15(0.9f);
         position[1] = f32_to_q15(-0.9f);
         position[2] = f32_to_q15(1.f);
@@ -73,30 +74,33 @@ class Reverb2 {
 
         in = ProcessAllPass(add_q15(in, mult_q15(feedbackAmount, feedback)), &allpass[4]);
         in = ProcessAllPass(in, &allpass[5]);
-        in = DelayProcessWobble(in, &allpass[6]);
-
+        in = DelayProcess(in, &allpass[6]);
         in = ProcessAllPass(in, &allpass[8]);
         in = ProcessAllPass(in, &allpass[9]);
-        feedback = DelayProcessWobble(in, &allpass[7]);
-
-        int16_t dt1 = DelayTap(810, &allpass[6]);
+        feedback = DelayProcess(in, &allpass[7]);
+    
+        int16_t dt1 = DelayTap(310, &allpass[6]);
         int16_t dt2 = DelayTap(611, &allpass[6]);
         int16_t dt3 = DelayTap(937, &allpass[7]);
         int16_t dt4 = DelayTap(1201, &allpass[7]);
+
         dt3 = mult_q15(dt2, f32_to_q15(0.8));
         dt4 = mult_q15(dt2, f32_to_q15(0.8));
 
-        l = Mix(0, dt1, position[0]);
-        r = Mix(0, dt1, 0xffff-position[0]);
+        l = 0;
+        r = 0;
 
-        l = Mix(0, dt2, position[1]);
-        r = Mix(0, dt2, 0xffff-position[1]);
+        l = add_q15(l, Mix(0, dt1, position[0]));
+        r = add_q15(r, Mix(0, dt1, 0xffff-position[0]));
 
-        l = Mix(0, dt3, position[2]);
-        r = Mix(0, dt3, 0xffff-position[2]);
+        l = add_q15(l, Mix(0, dt2, position[1]));
+        r = add_q15(r, Mix(0, dt2, 0xffff-position[1]));
 
-        l = Mix(0, dt4, position[3]);
-        r = Mix(0, dt4, 0xffff-position[3]);
+        l = add_q15(l, Mix(0, dt3, position[2]));
+        r = add_q15(r, Mix(0, dt3, 0xffff-position[2]));
+
+        l = add_q15(l, Mix(0, dt4, position[3]));
+        r = add_q15(r, Mix(0, dt4, 0xffff-position[3]));
     }
  private:
     inline int16_t ProcessAllPass(int16_t in, AllPassFilter *ap)
@@ -108,11 +112,11 @@ class Reverb2 {
     }
     inline int16_t DelayWobbleLookup(AllPassFilter *d)
     {
-        int16_t lfo = Interpolate824(wav_sine, d->phase);            
+        int16_t lfo = Interpolate824(wav_sine, d->phase);
         int32_t offset = ((int32_t)d->length*(int32_t)(lfo>>1));
         int16_t a = DelayTap(offset>>16, d);
         int16_t b = DelayTap((offset>>16)+1, d);
-        return Mix(a, b, offset&0xffff);
+        return Mix(a, b, lfo);
     }
     inline int16_t DelayProcessWobble(int16_t in, AllPassFilter *d)
     {
@@ -124,16 +128,17 @@ class Reverb2 {
     {
         int16_t delayed = d->buf[d->count];
         d->buf[d->count] = in;
-        if (++d->count > d->length-1)
-            d->count = 0;
+        d->count = (++d->count) % d->length;
         return delayed;
     }
     inline int16_t DelayTap(int16_t tap, AllPassFilter *d)
     {
         int offset = tap+d->count;
-        while (offset < 0)
-            offset += d->length;
-        return d->buf[offset%(d->length-1)];
+        if(offset > d->length-1)
+        {
+            offset -= d->length;
+        }
+        return d->buf[offset%d->length];
     }
 
     // int16_t TapAp(int tap, AllPassFilter *ap)
