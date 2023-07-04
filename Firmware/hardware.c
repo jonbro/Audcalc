@@ -141,7 +141,7 @@ void hardware_get_all_key_state(uint32_t *keyState)
     {
         // the mask here are the gpio pins for the colums
         gpio_put_masked(0x7c0, 1<<(col_pin_base+i));
-        sleep_us(2);
+        sleep_us(1);
         for (size_t j = 0; j < 5; j++)
         {
             int index = (i*5+j);

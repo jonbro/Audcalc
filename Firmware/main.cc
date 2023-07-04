@@ -313,32 +313,35 @@ int main()
             audioOutReady = false;
             mutex_exit(&audioProcessMutex);
         }
-        hardware_get_all_key_state(&keyState);
-        
-        // act on keychanges
-        for (size_t i = 0; i < 25; i++)
+        else
         {
-            uint32_t s = keyState & (1ul<<i);
-            if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
+            hardware_get_all_key_state(&keyState);
+            
+            // act on keychanges
+            for (size_t i = 0; i < 25; i++)
             {
-                gbox.OnKeyUpdate(i, s>0); 
+                uint32_t s = keyState & (1ul<<i);
+                if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
+                {
+                    gbox.OnKeyUpdate(i, s>0); 
+                }
             }
-        }
-        lastKeyState = keyState;
-        if(needsScreenupdate)
-        {
-            adc_select_input(1);
-            uint16_t adc_val = adc_read();
-            adc_select_input(0);
-            // I think that even though adc_read returns 16 bits, the value is only in the top 12
-            gbox.OnAdcUpdate(adc_val, adc_read());
-            hardware_update_battery_level();
-            queue_entry_complete_t result;
-            gbox.UpdateDisplay(GetDisplay());
-            ssd1306_show(GetDisplay());
-            ws2812_setColors(color+5);
-            needsScreenupdate = false;
-            ws2812_trigger();
+            lastKeyState = keyState;
+            if(needsScreenupdate)
+            {
+                adc_select_input(1);
+                uint16_t adc_val = adc_read();
+                adc_select_input(0);
+                // I think that even though adc_read returns 16 bits, the value is only in the top 12
+                gbox.OnAdcUpdate(adc_val, adc_read());
+                hardware_update_battery_level();
+                queue_entry_complete_t result;
+                gbox.UpdateDisplay(GetDisplay());
+                ssd1306_show(GetDisplay());
+                ws2812_setColors(color+5);
+                needsScreenupdate = false;
+                ws2812_trigger();
+            }
         }
     }
     return 0;
