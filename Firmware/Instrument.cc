@@ -14,6 +14,8 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     osc.set_parameters(0,0);
     envPhase = 0;
     svf.Init();
+    // svf.set_mode(SVF_MODE_HP);
+    // svf.set_punch(0);
     midi = _midi;
     phase_ = 0;    
     sampleOffset = 0;
@@ -414,7 +416,7 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
         retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
 
         int16_t fade = voiceData.GetParamValue(RetriggerFade, lastPressedKey, playingStep, playingPattern) << 7;
-        fade = (fade-0x4000)*2; // center at zero
+        fade = (fade-0x3fff)*-2; // center at zero
         
         // lets just fade out all the retriggers - so the retrigger volume multiplier starts at full, and fades down
         if(fade > 0)
