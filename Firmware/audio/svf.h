@@ -91,6 +91,7 @@ class Svf {
     lp_ += f * bp_ >> 15;
     CLIP(lp_)
     int32_t hp = notch - lp_;
+    CLIP(hp)
     bp_ += f * hp >> 15;
     CLIP(bp_)
     return mode_ == SVF_MODE_BP ? bp_ : (mode_ == SVF_MODE_HP ? hp : lp_);
