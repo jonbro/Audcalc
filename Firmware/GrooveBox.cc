@@ -709,7 +709,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             uint8_t paramLockSignal = storingParamLockForStep;
             if(holdingWrite)
                 paramLockSignal = patternStep[currentVoice];
-            patterns[currentVoice].DrawParamString(param, str, lastKeyPlayed, GetCurrentPattern(), 0x7f&paramLockSignal, (0x80&storingParamLockForStep) || holdingWrite);
+            patterns[currentVoice].DrawParamString(param, str, lastKeyPlayed, GetCurrentPattern(), 0x7f&paramLockSignal, 0x80&storingParamLockForStep);
         }
     }
     uint8_t fade_speed = 0xaf;
