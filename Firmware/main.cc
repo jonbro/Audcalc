@@ -51,7 +51,6 @@ using namespace braids;
 #define TLV_REG_RESET   	    1
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
-#define SAMPLES_PER_BUFFER 128
 #define USING_DEMO_BOARD 0
 // TDM board defines
 #if USING_DEMO_BOARD
@@ -303,10 +302,10 @@ int main()
         if(audioOutReady && audioInReady)
         {
             mutex_enter_blocking(&audioProcessMutex); 
-            for(int i=0;i<2;i++)
+            for(int i=0;i<BLOCKS_PER_SEND;i++)
             {
                 uint32_t *input = capture_buf+inBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
-                uint32_t *output = output_buf+outBufOffset*SAMPLES_PER_BUFFER+SAMPLES_PER_BLOCK*i;
+                uint32_t *output = output_buf+outBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
                 gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
             }
             audioInReady = false;

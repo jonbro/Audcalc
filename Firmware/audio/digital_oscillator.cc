@@ -196,7 +196,7 @@ void DigitalOscillator::RenderSawSwarm(
   }
   
   int32_t f = Interpolate824(lut_svf_cutoff, hp_cutoff << 17);
-  int32_t damp = lut_svf_damp[0];
+  int32_t damp = lut_svf_damp[2];
   int32_t bp = state_.saw.bp;
   int32_t lp = state_.saw.lp;
 

@@ -1450,7 +1450,7 @@ void GrooveBox::Deserialize()
 {
     // setup our song data
     songData.InitDefaults();
-
+    
     // should probably put this is some different class
     Serializer globalDataSerializer;
     globalDataSerializer.Init(GLOBAL_DATA_FILEID);

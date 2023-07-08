@@ -253,7 +253,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
         osc.set_pitch(pitchWithMods);
         osc.set_parameter_1(param1_withMods);
         osc.set_parameter_2(param2_withMods);
-        osc.Render(sync, buffer, size);
+        osc.Render(sync, buffer, SAMPLES_PER_BLOCK);
     }
     RenderGlobal(sync, buffer, size);
 }
@@ -268,6 +268,8 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         {
             buffer[i] = mult_q15(buffer[i], envval);
         }
+        // buffer[i] = Interpolate88(ws_violent_overdrive, buffer[i] + 32768);
+
         buffer[i] = svf.Process(buffer[i]);
         
         // not sure why distortion isn't working, revisit at some point
