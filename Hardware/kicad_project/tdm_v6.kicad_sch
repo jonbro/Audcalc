@@ -4058,7 +4058,7 @@
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062205c51"
       (reference "#PWR0110") (unit 1) (value "GND") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000621274d5"
+    (path "/00000000-0000-0000-0000-000062e6c628/7326dd5e-5428-4ed5-b172-568a317b1a2d"
       (reference "#PWR0111") (unit 1) (value "VSYS") (footprint "")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-000062134085"
@@ -4121,7 +4121,7 @@
     (path "/00000000-0000-0000-0000-00006366865e/5827115a-6ab9-404a-8cea-119b0193f369"
       (reference "#PWR0131") (unit 1) (value "GND") (footprint "")
     )
-    (path "/00000000-0000-0000-0000-00006366865e/1d3b1eaa-481a-49fb-bf9f-a25560ff6161"
+    (path "/00000000-0000-0000-0000-00006366865e/facd02e4-12db-4247-afb1-87548d6364e0"
       (reference "#PWR0132") (unit 1) (value "VSYS") (footprint "")
     )
     (path "/c382d125-ae4c-408c-9d8d-276ac77eab66"
@@ -4761,7 +4761,7 @@
       (reference "U3") (unit 1) (value "TLV320AIC3204") (footprint "Housings_DFN_QFN:QFN-32-1EP_5x5mm_Pitch0.5mm")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/00000000-0000-0000-0000-0000616c171a"
-      (reference "U4") (unit 1) (value "AP3722AT_mic") (footprint "RandomJunk:AP3722AT-SMD-mic")
+      (reference "U4") (unit 1) (value "WMM7037AT2_mic") (footprint "MyLibrary:LGA-4(3x3.8)")
     )
     (path "/00000000-0000-0000-0000-000062e6c628/6876a107-1280-48ec-955f-f32f8a5ce9c5"
       (reference "U5") (unit 1) (value "HCPL-0631") (footprint "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
