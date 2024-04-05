@@ -5,11 +5,11 @@
 	(uuid "f8e9fc00-8f60-4688-b1c9-6de1e4c0c204")
 	(paper "A4")
 	(title_block
-		(title "TDM")
-		(date "2021-09-17")
-		(rev "6")
-		(company "TWR")
-		(comment 1 "Pocket Sound Computer")
+		(title "Aud Calc")
+		(date "2024-04-04")
+		(rev "12")
+		(company "Jonathan Brodsky")
+		(comment 1 "Pocket Sound Calculator")
 	)
 	(lib_symbols
 		(symbol "Device:C"

@@ -5,11 +5,11 @@
 	(uuid "ff203a9b-3d2e-4e1d-a6f0-12d16e5120fb")
 	(paper "A4")
 	(title_block
-		(title "TDM")
-		(date "2021-09-17")
-		(rev "6")
-		(company "TWR")
-		(comment 1 "Pocket Sound Computer")
+		(title "Aud Calc")
+		(date "2024-04-04")
+		(rev "12")
+		(company "Jonathan Brodsky")
+		(comment 1 "Pocket Sound Calculator")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x02_Female"
@@ -7931,11 +7931,12 @@
 			)
 		)
 		(property "Description" ""
-			(at 76.2 54.61 0)
+			(at 81.28 29.21 0)
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -7991,16 +7992,6 @@
 		)
 		(property "DK_Detail_Page" ""
 			(at 81.28 31.75 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 81.28 29.21 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8204,11 +8195,12 @@
 			)
 		)
 		(property "Description" ""
-			(at 172.72 44.45 0)
+			(at 177.8 19.05 0)
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -8264,16 +8256,6 @@
 		)
 		(property "DK_Detail_Page" ""
 			(at 177.8 21.59 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 177.8 19.05 0)
 			(effects
 				(font
 					(size 1.524 1.524)
