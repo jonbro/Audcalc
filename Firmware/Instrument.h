@@ -57,7 +57,7 @@ class Instrument
           return panWithMods;
         }
         void GetParamString(uint8_t param, char *str);
-        void TempoPulse();
+        void TempoPulse(VoiceData &voiceData);
         void ClearRetriggers();
         MacroOscillator osc;
         uint8_t delaySend = 0;
@@ -120,13 +120,19 @@ class Instrument
         // (maybe I add a fine tune?)
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
-        int8_t playingMidiNotes[16];
+
+        struct MidiNoteState
+        {
+          int16_t ticksRemaining;
+          int8_t note;
+        };
+        
+        MidiNoteState midiNoteStates[16];
         EnvTargets env1Target, env2Target;
         LfoTargets lfo1Target;
         int16_t pitch;
         q15_t env1Depth, env2Depth;
         q15_t distortionAmount;
-        uint8_t currentMidiNote;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2;
         uint16_t lastenvval = 0, lastenv2val = 0;

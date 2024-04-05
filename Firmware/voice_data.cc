@@ -121,7 +121,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         switch(param)
         {
             case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
-            case PlayingMidiNotes: return HasLockForStep(step, pattern, PlayingMidiNotes, value)?value:internalData.color;
+            case MidiHold: return HasLockForStep(step, pattern, MidiHold, value)?value:internalData.color;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -597,9 +597,15 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
         {
             case 5:
                 sprintf(strA, "Vel");
-                sprintf(strB, "NNte");
+                sprintf(strB, "Hold");
                 lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Timbre, internalData.timbre, pA);
-                lockB = CheckLockAndSetDisplay(showForStep, step, pattern, Color, internalData.color, pB);
+                if(showForStep && HasLockForStep(step, pattern, Color, valB))
+                {
+                    sprintf(pB, "%s", (valB>>4)+1);
+                    lockB = true;
+                }
+                else
+                    sprintf(pB, "%i", (internalData.color>>4)+1);
                 return;
             // 0
             case 23:

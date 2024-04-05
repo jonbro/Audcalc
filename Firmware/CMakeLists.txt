@@ -37,7 +37,7 @@ add_executable(tdm
         main.cc
         multicore_support.c
         # usb_audio.c
-        # usb_descriptors.c
+        usb_descriptors.c
         diagnostics.cc
         GrooveBox.cc
         GrooveBoxTestUtils.cc

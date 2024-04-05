@@ -1,27 +1,52 @@
 #include "SongData.h"
 #include "m6x118pt7b.h"
 
-SyncOutMode SongData::GetSyncOutMode(){
+SyncMode SongData::GetSyncOutMode(){
     uint8_t bareSyncMode = ((((uint16_t)internalData.syncOut)*6) >> 8);
-    SyncOutMode mode = SyncOutModeNone;
+    SyncMode mode = SyncModeNone;
     switch(bareSyncMode)
     {
         case 1:
-            mode = SyncOutModeMidi;
+            mode = SyncModeMidi;
             break;
         case 2:
-            mode = (SyncOutMode)(SyncOutModeMidi | SyncOutModePO);
+            mode = (SyncMode)(SyncModeMidi | SyncModePO);
             break;
         case 3:
-            mode = (SyncOutMode)(SyncOutModeMidi | SyncOutMode24);
+            mode = (SyncMode)(SyncModeMidi | SyncMode24);
             break;
         // PO
         case 4:
-            mode = SyncOutModePO;
+            mode = SyncModePO;
             break;
         // Volca
         case 5:
-            mode = SyncOutMode24;
+            mode = SyncMode24;
+            break;
+    }
+    return mode;
+}
+SyncMode SongData::GetSyncInMode(){
+    uint8_t bareSyncMode = ((((uint16_t)internalData.syncIn)*6) >> 8);
+    SyncMode mode = SyncModeNone;
+    switch(bareSyncMode)
+    {
+        case 1:
+            mode = SyncModeMidi;
+            break;
+        case 2:
+            mode = (SyncMode)(SyncModeMidi | SyncModePO);
+            break;
+        case 3:
+            mode = (SyncMode)(SyncModeMidi | SyncMode24);
+            break;
+        // PO
+        case 4:
+            mode = SyncModePO;
+            break;
+        // Volca
+        case 5:
+            mode = SyncMode24;
             break;
     }
     return mode;
@@ -33,10 +58,17 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
     {
         case 1*2:
             return internalData.changeLength[pattern];
+        
         case 19*2:
             return internalData.bpm;
         case 19*2+1:
             return internalData.syncOut;
+
+        case 19*2+(25*2):
+            return internalData.bpm;
+        case 19*2+1+(25*2):
+            return internalData.syncIn;
+
         case 22*2+(25*2): // this offset to the next page must also be doubled
             return internalData.delayFeedback;
         case 22*2+(25*2)+1: // this offset to the next page must also be doubled
@@ -144,8 +176,14 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
         case 19:
             sprintf(strA, "bpm");
             sprintf(pA, "%i", internalData.bpm+1);
-            sprintf(strB, "Sync");
+            sprintf(strB, "SncO");
             sprintf(pB,syncOutStrings[(internalData.syncOut*6)>>8]);
+            break;
+        case 19+25:
+            sprintf(strA, "bpm");
+            sprintf(pA, "%i", internalData.bpm+1);
+            sprintf(strB, "SncI");
+            sprintf(pB,syncOutStrings[(internalData.syncIn*6)>>8]);
             break;
         case 24:
             sprintf(strA, "Octv");

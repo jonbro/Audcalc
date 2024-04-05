@@ -10,11 +10,11 @@ extern "C" {
 #include <pb_encode.h>
 #include <pb_decode.h>
 
-enum SyncOutMode { 
-    SyncOutModeNone = 0,
-    SyncOutModeMidi = 1 << 0,
-    SyncOutModePO   = 1 << 1,
-    SyncOutMode24   = 1 << 2,
+enum SyncMode { 
+    SyncModeNone = 0,
+    SyncModeMidi = 1 << 0,
+    SyncModePO   = 1 << 1,
+    SyncMode24   = 1 << 2,
 };
 
 class SongData
@@ -31,6 +31,7 @@ class SongData
                 internalData.changeLength[i] = 15*4; // need to up this to fit into 0xff
             }
             internalData.syncOut = 0x2b; // this is equal to mode 1
+            internalData.syncIn = 0x0; // this is equal to mode 1
             internalData.bpm = 119;
             internalData.delayFeedback  = 0x7f;
             internalData.delayTime      = 0x7f;
@@ -50,7 +51,8 @@ class SongData
         uint8_t GetRoot();
         uint8_t GetBpm();
         uint8_t GetScale();
-        SyncOutMode GetSyncOutMode();
+        SyncMode GetSyncOutMode();
+        SyncMode GetSyncInMode();
         void DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t octave);
         uint8_t& GetParam(uint8_t param, uint8_t pattern);
 

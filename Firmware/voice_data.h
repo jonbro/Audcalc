@@ -65,7 +65,7 @@ enum ParamType {
     SampleIn = 10,
     Color = 11,
     SampleOut = 11,
-    PlayingMidiNotes = 11,
+    MidiHold = 11,
     Cutoff = 12,
     Resonance = 13,
     Volume = 14,

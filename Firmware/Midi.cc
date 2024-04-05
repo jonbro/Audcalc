@@ -3,6 +3,7 @@
 #include "hardware/dma.h"
 #include <stdio.h>
 #include <string.h>
+#include "tusb.h"
 
 #define UART_ID uart1
 #define BAUD_RATE 31250
@@ -59,6 +60,8 @@ void Midi::Init()
 
 uint16_t Midi::Write(const uint8_t* data, uint16_t length)
 {
+    tud_midi_stream_write(0, data, length);
+
     if (!initialized || length == 0) {
         return 0;
     }
@@ -142,25 +145,26 @@ void Midi::NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity)
 {
     uint8_t send[] = {0x90+channel,pitch,velocity};
     Write(send, 3);
-    // Flush();
 }
 
 void Midi::NoteOff(uint8_t channel, uint8_t pitch)
 {
     uint8_t send[] = {0x90+channel,pitch,0};
     Write(send, 3);
-    // Flush();
 }
 
 void Midi::StartSequence()
 {
-    uart_putc_raw(UART_ID, 0xFA);
+    uint8_t sendValue = 0xFA;
+    Write(&sendValue, 1);
 }
 void Midi::StopSequence()
 {
-    uart_putc_raw(UART_ID, 0xFC);
+    uint8_t sendValue = 0xFC;
+    Write(&sendValue, 1);
 }
 void Midi::TimingClock()
 {
-    uart_putc_raw(UART_ID, 0xF8);
+    uint8_t sendValue = 0xF8;
+    Write(&sendValue, 1);
 }

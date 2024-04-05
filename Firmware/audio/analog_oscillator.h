@@ -52,7 +52,7 @@ enum AnalogOscillatorShape {
   OSC_SHAPE_BUZZ
 };
 
-enum SyncMode {
+enum OscSyncMode {
   OSCILLATOR_SYNC_MODE_OFF,
   OSCILLATOR_SYNC_MODE_MASTER,
   OSCILLATOR_SYNC_MODE_SLAVE

@@ -41,6 +41,7 @@ extern "C" {
 #include "diagnostics.h"
 #include "multicore_support.h"
 #include "GlobalDefines.h"
+#include "bsp/board.h"
 
 using namespace braids;
 
@@ -238,16 +239,41 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
+// Variable that holds the current position in the sequence.
+uint32_t note_pos = 0;
+
+// Store example melody as an array of note values
+uint8_t note_sequence[] =
+{
+  74,78,81,86,90,93,98,102,57,61,66,69,73,78,81,85,88,92,97,100,97,92,88,85,81,78,
+  74,69,66,62,57,62,66,69,74,78,81,86,90,93,97,102,97,93,90,85,81,78,73,68,64,61,
+  56,61,64,68,74,78,81,86,90,93,98,102
+};
+void midi_task(void)
+{
+  // The MIDI interface always creates input and output port/jack descriptors
+  // regardless of these being used or not. Therefore incoming traffic should be read
+  // (possibly just discarded) to avoid the sender blocking in IO
+  uint8_t packet[4];
+  while ( tud_midi_available() ) tud_midi_packet_read(packet);
+
+}
+
+
+
 int main()
 {
     stdio_init_all();
+    board_init();
+    tusb_init();
+
     hardware_init();
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            hardware_shutdown();
+            //hardware_shutdown();
         }
         if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
         {
@@ -299,6 +325,8 @@ int main()
     int lostCount = 0;
     while(true)
     {
+        tud_task(); // tinyusb device task
+        midi_task(); // read and clear incoming midi
         if(audioOutReady && audioInReady)
         {
             mutex_enter_blocking(&audioProcessMutex); 
@@ -336,6 +364,7 @@ int main()
                 hardware_update_battery_level();
                 queue_entry_complete_t result;
                 gbox.UpdateDisplay(GetDisplay());
+                // hardware_has_usb_power(); // this call just turns on the green debug led currently
                 ssd1306_show(GetDisplay());
                 ws2812_setColors(color+5);
                 needsScreenupdate = false;

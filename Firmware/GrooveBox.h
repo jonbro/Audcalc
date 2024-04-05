@@ -73,7 +73,35 @@ class GrooveBox {
     beatCounter[17] = 0;
   }
   void OnCCChanged(uint8_t cc, uint8_t newValue);
-
+  static int getTickCountForRateIndex(int rate)
+  {
+    switch(rate)
+    {
+      case 0: // 2x
+        return 12;
+      case 1: // 3/2x
+        return 16;
+        break;
+      case 2: // 1x
+        return 24;
+        break;
+      case 3: // 3/4x
+        return 32;
+        break;
+      case 4: // 1/2x
+        return 48;
+        break;
+      case 5: // 1/4x
+        return 96;
+        break;
+      case 6: // 1/8x
+        return 192;
+        break;
+      case 7: // 24ppq
+        return 4;
+    }
+    return 24;
+  }
  private:
   USBSerialDevice *usbSerialDevice;
   MidiParamMapper midiMap;
@@ -83,6 +111,8 @@ class GrooveBox {
   void TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
+  void StartPlaying();
+  void OnTempoPulse();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];
@@ -93,8 +123,9 @@ class GrooveBox {
   uint8_t lastKeyPlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
-  uint8_t beatCounter[19] = {0};
+  uint8_t beatCounter[20] = {0};
   bool playing = false;
+  bool waitingForSync = false;
   bool writing = false;
   bool holdingWrite = false;
   bool holdingEscape = false;
