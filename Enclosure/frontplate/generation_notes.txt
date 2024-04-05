@@ -1,0 +1,11 @@
+### Frontplate generation notes
+
+sorry, non free software. Hopefully it keeps working for a while. I'll include SVGs of the frontplate so it can continue to be edited.
+
+export the mask and silkscreen groups to pngs that are 5119x7875 (aka 2000dpi)
+
+import into kicad using the image converter tool. Use the output size settings  to 65mm / 100.1mm (set lock height width ratio).
+
+for both images, you will need to use the "negative" button to invert correctly.
+
+in the pcb editor, double click on the footprints, then update from library. You may need to disable layers so you can correctly double click on the soldermask footprint.
