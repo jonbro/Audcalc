@@ -1,4 +1,12 @@
-#include "ws2812.h"
+/**
+ * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+// originally https://github.com/raspberrypi/pico-examples/blob/master/pio/ws2812/ws2812_parallel.c
+
+ #include "ws2812.h"
 
 #define FRAC_BITS 4
 #define NUM_PIXELS 25

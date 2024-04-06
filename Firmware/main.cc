@@ -29,8 +29,6 @@ extern "C" {
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 
-#include "usb_microphone.h"
-
 #include "filesystem.h"
 #include "ws2812.h"
 #include "hardware.h"

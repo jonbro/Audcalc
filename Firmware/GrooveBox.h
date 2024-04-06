@@ -16,7 +16,6 @@ extern "C" {
 #include "hardware.h"
 #include "voice_data.h"
 #include "SongData.h"
-#include "usb_microphone.h"
 #include "audio/resources.h"
 #include "Reverb2.h"
 #include "Delay.h"

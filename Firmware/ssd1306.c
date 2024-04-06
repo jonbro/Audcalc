@@ -1,6 +1,6 @@
 /*
 
-MIT License
+Original code https://github.com/daschr/pico-ssd1306
 
 Copyright (c) 2021 David Schramm
 
@@ -22,6 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+// jonathan brodsky modified the original code to add support for non-blocking / dma screen writing
 
 #include <pico/stdlib.h>
 #include <hardware/i2c.h>
