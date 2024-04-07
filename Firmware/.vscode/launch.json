@@ -3,27 +3,20 @@
     "configurations": [
         {
             "name": "Pico Debug",
+            "type":"cortex-debug",
             "cwd": "${workspaceRoot}",
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
-            "type":"cortex-debug",
             "servertype": "external",
-            "gdbPath" : "arm-none-eabi-gdb",
-            "gdbTarget" : "\\\\.\\COM14",
-            "device": "RP2040",
-            "breakAfterReset": true,
             // Connect to an already running OpenOCD instance
+            "gdbTarget": "localhost:3333",
             "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/rp2040.svd",
-            "postLaunchCommands": [
-                "break main", "continue", "clear main",
-            ],
-            // With breakAfterReset we have a consistent approach so can use the same
-            // commands to get us to main after a restart...
-            "postRestartCommands": [
-                "break main",
-                "continue",
-                "clear main"
-            ]
+            "runToMain": true,
+            // Work around for stopping at main on restart
+            //"postRestartCommands": [
+            //    "break main",
+            //    "continue"
+            //]
         }
     ]
 }
