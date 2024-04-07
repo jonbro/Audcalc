@@ -157,8 +157,8 @@ const char *scaleStrings[9] = {
 void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t octave)
 {
     ssd1306_t* disp = GetDisplay();
-    uint8_t width = 36;
-    uint8_t column4 = 128-width;
+    const uint8_t width = 36;
+    const uint8_t column4 = 128-width;
     bool lockA = false, lockB = false;
     char *strA = str;
     char *strB = str+16;

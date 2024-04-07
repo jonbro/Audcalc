@@ -271,7 +271,7 @@ int main()
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            //hardware_shutdown();
+            hardware_shutdown();
         }
         if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
         {
@@ -282,7 +282,13 @@ int main()
             hardware_reboot_usb();
         }
     }
+
     ws2812_init();
+    uint32_t color[25];
+    memset(color, 0, 25 * sizeof(uint32_t));
+    ws2812_setColors(color+5);
+    ws2812_trigger();
+
     
     queue_init(&signal_queue, sizeof(queue_entry_t), 3);
     queue_init(&complete_queue, sizeof(queue_entry_complete_t), 2);
@@ -292,12 +298,36 @@ int main()
     result.renderInstrumentComplete = false;
     queue_add_blocking(&complete_queue, &result);
     multicore_launch_core1(draw_screen);
+    struct repeating_timer timer;
+    struct repeating_timer timer2;
 
+    // requires some looping to get a good startup battery reading
+    for(int i=0;i<100;i++)
+    {
+        sleep_ms(1);
+        hardware_update_battery_level();
+    }
+
+    if(!hardware_has_usb_power() && hardware_get_battery_level_float() < 3.6f)
+    {
+        // display low battery, then shutdown
+        add_repeating_timer_ms(-33, repeating_timer_callback, NULL, &timer);
+        while(true)
+        {
+            tud_task(); // tinyusb device task
+            midi_task(); // read and clear incoming midi
+            if(needsScreenupdate)
+            {
+                gbox.LowBatteryDisplay  (GetDisplay());
+                // hardware_has_usb_power(); // this call just turns on the green debug led currently
+                ssd1306_show(GetDisplay());
+                needsScreenupdate = false;
+            }
+        }
+    }
     // if the user is holding down specific keys on powerup, then clear the full file system
     InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 
-    uint32_t color[25];
-    memset(color, 0, 25 * sizeof(uint32_t));
     //usbSerialDevice.Init();
     gbox.init(color);
 
@@ -312,9 +342,7 @@ int main()
     uint32_t keyState = 0;
     uint32_t lastKeyState = 0;
 
-    struct repeating_timer timer;
     add_repeating_timer_ms(-33, repeating_timer_callback, NULL, &timer);
-    struct repeating_timer timer2;
 
     adc_select_input(0);
     int16_t touchCounter = 0x7fff;

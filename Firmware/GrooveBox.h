@@ -31,6 +31,7 @@ class GrooveBox {
   void OnKeyUpdate(uint key, bool pressed);
   bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void UpdateDisplay(ssd1306_t *p);
+  void LowBatteryDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
   bool IsPlaying();
@@ -102,6 +103,8 @@ class GrooveBox {
     return 24;
   }
  private:
+  void LowBatteryDisplayInternal(ssd1306_t *p);
+  void SaveAndShutdown();
   USBSerialDevice *usbSerialDevice;
   MidiParamMapper midiMap;
   int8_t needsInitialADC = 30; 
@@ -133,6 +136,7 @@ class GrooveBox {
   uint8_t recordingTarget = 0;
   int clearTime = -1;
   int shutdownTime = -1;
+  int powerHoldTime = -1;
   bool liveWrite = false;
   bool soundSelectMode = false;
   bool patternSelectMode = false;

@@ -24,6 +24,7 @@ void hardware_get_all_key_state(uint32_t *keystate);
 i2c_dma_t* hardware_get_i2c();
 
 uint8_t hardware_get_battery_level();
+float hardware_get_battery_level_float();
 bool hardware_has_usb_power();
 void hardware_update_battery_level();
 void hardware_set_mic(bool mic_state);

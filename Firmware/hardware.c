@@ -25,7 +25,7 @@ void hardware_init()
     gpio_init(BLINK_PIN_LED);
     gpio_set_dir(BLINK_PIN_LED, GPIO_OUT);
     // gpio_put(BLINK_PIN_LED, true);
-    set_sys_clock_khz(250000, true);
+    set_sys_clock_khz(200000, true);
 
     adc_init();
     adc_gpio_init(26);
@@ -33,8 +33,8 @@ void hardware_init()
     adc_gpio_init(28);
 
     gpio_init(USB_POWER_SENSE);
-    // this pin needs to be set as an out, otherwise I get jacked up results on my adc
-    gpio_set_dir(USB_POWER_SENSE, GPIO_OUT);
+    // in the past I had issues with bad ADC values when this was set to in - keep an eye on this
+    gpio_set_dir(USB_POWER_SENSE, GPIO_IN);
     gpio_pull_down(USB_POWER_SENSE);
 
     // power switch / key 1,1
@@ -165,21 +165,18 @@ uint8_t hardware_get_battery_level()
 
 void hardware_update_battery_level()
 {
-    return;
     adc_select_input(2);
-    //printf("battery level: %i\n", battery_level);
-        
-    const float conversion_factor = 2.5f / (1 << 8);
-    uint16_t result = adc_read();
-    //printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor * 2.3368f);
-
     battery_level = adc_read()>>4;
+}
+float hardware_get_battery_level_float()
+{
+    const float conversion_factor = 2.5f / (1 << 8) * 3.1f;
+    return battery_level * conversion_factor;
 }
 bool hardware_has_usb_power()
 {
-    return true;
     bool res = gpio_get(USB_POWER_SENSE);
-    gpio_put(BLINK_PIN_LED, res);
+    // gpio_put(BLINK_PIN_LED, res);
     return res;
 }
 

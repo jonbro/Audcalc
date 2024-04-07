@@ -559,6 +559,44 @@ bool GrooveBox::IsPlaying()
 }
 
 uint32_t screen_lfo_phase = 0;
+void GrooveBox::LowBatteryDisplay(ssd1306_t *p)
+{
+    drawCount++;
+    LowBatteryDisplayInternal(p);
+    // after a few seconds, force shutdown the system
+    const int sixseconds = 30*6;
+    if(drawCount > sixseconds)
+        hardware_shutdown();
+}
+void GrooveBox::LowBatteryDisplayInternal(ssd1306_t *p)
+{
+    // blink the low battery indicator for 2 seconds every 20 seconds
+    const int eightseconds = 30*8;
+    const int twoseconds = 30*2;
+    if(drawCount%eightseconds<twoseconds)
+    {
+        // low battery display
+        ssd1306_clear_square(p, 0, 0, 45, 16);
+        ssd1306_draw_square_rounded(p, 2, 2, 36, 12);
+        // bump at the top of the battery
+        ssd1306_draw_square_rounded(p, 35, 5, 6, 6);
+        ssd1306_clear_square_rounded(p, 34, 6, 6, 4);
+        // clear center of battery
+        ssd1306_clear_square_rounded(p, 3, 3, 34, 10);
+
+        // battery fill
+        if(drawCount%20>10)
+            ssd1306_draw_square_rounded(p, 4, 4, 6, 8);
+    }
+}
+void GrooveBox::SaveAndShutdown()
+{
+    // store song here
+    erasing = true;
+    driver_set_mute(true);
+    Serialize();
+    hardware_shutdown();
+}
 void GrooveBox::UpdateDisplay(ssd1306_t *p)
 {
     drawCount++;
@@ -570,13 +608,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     #define FIVEMINS 0x4650>>1
     #define TWENTYMINS 0x11940>>1
     bool disableAutoShutdown = false;
-    if(!disableAutoShutdown && (!IsPlaying() && framesSinceLastTouch > TWOMINS) || (IsPlaying() && framesSinceLastTouch > TWENTYMINS))
+    if(!disableAutoShutdown && (!IsPlaying() && framesSinceLastTouch > TWENTYMINS))
     {
-        // store song here
-        erasing = true;
-        driver_set_mute(true);
-        Serialize();
-        hardware_shutdown();
+        SaveAndShutdown();
     }
     // if(usbSerialDevice->NeedsSongData())
     // {
@@ -596,13 +630,16 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     //     ssd1306_draw_square(p, 0,0,3,3);
     // }
 
-    // const float conversion_factor = 2.5f / (1 << 8);
-    // //printf("raw: 0x%03x, volt: %f V\n", result, result * conversion_factor * 2.3368f);
+    //printf("raw: 0x%03x, volt: %f V\n", result, result * conversion_factor * 2.3368f);
+    // 3.1f here is a number that I just typed in until it lined up correctly with the measurement from the board
+    // but I don't actually understand if this is the correct number or not?
+    // and even worse, at one point I had 2.34 in here, and I assume that number came from the same procedure
+    // so whats the correct number? no idea.
 
-    // sprintf(str, "r 0x%03x, v %f", hardware_get_battery_level(), hardware_get_battery_level() * conversion_factor * 2.34f);
+    // sprintf(str, "%ir%02x, v%f",  hardware_has_usb_power()?1:0, hardware_get_battery_level(), hardware_get_battery_level() * conversion_factor * 3.1f);
     // ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-    // return;
-
+    // // sprintf(str, "%i",);
+    // // ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
     if(clearTime > 0 && holdingEscape)
     {
         sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/30);
@@ -678,10 +715,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         shutdownTime--;  
         if(shutdownTime == 0)
         {
-            erasing = true;
-            driver_set_mute(true);
-            Serialize();
-            hardware_shutdown();
+            SaveAndShutdown();
         }
         return;
     }
@@ -896,7 +930,34 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
     }
     hadTrigger = 0;
-    
+    if(!hardware_has_usb_power())
+    {
+        float bLev = hardware_get_battery_level_float();
+        if(bLev < 3.6f)
+        {
+            SaveAndShutdown();
+        }
+        else if(bLev < 3.7f)
+        {
+            LowBatteryDisplayInternal(p);
+        }
+        
+    }
+    if(soundSelectMode)
+    {
+        powerHoldTime++;
+        if(powerHoldTime > 30*2)
+        {
+            ssd1306_clear_square(p, 0, 0, 45, 16);
+            sprintf(str, "v:%.2f",  hardware_get_battery_level_float());
+            ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        }
+    }
+    else
+    {
+        powerHoldTime = -1;
+    }
+
     // uint16_t param = instruments[currentVoice%4+(currentVoice/8)*4].pWithMods;
 
     // ssd1306_draw_square(p, 0, 0, param>>8, 1);
