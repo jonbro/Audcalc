@@ -294,7 +294,7 @@ int main()
     multicore_launch_core1(draw_screen);
 
     // if the user is holding down specific keys on powerup, then clear the full file system
-    InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4));
+    InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 
     uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));

@@ -36,6 +36,9 @@ void Serializer::Erase()
 
 void Serializer::FlushToFlash()
 {
-    ffs_append(GetFilesystem(), &writeFile, data, 256);
+    if(ffs_append(GetFilesystem(), &writeFile, data, 256) < 0)
+    {
+        printf("flush to flash failed\n");
+    }
     memset(data, 0, 256);
 }

@@ -43,16 +43,17 @@ ffs_filesystem* GetFilesystem()
     return &filesystem;
 }
 
-void InitializeFilesystem(bool fullClear)
+void InitializeFilesystem(bool fullClear, uint32_t empty_search_offset)
 {
     // file system should be sound, don't need to erase
     if(fullClear)
-        file_erase(0, 16*1024*1024-0x40000);
+        file_erase(0, 16*1024*1024-FS_START);
     ffs_cfg cfg = {
         .erase = file_erase,
         .read = file_read,
         .write = file_write,
-        .size = 16*1024*1024-0x40000
+        .size = 16*1024*1024-FS_START,
+        .empty_search_offset = empty_search_offset
     };
     ffs_mount(&filesystem, &cfg, fs_work_buf);
 

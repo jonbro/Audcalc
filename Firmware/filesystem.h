@@ -26,7 +26,7 @@ very limited file system, but I have different requirements:
 */
 
 #define BLOCK_SIZE 0x1000
-#define EMPTY_JUMP_PAGE 0xffffffff
+#define EMPTY_BLOCK 0xffffffff
 
 typedef struct
 {
@@ -35,6 +35,7 @@ typedef struct
     int      (*write)  (uint32_t offset, size_t size, void *buffer);
     uint32_t offset;
     uint32_t size;
+    uint32_t empty_search_offset; // used to describe where searching for empty blocks starts, provide a random number to get some amount of flash leveling
 } ffs_cfg;
 
 typedef struct
@@ -56,16 +57,16 @@ typedef struct
    uint32_t offset;
    uint32_t size;
    void     *work_buf;
+   uint32_t empty_search_offset; // used to describe where searching for empty blocks starts, provide a random number to get some amount of flash leveling
 } ffs_filesystem;
 
 typedef struct 
 {
     uint16_t    object_id;
     uint16_t    written_page_mask;
-    uint32_t    jump_page; // should rename to "next block"
+    uint32_t    next_block; // should rename to "next block"
     uint32_t    prior_block;
     uint8_t     initial_page;
-    uint32_t    block_logical_start;
 } ffs_blockheader;
 
 
@@ -99,12 +100,16 @@ FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file);
 // no formatting, we assume things have been cleaned up for us in advance of writing
 FFS_DEF int ffs_mount(ffs_filesystem *fs, const ffs_cfg *cfg, void *work_buf)
 {
+    // empty search offset needs to be aligned to the block size
+    uint32_t empty_search_offset_aligned = cfg->empty_search_offset+(BLOCK_SIZE-cfg->empty_search_offset%BLOCK_SIZE);
+    empty_search_offset_aligned = empty_search_offset_aligned%cfg->size;
     // copy cfg into our filesystem
     fs->erase = cfg->erase;
     fs->write = cfg->write;
     fs->read = cfg->read;
     fs->offset = cfg->offset;
     fs->size = cfg->size;
+    fs->empty_search_offset = empty_search_offset_aligned;
     fs->work_buf = work_buf;
 }
 
@@ -121,6 +126,11 @@ static int16_t ffs_find_empty_page(ffs_blockheader *blockheader)
         }
     }
     return foundPage;
+}
+
+inline FFS_DEF uint32_t ffs_file_current_block_logical_start(ffs_filesystem *fs, ffs_file *file)
+{
+    return file->logical_read_offset-(file->logical_read_offset%(256*15));
 }
 
 FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
@@ -152,9 +162,9 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             {
                 file->filesize+=15*256;
             }
-            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
+            while(blockHeader.next_block != EMPTY_BLOCK)
             {
-                fs->read(blockHeader.jump_page, sizeof(ffs_blockheader), &blockHeader);
+                fs->read(blockHeader.next_block, sizeof(ffs_blockheader), &blockHeader);
                 int writtenPages = ffs_find_empty_page(&blockHeader);
                 if(writtenPages >= 0)
                 {
@@ -178,17 +188,18 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     return 0;
 }
 
-static int ffs_find_empty(ffs_filesystem *fs)
+static int ffs_find_empty_block(ffs_filesystem *fs, uint32_t search_start)
 {
     uint32_t block_offset = 0;
     ffs_blockheader blockHeader;
     while(block_offset < fs->size)
     {
-        fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
+        uint32_t block_offset_with_random = (block_offset + fs->empty_search_offset + search_start) % fs->size;
+        fs->read(block_offset_with_random, sizeof(ffs_blockheader), &blockHeader);
         // find empty block?
         if(blockHeader.object_id == 0xffff)
         {
-            return block_offset;
+            return block_offset_with_random;
         }
         block_offset += BLOCK_SIZE;
     }
@@ -202,17 +213,17 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
     if(!file->initialized)
     {
         // find a new empty block to write into
-        int block_offset = ffs_find_empty(fs);
+        int block_offset = ffs_find_empty_block(fs, 0);
         if(block_offset < 0)
         {
             return -1;
         }
         blockHeader.object_id = file->object_id;
         blockHeader.initial_page = true;
-        blockHeader.jump_page = EMPTY_JUMP_PAGE;
-        blockHeader.prior_block = EMPTY_JUMP_PAGE;
+        blockHeader.next_block = EMPTY_BLOCK;
+        blockHeader.prior_block = EMPTY_BLOCK;
         blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
-        blockHeader.block_logical_start = 0;
+        //blockHeader.block_logical_start = 0;
         // we are wasting a crapton of space here, but its ok?
         // easier just to waste and keep everything aligned rather than doing a bunch of copies at this point
 
@@ -242,9 +253,9 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
             // look for last block
             if(blockHeader.object_id == file->object_id)
             {
-                if(blockHeader.jump_page != 0xffffffff)
+                if(blockHeader.next_block != 0xffffffff)
                 {
-                    block_offset = blockHeader.jump_page;
+                    block_offset = blockHeader.next_block;
                     continue;
                 }
                 int foundPage = -1;
@@ -260,22 +271,22 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
                 if(foundPage < 0)
                 {
                     // this block has been filled, find a new empty block to write into
-                    int empty = ffs_find_empty(fs);
+                    int empty = ffs_find_empty_block(fs, 0);
                     if(empty < 0)
                     {
                         return -1;
                     }
-                    blockHeader.jump_page = empty;
+                    blockHeader.next_block = empty;
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
                     fs->write(block_offset, 256, fs->work_buf);
 
-                    uint32_t last_logical_start = blockHeader.block_logical_start;
+                    //uint32_t last_logical_start = blockHeader.block_logical_start;
                     // clear block header and write into new empty page
-                    blockHeader.jump_page = EMPTY_JUMP_PAGE;
+                    blockHeader.next_block = EMPTY_BLOCK;
                     blockHeader.object_id = file->object_id;
                     blockHeader.written_page_mask = 0xffff;
-                    blockHeader.block_logical_start = last_logical_start+15*256;
+                    //blockHeader.block_logical_start = last_logical_start+15*256;
                     blockHeader.prior_block = block_offset;
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));
@@ -315,9 +326,9 @@ FFS_DEF int __not_in_flash_func(ffs_erase)(ffs_filesystem *fs, ffs_file *file)
         {
             fs->erase(block_offset, BLOCK_SIZE);
             // use jumps to erase the rest
-            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
+            while(blockHeader.next_block != EMPTY_BLOCK)
             {
-                block_offset = blockHeader.jump_page;
+                block_offset = blockHeader.next_block;
                 fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
                 fs->erase(block_offset, BLOCK_SIZE);
             }
@@ -361,11 +372,11 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     ffs_blockheader blockHeader;
 
     fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
-
-    if(position >= blockHeader.block_logical_start)
+    uint32_t current_block_logical_start = ffs_file_current_block_logical_start(fs, file);
+    if(position >= current_block_logical_start)
     {
         // seeking forward
-        if(position-blockHeader.block_logical_start < 256*15)
+        if(position-current_block_logical_start < 256*15)
         {
             // if the read position is within the current block, we can just move things forward
             file->logical_read_offset = position;
@@ -374,11 +385,12 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         else
         {
             // we are going forward to a later block
-            while(blockHeader.jump_page != EMPTY_JUMP_PAGE)
+            while(blockHeader.next_block != EMPTY_BLOCK)
             {
-                file->current_block = blockHeader.jump_page;
+                file->current_block = blockHeader.next_block;
                 fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
-                if(position-blockHeader.block_logical_start < 256*15)
+                current_block_logical_start += 256*15;
+                if(position-current_block_logical_start < 256*15)
                 {
                     // if the read position is within the current block, we can just move things forward
                     file->logical_read_offset = position;
@@ -393,11 +405,12 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     else
     {
         // seeking backwards
-        while(blockHeader.prior_block != EMPTY_JUMP_PAGE)
+        while(blockHeader.prior_block != EMPTY_BLOCK)
         {
             file->current_block = blockHeader.prior_block;
             fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
-            if(position-blockHeader.block_logical_start < 256*15)
+            current_block_logical_start -= 256*15;
+            if(position-current_block_logical_start < 256*15)
             {
                 // if the read position is within the current block, we can just move things forward
                 file->logical_read_offset = position;
@@ -411,6 +424,7 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
     }
     
 }
+
 
 inline FFS_DEF int ffs_file_size(ffs_filesystem *fs, ffs_file *file)
 {
@@ -430,10 +444,12 @@ FFS_DEF int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t si
 
     fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
     assert(blockHeader.object_id == file->object_id);
+    assert(file->logical_read_offset >= blockHeader.block_logical_start);
 
-    int read_position = file->logical_read_offset-blockHeader.block_logical_start;    
+    int read_position = file->logical_read_offset-ffs_file_current_block_logical_start(fs, file);    
     // clamp the read amount to the remaining in the block
     int next_read_amount = (read_position+size>256*15)?256*15-read_position:size;
+    //printf("position: %i %i\n", read_position, next_read_amount);
     fs->read(read_position+file->current_block+256, next_read_amount, buffer);
     if(size-next_read_amount>0)
     {
@@ -457,7 +473,7 @@ int file_write(uint32_t offset, size_t size, void *buffer);
 int file_erase(uint32_t offset, size_t size);
 
 void TestFileSystem();
-void InitializeFilesystem(bool fullClear);
+void InitializeFilesystem(bool fullClear, uint32_t empty_search_offset);
 
 typedef struct 
 {
