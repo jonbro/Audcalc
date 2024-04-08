@@ -10995,7 +10995,7 @@
 				)
 			)
 		)
-		(property "Value" "spst_4_pin_internal"
+		(property "Value" "spst_4_pin_internal_side"
 			(at 97.79 77.4954 0)
 			(effects
 				(font
@@ -11086,7 +11086,7 @@
 				)
 			)
 		)
-		(property "Value" "LEDGreen"
+		(property "Value" "LEDYellow"
 			(at 269.4178 140.335 0)
 			(effects
 				(font
@@ -11121,7 +11121,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C72043"
+		(property "LCSC" "C72038"
 			(at 269.24 137.16 0)
 			(effects
 				(font
@@ -11643,7 +11643,7 @@
 				)
 			)
 		)
-		(property "Value" "spst_4_pin_internal"
+		(property "Value" "spst_4_pin_internal_side"
 			(at 172.72 120.6754 0)
 			(effects
 				(font

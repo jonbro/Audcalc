@@ -59,14 +59,7 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        "clearance|69330000|37644000|fe0a8ab1-7b25-4d9a-9a3b-f8c5e10b289a|646182ef-83d3-48ef-8f13-39bd3cf49786",
-        "silk_over_copper|41286000|57956000|205124da-208d-4258-a4a7-f97b71056a5a|1cc90ba5-fe67-4483-aa0e-8f57e3933829",
-        "silk_over_copper|43730000|34646000|1d6518e1-cfe9-4078-adc2-cf8e6477b5cb|ad2d033c-4040-4813-b5da-82cf827f9d86",
-        "silk_over_copper|43730000|34840000|6e416a78-df14-48ee-9842-e6e24081191e|ad2d033c-4040-4813-b5da-82cf827f9d86",
-        "silk_over_copper|62890000|36894000|4605c20a-6c32-4ba9-9d98-157265e5d2d4|96cc7009-e5c2-4181-9848-d145b9196cc4",
-        "silk_over_copper|68670000|36891000|c6e8924b-3698-49bc-af6d-d7a327eada39|e208ea3a-d990-4992-b395-c95b18b77f83"
-      ],
+      "drc_exclusions": [],
       "meta": {
         "filename": "board_design_settings.json",
         "version": 2
@@ -506,8 +499,8 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
-      "pos_files": "",
+      "plot": "../gerber/",
+      "pos_files": "../",
       "specctra_dsn": "",
       "step": "",
       "svg": "",
@@ -566,11 +559,95 @@
           "label": "DNP",
           "name": "${DNP}",
           "show": true
+        },
+        {
+          "group_by": false,
+          "label": "#",
+          "name": "${ITEM_NUMBER}",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Category",
+          "name": "Category",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "DK_Datasheet_Link",
+          "name": "DK_Datasheet_Link",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "DK_Detail_Page",
+          "name": "DK_Detail_Page",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Digi-Key_PN",
+          "name": "Digi-Key_PN",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Family",
+          "name": "Family",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Field4",
+          "name": "Field4",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Field5",
+          "name": "Field5",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "LCSC",
+          "name": "LCSC",
+          "show": true
+        },
+        {
+          "group_by": false,
+          "label": "MPN",
+          "name": "MPN",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Manufacturer",
+          "name": "Manufacturer",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Status",
+          "name": "Status",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "checked",
+          "name": "checked",
+          "show": false
+        },
+        {
+          "group_by": false,
+          "label": "Description",
+          "name": "Description",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
-      "name": "Grouped By Value",
+      "name": "",
       "sort_asc": true,
       "sort_field": "Reference"
     },
