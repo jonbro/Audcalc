@@ -16,7 +16,7 @@ int __not_in_flash_func(file_write)(uint32_t offset, size_t size, void *buffer)
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + offset, buffer, size);
     restore_interrupts(ints);
-        multicore_lockout_end_blocking();
+    multicore_lockout_end_blocking();
     return 0;
 }
 
@@ -53,7 +53,7 @@ void InitializeFilesystem(bool fullClear, uint32_t empty_search_offset)
         .read = file_read,
         .write = file_write,
         .size = 16*1024*1024-FS_START,
-        .empty_search_offset = empty_search_offset
+        .empty_search_offset = empty_search_offset%(16*1024*1024-FS_START)
     };
     ffs_mount(&filesystem, &cfg, fs_work_buf);
 

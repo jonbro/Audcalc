@@ -188,20 +188,25 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     return 0;
 }
 
-static int ffs_find_empty_block(ffs_filesystem *fs, uint32_t search_start)
+static int ffs_find_empty_block(ffs_filesystem *fs, uint32_t search_start, uint32_t fssize)
 {
     uint32_t block_offset = 0;
     ffs_blockheader blockHeader;
-    while(block_offset < fs->size)
+    uint32_t readPos = fs->empty_search_offset; // this will be set to be lower than fssize at init time
+    while(block_offset < fssize)
     {
-        uint32_t block_offset_with_random = (block_offset + fs->empty_search_offset + search_start) % fs->size;
-        fs->read(block_offset_with_random, sizeof(ffs_blockheader), &blockHeader);
+        fs->read(readPos, sizeof(ffs_blockheader), &blockHeader);
         // find empty block?
         if(blockHeader.object_id == 0xffff)
         {
-            return block_offset_with_random;
+            return readPos;
         }
         block_offset += BLOCK_SIZE;
+        readPos = readPos+BLOCK_SIZE;
+        if(readPos>fssize)
+        {
+            readPos-=fssize;
+        }
     }
     return -1;
 }
@@ -213,7 +218,7 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
     if(!file->initialized)
     {
         // find a new empty block to write into
-        int block_offset = ffs_find_empty_block(fs, 0);
+        int block_offset = ffs_find_empty_block(fs, 0, fs->size);
         if(block_offset < 0)
         {
             return -1;
@@ -271,7 +276,7 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
                 if(foundPage < 0)
                 {
                     // this block has been filled, find a new empty block to write into
-                    int empty = ffs_find_empty_block(fs, 0);
+                    int empty = ffs_find_empty_block(fs, 0, fs->size);
                     if(empty < 0)
                     {
                         return -1;
