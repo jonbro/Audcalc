@@ -18592,7 +18592,7 @@
 			)
 		)
 		(property "LCSC" "C918198"
-			(at 0 0 270)
+			(at 0 0 -90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "882a47dc-2bf7-4a04-87a9-082f123ab749")
@@ -18604,7 +18604,7 @@
 			)
 		)
 		(property "checked" "1"
-			(at 0 0 270)
+			(at 0 0 -90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "77dbe288-45f1-480c-8663-ee7c3a48a57a")
