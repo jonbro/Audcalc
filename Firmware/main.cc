@@ -40,6 +40,7 @@ extern "C" {
 #include "multicore_support.h"
 #include "GlobalDefines.h"
 #include "bsp/board.h"
+#include "lua.hpp"
 
 using namespace braids;
 
@@ -265,6 +266,8 @@ int main()
     board_init();
     tusb_init();
 
+
+
     hardware_init();
     {
         // if the user isn't holding the powerkey, 
@@ -330,6 +333,9 @@ int main()
 
     //usbSerialDevice.Init();
     gbox.init(color);
+
+    lua_State *L = luaL_newstate();   /* opens Lua */
+    luaL_openlibs(L);
 
     memset(output_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
     memset(capture_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));

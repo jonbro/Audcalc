@@ -24,7 +24,8 @@
     "cortex-debug.variableUseNaturalFormat": false,
     "files.associations": {
         "voice_data.h": "c",
-        "random": "cpp"
+        "random": "cpp",
+        "*.tcc": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }

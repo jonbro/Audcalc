@@ -8,6 +8,16 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/nanopb/extra)
 
+add_definitions(-DLUA_USE_C89)
+set(luaSrcDir "${CMAKE_CURRENT_LIST_DIR}/lua-5.4.3/src")
+set(luaSrcFiles lapi.c lauxlib.c lbaselib.c lcode.c lcorolib.c lctype.c ldblib.c ldebug.c ldo.c
+	ldump.c lfunc.c lgc.c linit.c liolib.c llex.c lmathlib.c lmem.c loadlib.c lobject.c lopcodes.c
+	loslib.c lparser.c lstate.c lstring.c lstrlib.c ltable.c ltablib.c ltm.c lundump.c
+	lutf8lib.c lvm.c lzio.c)
+list(TRANSFORM luaSrcFiles PREPEND ${luaSrcDir}/)
+set(LUA_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/lua-5.4.3/src")
+include_directories(${LUA_INCLUDE_DIRS})
+
 find_package(Nanopb REQUIRED)
 include_directories(${NANOPB_INCLUDE_DIRS})
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
@@ -62,6 +72,7 @@ add_executable(tdm
         audio/random.cc 
         AudioSampleSecondbloop.cpp
         m6x118pt7b.cc
+        ${luaSrcFiles}
         ${PROTO_SRCS} ${PROTO_HDRS}
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
