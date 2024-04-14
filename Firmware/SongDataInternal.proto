@@ -11,4 +11,7 @@ message SongDataInternal
     uint32 root                     = 7 [(nanopb).int_size = IS_8];
     uint32 delayTime                = 8 [(nanopb).int_size = IS_8];
     uint32 delayFeedback            = 9 [(nanopb).int_size = IS_8];
+    uint32 playingPattern           = 10 [(nanopb).int_size = IS_8];
+    repeated uint32 patternChain    = 11 [(nanopb).int_size = IS_8, (nanopb).max_count = 16, (nanopb).fixed_count = true];
+    uint32 patternChainLength       = 12 [(nanopb).int_size = IS_8];
 }

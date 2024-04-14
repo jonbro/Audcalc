@@ -93,6 +93,40 @@ uint8_t SongData::GetBpm()
     return internalData.bpm;
 }
 
+uint8_t SongData::GetPlayingPattern()
+{
+    return internalData.playingPattern;
+}
+void    SongData::SetPlayingPattern(uint8_t playingPattern)
+{
+    internalData.playingPattern = playingPattern;
+}
+
+void SongData::LoadPatternChain(int *patternChain)
+{
+    for(int i=0;i<16;i++)
+    {
+        patternChain[i] = internalData.patternChain[i];
+    }
+}
+void SongData::StorePatternChain(int *patternChain)
+{
+    for(int i=0;i<16;i++)
+    {
+        internalData.patternChain[i] = patternChain[i];
+    }
+}
+
+uint8_t SongData::GetPatternChainLength()
+{
+    return internalData.patternChainLength;
+}
+void    SongData::SetPatternChainLength(uint8_t patternChainLength)
+{
+    internalData.patternChainLength = patternChainLength;
+}
+
+
 const int keyMap[16] = {
     12, 13, 14, 15,
     8, 9, 10, 11,

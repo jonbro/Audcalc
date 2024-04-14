@@ -29,7 +29,10 @@ class SongData
             for (size_t i = 0; i < 16; i++)
             {
                 internalData.changeLength[i] = 15*4; // need to up this to fit into 0xff
+                internalData.patternChain[i] = 0;
             }
+            internalData.patternChainLength = 1;
+            internalData.playingPattern = 0;
             internalData.syncOut = 0x2b; // this is equal to mode 1
             internalData.syncIn = 0x0; // this is equal to mode 1
             internalData.bpm = 119;
@@ -51,6 +54,17 @@ class SongData
         uint8_t GetRoot();
         uint8_t GetBpm();
         uint8_t GetScale();
+        uint8_t GetPattern();
+        
+        uint8_t GetPlayingPattern();
+        void    SetPlayingPattern(uint8_t playingPattern);
+
+        void LoadPatternChain(int *patternChain);
+        void StorePatternChain(int *patternChain);
+
+        uint8_t GetPatternChainLength();
+        void    SetPatternChainLength(uint8_t patternChainLength);
+
         SyncMode GetSyncOutMode();
         SyncMode GetSyncInMode();
         void DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t octave);

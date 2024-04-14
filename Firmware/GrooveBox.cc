@@ -1513,6 +1513,11 @@ bool serialize_callback(pb_ostream_t *stream, const uint8_t *buf, size_t count)
 }
 void GrooveBox::Serialize()
 {
+    // copy the floating bits of data
+    songData.SetPlayingPattern(playingPattern);
+    songData.StorePatternChain(patternChain);
+    songData.SetPatternChainLength(patternChainLength);
+
     // erase the existing file first
     ffs_file globalDataFile;
     erasing = true;
@@ -1628,6 +1633,10 @@ void GrooveBox::Deserialize()
         patterns[i].Deserialize(&serializerStream);
     }
     VoiceData::DeserializeStatic(&serializerStream);
+    
+    playingPattern = songData.GetPlayingPattern();
+    songData.LoadPatternChain(patternChain);
+    patternChainLength = songData.GetPatternChainLength();
 
     printf("loaded filesize %i\n", s.writeFile.filesize);
 }
