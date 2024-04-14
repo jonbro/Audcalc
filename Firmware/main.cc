@@ -293,6 +293,15 @@ static int l_setLed(lua_State *L)
     color[index] = gammarbg_u32(r,g,b);
     return 0;
 }
+static int l_playNote(lua_State *L)
+{
+    int8_t index = luaL_checknumber(L, 1);
+    gbox.instruments[index].NoteOn(0, luaL_checknumber(L, 2), 0, 0, false, gbox.patterns[0]);
+    return 0;
+}
+
+char incomingData[16384];
+int charCount = 0;
 
 int main()
 {
@@ -301,9 +310,16 @@ int main()
 
     lua_State *L = luaL_newstate();   /* opens Lua */
     luaL_openlibs(L);
+    int e = luaL_dostring(L, "print(collectgarbage(\"count\"))");
+    if(e)
+    {
+        printf("%s\n", lua_tostring(L, -1));
+    }
 
     lua_pushcfunction(L, l_setLed);
     lua_setglobal(L, "setLed");
+    lua_pushcfunction(L, l_playNote);
+    lua_setglobal(L, "playNote");
 
     hardware_init();
     stdio_init_all();
@@ -366,10 +382,10 @@ int main()
         }
     }
     // if the user is holding down specific keys on powerup, then clear the full file system
-    InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
+    // InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 
     //usbSerialDevice.Init();
-    // gbox.init(color);
+    gbox.init(color, L);
 
     memset(output_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
     memset(capture_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
@@ -389,12 +405,39 @@ int main()
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
     int lostCount = 0;
-    int error = luaL_dostring(L, "keyCount = 0;");
-
+    int error = luaL_dostring(L, "function update() end");
+    if (error) {
+        fprintf(stderr, "%s", lua_tostring(L, -1));
+        lua_pop(L, 1);  /* pop error message from the stack */
+    }
+    gbox.StartPlaying();
     while(true)
     {
         tud_task(); // tinyusb device task
         midi_task(); // read and clear incoming midi
+        
+        int16_t ch = getchar_timeout_us(0);
+        while (ch != PICO_ERROR_TIMEOUT) {
+            incomingData[charCount++] = ch;
+            if(ch=='\r')
+                printf("\r\n");
+            else
+                printf("%c", ch);
+            // end of text / control c
+            if(ch == 0x03)
+            {
+                incomingData[--charCount] = 0;
+                printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
+                int error = luaL_dostring(L, incomingData);
+                if (error) {
+                    printf("\n%s", lua_tostring(L, -1));
+                    lua_pop(L, 1);  /* pop error message from the stack */
+                }
+                charCount = 0;
+            }
+            ch = getchar_timeout_us(0);
+        }
+
         if(audioOutReady && audioInReady)
         {
             mutex_enter_blocking(&audioProcessMutex); 
@@ -402,7 +445,7 @@ int main()
             {
                 uint32_t *input = capture_buf+inBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
                 uint32_t *output = output_buf+outBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
-                //gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
+                gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
             }
             audioInReady = false;
             audioOutReady = false;
@@ -424,11 +467,6 @@ int main()
             lastKeyState = keyState;
             if(needsScreenupdate)
             {
-                int error = luaL_dostring(L, "setLed(keyCount, 0,0,0); keyCount = keyCount+1;  if keyCount > 24 then keyCount = 5 end setLed(keyCount, 255,0,0);");
-                if(error)
-                {
-                    printf("%s\n", lua_tostring(L, -1));
-                }
                 adc_select_input(1);
                 uint16_t adc_val = adc_read();
                 adc_select_input(0);
@@ -442,6 +480,12 @@ int main()
                 ws2812_setColors(color+5);
                 needsScreenupdate = false;
                 ws2812_trigger();
+                int error = luaL_dostring(L, "update()");
+                if (error) {
+                    fprintf(stderr, "%s", lua_tostring(L, -1));
+                    lua_pop(L, 1);  /* pop error message from the stack */
+                }
+
             }
         }
     }

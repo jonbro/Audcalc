@@ -22,12 +22,13 @@ extern "C" {
 #include "MidiParamMapper.h"
 #include "GlobalData.pb.h"
 #include "USBSerialDevice.h"
+#include "lua.hpp"
 
 #define VOICE_COUNT 8
 
 class GrooveBox {
  public:
-  void init(uint32_t *_color);
+  void init(uint32_t *_color, lua_State *L);
   void OnKeyUpdate(uint key, bool pressed);
   bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void UpdateDisplay(ssd1306_t *p);
@@ -102,7 +103,11 @@ class GrooveBox {
     }
     return 24;
   }
+  VoiceData patterns[16];
+  void StartPlaying();
+
  private:
+  lua_State *L;
   void LowBatteryDisplayInternal(ssd1306_t *p);
   void SaveAndShutdown();
   USBSerialDevice *usbSerialDevice;
@@ -113,7 +118,6 @@ class GrooveBox {
   void TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel);
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
-  void StartPlaying();
   void OnTempoPulse();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
@@ -170,7 +174,6 @@ class GrooveBox {
   bool nextPatternSelected = false;
   uint8_t storingParamLockForStep = 0;
   bool parameterLocked;
-  VoiceData patterns[16];
   VoiceData *Editing;
   VoiceData *Playing;
   SongData songData;

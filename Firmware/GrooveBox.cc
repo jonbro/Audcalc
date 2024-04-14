@@ -25,7 +25,7 @@ void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[songData.GetBpm()];
 }
-void GrooveBox::init(uint32_t *_color)
+void GrooveBox::init(uint32_t *_color, lua_State *L)
 {
     // usbSerialDevice = _usbSerialDevice;
     needsInitialADC = 30;
@@ -44,22 +44,12 @@ void GrooveBox::init(uint32_t *_color)
         patterns[i].InitDefaults();
         patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
-    Deserialize();
-    //PrintLostLockData();
-    // int lostLockCount = GetLostLockCount();
-    // if(lostLockCount > 0)
-    //     printf("\n************\nJUST LOST LOCKS TEH FUCK\n****************\n");
-    // printf("lost lock count: %i\n", lostLockCount);
-    // we do this in a second pass so the
-    // deserialized pointers aren't pointing to the wrong places
-    for(int i=0;i<16;i++)
-    {
-        ffs_open(GetFilesystem(), &files[i], (1<<8)|i);
-        patterns[i].SetFile(&files[i]);
+    this->L = L;
+    int error = luaL_dostring(L, "function tempoSync() end");
+    if (error) {
+        fprintf(stderr, "%s", lua_tostring(L, -1));
+        lua_pop(L, 1);  /* pop error message from the stack */
     }
-    CalculateTempoIncrement();
-    color = _color;
-    lastKeyPlayed = {static_cast<unsigned int>(0 & 0xf)};
 }
 
 int16_t workBuffer[SAMPLES_PER_BLOCK];
@@ -80,6 +70,7 @@ bool audio_sync_state;
 uint16_t audio_sync_countdown = 0;
 uint32_t samples_since_last_sync = 0;
 uint32_t ssls = 0;
+
 void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
     absolute_time_t renderStartTime = get_absolute_time();
@@ -258,22 +249,6 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 
         }
 
-        // handle the midi triggering
-        int midiNote = midi.GetNote();
-        if( midiNote >= 0)
-        {
-            patterns[currentVoice].ClearNextRequestedStep();
-            TriggerInstrumentMidi(midiNote, 0, 0, patterns[currentVoice], currentVoice);
-        }
-
-        int requestedNote = GetNote();
-        if(requestedNote >= 0)
-        {
-            patterns[currentVoice].ClearNextRequestedStep();
-            uint8_t _key = lastKeyPlayed;
-            TriggerInstrument(_key, requestedNote, 0, 0, true, patterns[currentVoice], currentVoice);
-        }
- 
         if(IsPlaying())
         {
             bool tempoPulse = false;
@@ -286,82 +261,10 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     tempoPulse = true;
                 }
             }
-            else
-            {
-                if(hadExternalSync)
-                {
-                    if((beatCounter[19]+1)%48 == 0)
-                    {
-                        tempoPhase = 0;
-                        tempoPulse = true;
-                    }
-                    else
-                    {
-                        // we got the external sync earlier than we were expecting, and need to do catchup
-                        while(beatCounter[19] != 0)
-                        {
-                            OnTempoPulse();
-                        }
-                    }
-                }
-                // if we are running from an external clock, and the next pulse would be the clock pulse of the external sync, then wait for it to pulse
-                else
-                {
-                    if((beatCounter[19]+1)%48 != 0)
-                    {
-                        if((tempoPhase >> 31) > 0)
-                        {
-                            tempoPhase &= 0x7fffffff;
-                            tempoPulse = true;
-                        }
-                    }
-                }
-            }
             if(tempoPulse)
             {
                 OnTempoPulse();
             }
-        }
-    }
-    if((songData.GetSyncOutMode()&(SyncModePO|SyncMode24)) > 0)
-    {
-        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
-        {
-            int16_t* chan = (output_buffer+i*2);
-            chan[0] = 0;
-        }
-        if(sync_count > 0)
-        {
-            for(int i=0;i<SAMPLES_PER_BLOCK;i++)
-            {
-                int16_t* chan = (output_buffer+i*2);
-                // we need to provide the peak to peak swing so pocket operator can hear the sync signal
-                if(sync_count > 3)
-                {
-                    chan[0] = -32767;
-                }
-                else if(sync_count > 0)
-                {
-                    chan[0] = 32767;
-                }
-                else
-                {
-                    chan[0] = 0;
-                }
-            }
-            sync_count--;
-        }
-    }
-
-    if(recording)
-    {
-        if(recordBufferOffset == 0)
-            ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
-        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
-        {
-            int16_t* chan = (output_buffer+i*2);
-            chan[0] = workBuffer2[i*2];
-            chan[1] = workBuffer2[i*2+1];
         }
     }
     absolute_time_t renderEndTime = get_absolute_time();
@@ -372,119 +275,10 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 }
 void GrooveBox::OnTempoPulse()
 {
-    bool needsMidiSync = false;
-    // advance chain if the global pattern just overflowed on the last beat counter
-    if(beatCounter[16]==0 && patternStep[16] == 0)
-    {
-        chainStep = (++chainStep)%patternChainLength;
-        // if we are moving to a new pattern, reset all the steps to zero
-        if(patternChain[chainStep]!=playingPattern)
-        {
-            playingPattern = patternChain[chainStep];
-            ResetPatternOffset();
-        }
-    }
-    // send the sync pulse to all the instruments
-    for(int v=0;v<VOICE_COUNT;v++)
-    {
-        instruments[v].TempoPulse(patterns[v]);
-    }
-    // four extra counters
-    // 17: the pattern change counter
-    // 18: the pulse sync output counter
-    // 19: the midi sync
-    // 20: input pulse counter
-    for(int v=0;v<20;v++)
-    {
-        bool needsTrigger = beatCounter[v]==0;
-        beatCounter[v]++;
-        uint8_t rate = 0;
-        switch(v)
-        {
-            case 16: // global pattern (pattern change counter) always uses 16th notes
-                rate = 2;
-                break;
-            case 17: // pocket operator / pulse sync
-                if((songData.GetSyncOutMode() & SyncModePO) > 0)
-                    rate = 4;
-                else if((songData.GetSyncOutMode() & SyncMode24) > 0)
-                    rate = 7;
-                else
-                    rate = 0;
-                break;
-            case 18: // midi sync
-                rate = 7;
-                break;
-            case 19: // input sync
-                rate = 4;
-                break;
-    
-            default:
-                rate = ((patterns[v].GetRateForPattern(GetCurrentPattern())*7)>>8);
-        }
-        beatCounter[v] = beatCounter[v]%getTickCountForRateIndex(rate);
-        if(!needsTrigger)
-            continue;
-        if(v==17){
-            sync_count = 6;
-            continue;
-        }
-        if(v==18)
-        {
-            needsMidiSync = true;
-            continue;
-        }
-        if(v==19)
-        {
-            continue;
-        }
-        // never trigger for the global pattern
-        uint8_t requestedNote;
-        uint8_t requestedKey = {0};
-        if(v!=16 && v!=17 && GetTrigger(v, patternStep[v], requestedNote, requestedKey))
-        {
-            hadTrigger = hadTrigger|(1<<v);
-            if((allowPlayback>>v)&0x1)
-            {
-                bool trigger = true;
-                // check to see if the conditions allow us to play
-                ConditionModeEnum conditionMode = patterns[v].GetConditionMode(patterns[v].GetParamValue(ConditionMode, requestedKey, patternStep[v], GetCurrentPattern()));
-                uint8_t conditionData = patterns[v].GetParamValue(ConditionData, requestedKey, patternStep[v], GetCurrentPattern());
-                switch(conditionMode)
-                {
-                    case CONDITION_MODE_RAND:
-                        if(conditionData < (get_rand_32()>>24))
-                            trigger = false;
-                        break;
-                    case CONDITION_MODE_LENGTH:
-                        uint8_t tmp = ((uint16_t)conditionData*35)>>8;
-                        trigger = ConditionalEvery[tmp*2]-1 == patternLoopCount[v]%ConditionalEvery[tmp*2+1];
-                        break;
-                }
-                if(trigger)
-                {
-                    patterns[v].SetNextRequestedStep(patternStep[v]);
-                    TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
-                }
-            }
-        }
-        // we need to special case 16: the pattern change counter
-        if(v==16)
-        {
-            patternStep[v] = (patternStep[v]+1)%songData.GetLength(GetCurrentPattern());
-        }
-        else
-        {
-            patternStep[v] = (patternStep[v]+1)%(patterns[v].GetLength(GetCurrentPattern()));
-            if(patternStep[v] == 0)
-            {
-                patternLoopCount[v]++;
-            }
-        }
-    }
-    if(needsMidiSync && ((songData.GetSyncOutMode()&SyncModeMidi) > 0))
-    {
-        midi.TimingClock();
+    int error = luaL_dostring(L, "tempoSync()");
+    if (error) {
+        fprintf(stderr, "%s", lua_tostring(L, -1));
+        lua_pop(L, 1);  /* pop error message from the stack */
     }
 }
 void GrooveBox::TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
