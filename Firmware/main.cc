@@ -258,23 +258,61 @@ void midi_task(void)
 
 }
 
+uint32_t color[25];
+const uint8_t gamma8[] = {
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+    1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+    2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+    5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+    10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+    17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+    25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+    37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+    51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+    69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+    90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+    115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+    144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+    177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+    215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
+static inline uint32_t gammarbg_u32(uint8_t r, uint8_t g, uint8_t b)
+{
+    return urgb_u32(gamma8[r], gamma8[g], gamma8[b]);
+}
+
+static int l_setLed(lua_State *L)
+{
+    int8_t index = luaL_checknumber(L, 1);
+    index = index<0?0:index;
+    index = index > 24?24:index;
+    uint8_t r = luaL_checknumber(L, 2);
+    uint8_t g = luaL_checknumber(L, 3);
+    uint8_t b = luaL_checknumber(L, 4);
+    color[index] = gammarbg_u32(r,g,b);
+    return 0;
+}
 
 int main()
 {
-    stdio_init_all();
     board_init();
     tusb_init();
 
+    lua_State *L = luaL_newstate();   /* opens Lua */
+    luaL_openlibs(L);
 
+    lua_pushcfunction(L, l_setLed);
+    lua_setglobal(L, "setLed");
 
     hardware_init();
+    stdio_init_all();
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
         if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
         {
-            hardware_shutdown();
+            // hardware_shutdown();
         }
         if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
         {
@@ -287,7 +325,6 @@ int main()
     }
 
     ws2812_init();
-    uint32_t color[25];
     memset(color, 0, 25 * sizeof(uint32_t));
     ws2812_setColors(color+5);
     ws2812_trigger();
@@ -332,10 +369,7 @@ int main()
     InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 
     //usbSerialDevice.Init();
-    gbox.init(color);
-
-    lua_State *L = luaL_newstate();   /* opens Lua */
-    luaL_openlibs(L);
+    // gbox.init(color);
 
     memset(output_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
     memset(capture_buf, SAMPLES_PER_SEND*2, sizeof(uint32_t));
@@ -355,6 +389,8 @@ int main()
     int16_t headphoneCheck = 60;
     uint8_t brightnesscount = 0;
     int lostCount = 0;
+    int error = luaL_dostring(L, "keyCount = 0;");
+
     while(true)
     {
         tud_task(); // tinyusb device task
@@ -366,7 +402,7 @@ int main()
             {
                 uint32_t *input = capture_buf+inBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
                 uint32_t *output = output_buf+outBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
-                gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
+                //gbox.Render((int16_t*)(output), (int16_t*)(input), SAMPLES_PER_BLOCK);
             }
             audioInReady = false;
             audioOutReady = false;
@@ -382,20 +418,25 @@ int main()
                 uint32_t s = keyState & (1ul<<i);
                 if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
                 {
-                    gbox.OnKeyUpdate(i, s>0); 
+                    //gbox.OnKeyUpdate(i, s>0); 
                 }
             }
             lastKeyState = keyState;
             if(needsScreenupdate)
             {
+                int error = luaL_dostring(L, "setLed(keyCount, 0,0,0); keyCount = keyCount+1;  if keyCount > 24 then keyCount = 5 end setLed(keyCount, 255,0,0);");
+                if(error)
+                {
+                    printf("%s\n", lua_tostring(L, -1));
+                }
                 adc_select_input(1);
                 uint16_t adc_val = adc_read();
                 adc_select_input(0);
                 // I think that even though adc_read returns 16 bits, the value is only in the top 12
-                gbox.OnAdcUpdate(adc_val, adc_read());
+                //gbox.OnAdcUpdate(adc_val, adc_read());
                 hardware_update_battery_level();
                 queue_entry_complete_t result;
-                gbox.UpdateDisplay(GetDisplay());
+                //gbox.UpdateDisplay(GetDisplay());
                 // hardware_has_usb_power(); // this call just turns on the green debug led currently
                 ssd1306_show(GetDisplay());
                 ws2812_setColors(color+5);
