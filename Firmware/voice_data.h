@@ -11,9 +11,11 @@
 #include "VoiceDataInternal.pb.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
+#include "lua.hpp"
 
 extern "C" {
   #include "ssd1306.h"
+  #include "lautoc.h"
 }
 
 using namespace braids;
@@ -105,6 +107,14 @@ class VoiceData
         {
             internalData = VoiceDataInternal_init_default;
             InitDefaults();
+        }
+        static void SetupLuaBinds(lua_State *L)
+        {
+            luaA_struct(L, VoiceDataInternal_EnvelopeData);
+            luaA_struct_member(L, VoiceDataInternal_EnvelopeData, attack, uint8_t);
+            luaA_struct_member(L, VoiceDataInternal_EnvelopeData, decay, uint8_t);
+            luaA_struct(L, VoiceDataInternal);
+            luaA_struct_member(L, VoiceDataInternal, env1, VoiceDataInternal_EnvelopeData);
         }
         void InitDefaults();
         void Serialize(pb_ostream_t *s);

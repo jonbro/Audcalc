@@ -17,7 +17,7 @@ set(luaSrcFiles lapi.c lauxlib.c lbaselib.c lcode.c lcorolib.c lctype.c ldblib.c
 list(TRANSFORM luaSrcFiles PREPEND ${luaSrcDir}/)
 set(LUA_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/lua-5.4.3/src")
 include_directories(${LUA_INCLUDE_DIRS})
-
+include_directories("${CMAKE_CURRENT_LIST_DIR}/LuaAutoC")
 find_package(Nanopb REQUIRED)
 include_directories(${NANOPB_INCLUDE_DIRS})
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
@@ -71,9 +71,11 @@ add_executable(tdm
         audio/resources.cc
         audio/random.cc 
         AudioSampleSecondbloop.cpp
-        m6x118pt7b.cc
+        m6x118pt7b.cc 
+        LuaAutoC/lautoc.c
         ${luaSrcFiles}
         ${PROTO_SRCS} ${PROTO_HDRS}
+        flash.c
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
@@ -98,7 +100,8 @@ target_link_libraries(tdm
         hardware_flash
         pico_rand
         pico_audio_i2s
-        tinyusb_device tinyusb_board
+        tinyusb_device
+        tinyusb_board
         )
 target_compile_definitions(tdm PRIVATE
 # PICO_AUDIO_I2S_MONO_INPUT=1

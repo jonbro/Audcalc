@@ -295,20 +295,72 @@ static int l_setLed(lua_State *L)
 }
 static int l_playNote(lua_State *L)
 {
+    int8_t voiceIndex = luaL_checknumber(L, 1);
+    gbox.instruments[voiceIndex].NoteOn(0, luaL_checknumber(L, 2), 0, 0, false, gbox.patterns[voiceIndex]);
+    return 0;
+}
+static int l_setParam(lua_State *L)
+{
     int8_t index = luaL_checknumber(L, 1);
-    gbox.instruments[index].NoteOn(0, luaL_checknumber(L, 2), 0, 0, false, gbox.patterns[0]);
+    uint8_t& current_a = gbox.patterns[index].GetParam(luaL_checknumber(L, 2), 0, 0);
+    current_a = luaL_checknumber(L, 3);
     return 0;
 }
 
 char incomingData[16384];
 int charCount = 0;
+lua_State *L;
+#define UART_ID uart0
+
+void incoming_uart() {
+    while (uart_is_readable(UART_ID)) {
+        char ch = uart_getc(UART_ID);
+        incomingData[charCount++] = ch;
+        if(ch=='\r')
+            printf("\r\n");
+        else
+            printf("%c", ch);
+        // end of text / control c
+        if(ch == 0x03)
+        {
+            incomingData[--charCount] = 0;
+            printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
+            int error = luaL_dostring(L, incomingData);
+            if (error) {
+                printf("\n%s", lua_tostring(L, -1));
+                lua_pop(L, 1);  /* pop error message from the stack */
+            }
+            charCount = 0;
+        }
+    }
+} 
+
+
+//--------------------------------------------------------------------+
+// MACRO CONSTANT TYPEDEF PROTYPES
+//--------------------------------------------------------------------+
+
+#define FATFS_OFFSET    (2 * 1024 * 1024)
+
+#ifndef FATFS_SIZE
+#define FATFS_SIZE      (PICO_FLASH_SIZE_BYTES - FATFS_OFFSET)
+#endif
+
+#define BLOCK_SIZE 512
+#define BLOCK_NUM FATFS_SIZE / 512
+
+extern "C" {
+void flash_read (uint32_t addr, void* buffer, uint32_t len);
+void flash_write(uint32_t addr, void const *data, uint32_t len);
+void flash_flush(void);
+}
 
 int main()
 {
     board_init();
     tusb_init();
 
-    lua_State *L = luaL_newstate();   /* opens Lua */
+    L = luaL_newstate();   /* opens Lua */
     luaL_openlibs(L);
     int e = luaL_dostring(L, "print(collectgarbage(\"count\"))");
     if(e)
@@ -320,6 +372,9 @@ int main()
     lua_setglobal(L, "setLed");
     lua_pushcfunction(L, l_playNote);
     lua_setglobal(L, "playNote");
+    lua_pushcfunction(L, l_setParam);
+    lua_setglobal(L, "setParam");
+
 
     hardware_init();
     stdio_init_all();
@@ -411,36 +466,22 @@ int main()
         lua_pop(L, 1);  /* pop error message from the stack */
     }
     gbox.StartPlaying();
+    int UART_IRQ = UART0_IRQ;
+    irq_set_exclusive_handler(UART_IRQ, incoming_uart);
+    irq_set_enabled(UART_IRQ, true);
+
+    // Now enable the UART to send interrupts - RX only
+    uart_set_irq_enables(uart0, true, false);
+
+
     while(true)
     {
         tud_task(); // tinyusb device task
         midi_task(); // read and clear incoming midi
-        
-        int16_t ch = getchar_timeout_us(0);
-        while (ch != PICO_ERROR_TIMEOUT) {
-            incomingData[charCount++] = ch;
-            if(ch=='\r')
-                printf("\r\n");
-            else
-                printf("%c", ch);
-            // end of text / control c
-            if(ch == 0x03)
-            {
-                incomingData[--charCount] = 0;
-                printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
-                int error = luaL_dostring(L, incomingData);
-                if (error) {
-                    printf("\n%s", lua_tostring(L, -1));
-                    lua_pop(L, 1);  /* pop error message from the stack */
-                }
-                charCount = 0;
-            }
-            ch = getchar_timeout_us(0);
-        }
 
         if(audioOutReady && audioInReady)
         {
-            mutex_enter_blocking(&audioProcessMutex); 
+            mutex_enter_blocking(&audioProcessMutex);
             for(int i=0;i<BLOCKS_PER_SEND;i++)
             {
                 uint32_t *input = capture_buf+inBufOffset*SAMPLES_PER_SEND+SAMPLES_PER_BLOCK*i;
@@ -453,6 +494,15 @@ int main()
         }
         else
         {
+            while(gbox.syncsRequired > 0)
+            {
+                int error = luaL_dostring(L, "tempoSync()");
+                if (error) {
+                    fprintf(stderr, "%s", lua_tostring(L, -1));
+                    lua_pop(L, 1);  /* pop error message from the stack */
+                }
+                gbox.syncsRequired--;
+            }
             hardware_get_all_key_state(&keyState);
             
             // act on keychanges
@@ -490,4 +540,156 @@ int main()
         }
     }
     return 0;
+}
+
+// Invoked when cdc when line state changed e.g connected/disconnected
+void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
+{
+  (void) itf;
+  (void) rts;
+
+  // DTR = false is counted as disconnected
+  if ( !dtr )
+  {
+    cdc_line_coding_t coding;
+    tud_cdc_get_line_coding(&coding);
+
+    // Implement touch1200 to reset to bootloader
+    if ( coding.bit_rate == 1200 ) reset_usb_boot(0,0);
+  }
+}
+
+//--------------------------------------------------------------------+
+// MSC
+//--------------------------------------------------------------------+
+
+// Callback invoked when received READ10 command.
+// Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
+int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
+{
+  (void) lun;
+
+  uint32_t const addr = FATFS_OFFSET + lba*BLOCK_SIZE + offset;
+  flash_read(addr, buffer, bufsize);
+
+  return bufsize;
+}
+
+// Callback invoked when received WRITE10 command.
+// Process data in buffer to disk's storage and return number of written bytes
+int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize)
+{
+  (void) lun;
+
+  uint32_t const addr = FATFS_OFFSET + lba*BLOCK_SIZE + offset;
+  flash_write(addr, buffer, bufsize);
+
+  return bufsize;
+}
+
+void tud_msc_write10_complete_cb(uint8_t lun)
+{
+  (void) lun;
+  flash_flush();
+}
+
+// Invoked when received SCSI_CMD_INQUIRY
+// Application fill vendor id, product id and revision with string up to 8, 16, 4 characters respectively
+void tud_msc_inquiry_cb(uint8_t lun, uint8_t vendor_id[8], uint8_t product_id[16], uint8_t product_rev[4])
+{
+  (void) lun;
+
+  const char vid[] = "TinyUSB";
+  const char pid[] = "Mass Storage";
+  const char rev[] = "1.0";
+
+  memcpy(vendor_id  , vid, strlen(vid));
+  memcpy(product_id , pid, strlen(pid));
+  memcpy(product_rev, rev, strlen(rev));
+}
+
+// Invoked when received Test Unit Ready command.
+// return true allowing host to read/write this LUN e.g SD card inserted
+bool tud_msc_test_unit_ready_cb(uint8_t lun)
+{
+  (void) lun;
+  return true;
+}
+
+// Invoked when received SCSI_CMD_READ_CAPACITY_10 and SCSI_CMD_READ_FORMAT_CAPACITY to determine the disk size
+// Application update block count and block size
+void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_size)
+{
+  (void) lun;
+
+  *block_count = BLOCK_NUM;
+  *block_size  = BLOCK_SIZE;
+}
+
+// Invoked when received Start Stop Unit command
+// - Start = 0 : stopped power mode, if load_eject = 1 : unload disk storage
+// - Start = 1 : active mode, if load_eject = 1 : load disk storage
+bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, bool load_eject)
+{
+  (void) lun;
+  (void) power_condition;
+
+  if ( load_eject )
+  {
+    if (start)
+    {
+      // load disk storage
+    }else
+    {
+      // unload disk storage
+    }
+  }
+
+  return true;
+}
+
+// Callback invoked when received an SCSI command not in built-in list below
+// - READ_CAPACITY10, READ_FORMAT_CAPACITY, INQUIRY, MODE_SENSE6, REQUEST_SENSE
+// - READ10 and WRITE10 has their own callbacks
+int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, uint16_t bufsize)
+{
+  // read10 & write10 has their own callback and MUST not be handled here
+
+  void const* response = NULL;
+  uint16_t resplen = 0;
+
+  // most scsi handled is input
+  bool in_xfer = true;
+
+  switch (scsi_cmd[0])
+  {
+    case SCSI_CMD_PREVENT_ALLOW_MEDIUM_REMOVAL:
+      // Host is about to read/write etc ... better not to disconnect disk
+      resplen = 0;
+    break;
+
+    default:
+      // Set Sense = Invalid Command Operation
+      tud_msc_set_sense(lun, SCSI_SENSE_ILLEGAL_REQUEST, 0x20, 0x00);
+
+      // negative means error -> tinyusb could stall and/or response with failed status
+      resplen = -1;
+    break;
+  }
+
+  // return resplen must not larger than bufsize
+  if ( resplen > bufsize ) resplen = bufsize;
+
+  if ( response && (resplen > 0) )
+  {
+    if(in_xfer)
+    {
+      memcpy(buffer, response, resplen);
+    }else
+    {
+      // SCSI output
+    }
+  }
+
+  return resplen;
 }

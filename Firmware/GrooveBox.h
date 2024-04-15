@@ -105,7 +105,7 @@ class GrooveBox {
   }
   VoiceData patterns[16];
   void StartPlaying();
-
+  int syncsRequired = 0;
  private:
   lua_State *L;
   void LowBatteryDisplayInternal(ssd1306_t *p);

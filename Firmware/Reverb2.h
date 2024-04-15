@@ -62,8 +62,16 @@ class Reverb2 {
         dampAmount = f32_to_q15(0.9f);
         feedbackAmount = f32_to_q15(.87f);
     }
+    int16_t lastL;
+    int16_t lastR;
+    uint8_t processCount = 0;
     inline void process(int16_t in, int16_t& l, int16_t& r)
     {
+        if(processCount++%2==1)
+        {
+            l = lastL;
+            r = lastR;
+        }
         for(int i=0;i<4;i++)
         {
             in = ProcessAllPass(in, &allpass[i]);
@@ -101,6 +109,8 @@ class Reverb2 {
 
         l = add_q15(l, Mix(0, dt4, position[3]));
         r = add_q15(r, Mix(0, dt4, 0xffff-position[3]));
+        lastL = l;
+        lastR = r;
     }
  private:
     inline int16_t ProcessAllPass(int16_t in, AllPassFilter *ap)

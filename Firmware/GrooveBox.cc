@@ -275,11 +275,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 }
 void GrooveBox::OnTempoPulse()
 {
-    int error = luaL_dostring(L, "tempoSync()");
-    if (error) {
-        fprintf(stderr, "%s", lua_tostring(L, -1));
-        lua_pop(L, 1);  /* pop error message from the stack */
-    }
+    syncsRequired++;
 }
 void GrooveBox::TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData, int channel)
 {

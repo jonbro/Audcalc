@@ -75,10 +75,13 @@ enum
 {
   ITF_NUM_MIDI = 0,
   ITF_NUM_MIDI_STREAMING,
+  ITF_NUM_CDC,
+  ITF_NUM_CDC_DATA,
+  ITF_NUM_MSC,
   ITF_NUM_TOTAL
 };
 
-#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN)
+#define CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN)
 
 #if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
@@ -88,13 +91,27 @@ enum
   #define EPNUM_MIDI   0x01
 #endif
 
+#define EPNUM_CDC_NOTIF   0x81
+#define EPNUM_CDC_OUT     0x02
+#define EPNUM_CDC_IN      0x82
+
+#define EPNUM_MSC_OUT     0x03
+#define EPNUM_MSC_IN      0x83
+
 uint8_t const desc_fs_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
 
   // Interface number, string index, EP Out & EP In address, EP size
-  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64)
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64),
+  
+  // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+
+  // Interface number, string index, EP Out & EP In address, EP size
+  TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64),
+
 };
 
 #if TUD_OPT_HIGH_SPEED
@@ -104,7 +121,12 @@ uint8_t const desc_hs_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
 
   // Interface number, string index, EP Out & EP In address, EP size
-  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 512)
+  TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 512),
+  // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 512),
+
+  // Interface number, string index, EP Out & EP In address, EP size
+  TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 512),
 };
 #endif
 
@@ -131,9 +153,11 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 char const* string_desc_arr [] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-  "Raspberry Pi",                     // 1: Manufacturer
-  "Pico Demo Device",              // 2: Product
+  "auua",                     // 1: Manufacturer
+  "fatfs reader",              // 2: Product
   "123456",                      // 3: Serials, should use chip ID
+  "TinyUSB CDC",                 // 4: CDC Interface
+  "TinyUSB MSC",                 // 4: CDC Interface
 };
 
 static uint16_t _desc_str[32];
