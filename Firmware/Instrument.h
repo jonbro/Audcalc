@@ -6,7 +6,6 @@
 #include "Midi.h"
 #include "audio/settings.h"
 #include "ADSREnvelope.h"
-#include "filesystem.h"
 #include "voice_data.h"
 #include "SongData.h"
 using namespace braids;
@@ -115,7 +114,6 @@ class Instrument
         q15_t lfo_rate = 0;
         
         uint32_t sampleEnd; 
-        ffs_file *file = 0;
         // stored in the displayed param values (since the user doesn't have access to more than this anyways)
         // (maybe I add a fine tune?)
         uint32_t sampleStart[16];

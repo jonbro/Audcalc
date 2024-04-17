@@ -29,14 +29,12 @@ extern "C" {
 #include "GrooveBox.h"
 #include "audio/macro_oscillator.h"
 
-#include "filesystem.h"
 #include "ws2812.h"
 #include "hardware.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
 #include "ParamLockPoolInternal.pb.h"
 #include "USBSerialDevice.h"
-#include "diagnostics.h"
 #include "multicore_support.h"
 #include "GlobalDefines.h"
 #include "bsp/board.h"
@@ -52,14 +50,8 @@ using namespace braids;
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
 #define USING_DEMO_BOARD 0
-// TDM board defines
-#if USING_DEMO_BOARD
-    #define I2S_DATA_PIN 26
-    #define I2S_BCLK_PIN 27
-#else
-    #define I2S_DATA_PIN 19
-    #define I2S_BCLK_PIN 17
-#endif
+#define I2S_DATA_PIN 20
+#define I2S_BCLK_PIN 18
 // demo board defines
 
 void on_usb_microphone_tx_ready();
@@ -248,15 +240,7 @@ uint8_t note_sequence[] =
   74,69,66,62,57,62,66,69,74,78,81,86,90,93,97,102,97,93,90,85,81,78,73,68,64,61,
   56,61,64,68,74,78,81,86,90,93,98,102
 };
-void midi_task(void)
-{
-  // The MIDI interface always creates input and output port/jack descriptors
-  // regardless of these being used or not. Therefore incoming traffic should be read
-  // (possibly just discarded) to avoid the sender blocking in IO
-  uint8_t packet[4];
-  while ( tud_midi_available() ) tud_midi_packet_read(packet);
 
-}
 
 uint32_t color[25];
 const uint8_t gamma8[] = {
@@ -336,23 +320,67 @@ void incoming_uart() {
 } 
 
 
+static void echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count) {
+  uint8_t const case_diff = 'a' - 'A';
+
+  for (uint32_t i = 0; i < count; i++) {
+    tud_cdc_n_write_char(itf, buf[i]);
+  }
+  tud_cdc_n_write_flush(itf);
+}
+
+// Invoked when device is mounted
+void tud_mount_cb(void) {
+}
+
+// Invoked when device is unmounted
+void tud_umount_cb(void) {
+}
+
+
 //--------------------------------------------------------------------+
-// MACRO CONSTANT TYPEDEF PROTYPES
+// USB CDC
 //--------------------------------------------------------------------+
+static void cdc_task(void) {
+  uint8_t itf;
 
-#define FATFS_OFFSET    (2 * 1024 * 1024)
+  for (itf = 0; itf < CFG_TUD_CDC; itf++) {
+    // connected() check for DTR bit
+    // Most but not all terminal client set this when making connection
+    // if ( tud_cdc_n_connected(itf) )
+    {
+      if (tud_cdc_n_available(itf)) {
+        uint8_t buf[256];
 
-#ifndef FATFS_SIZE
-#define FATFS_SIZE      (PICO_FLASH_SIZE_BYTES - FATFS_OFFSET)
-#endif
+        uint32_t count = tud_cdc_n_read(itf, buf, sizeof(buf));
+        for(int i=0;i<count;i++)
+        {
+            char ch = buf[i];
+            incomingData[charCount++] = ch;
+            if(ch=='\r')
+                printf("\r\n");
+            else
+                printf("%c", ch);
+            // end of text / control c
+            if(ch == 0x03)
+            {
+                incomingData[--charCount] = 0;
+                printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
+                int error = luaL_dostring(L, incomingData);
+                if (error) {
+                    printf("\n%s", lua_tostring(L, -1));
+                    lua_pop(L, 1);  /* pop error message from the stack */
+                }
+                charCount = 0;
+            }
 
-#define BLOCK_SIZE 512
-#define BLOCK_NUM FATFS_SIZE / 512
+        }
 
-extern "C" {
-void flash_read (uint32_t addr, void* buffer, uint32_t len);
-void flash_write(uint32_t addr, void const *data, uint32_t len);
-void flash_flush(void);
+        // echo back to both serial ports
+        //echo_serial_port(0, buf, count);
+      }
+    }
+  }
 }
 
 int main()
@@ -378,22 +406,6 @@ int main()
 
     hardware_init();
     stdio_init_all();
-    {
-        // if the user isn't holding the powerkey, 
-        // or if holding power & esc then immediately shutdown
-        if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
-        {
-            // hardware_shutdown();
-        }
-        if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
-        {
-            Diagnostics diag;
-            diag.run();
-        } else if(hardware_get_key_state(4, 4))
-        {
-            hardware_reboot_usb();
-        }
-    }
 
     ws2812_init();
     memset(color, 0, 25 * sizeof(uint32_t));
@@ -412,30 +424,7 @@ int main()
     struct repeating_timer timer;
     struct repeating_timer timer2;
 
-    // requires some looping to get a good startup battery reading
-    for(int i=0;i<100;i++)
-    {
-        sleep_ms(1);
-        hardware_update_battery_level();
-    }
 
-    if(!hardware_has_usb_power() && hardware_get_battery_level_float() < 3.6f)
-    {
-        // display low battery, then shutdown
-        add_repeating_timer_ms(-33, repeating_timer_callback, NULL, &timer);
-        while(true)
-        {
-            tud_task(); // tinyusb device task
-            midi_task(); // read and clear incoming midi
-            if(needsScreenupdate)
-            {
-                gbox.LowBatteryDisplay  (GetDisplay());
-                // hardware_has_usb_power(); // this call just turns on the green debug led currently
-                ssd1306_show(GetDisplay());
-                needsScreenupdate = false;
-            }
-        }
-    }
     // if the user is holding down specific keys on powerup, then clear the full file system
     // InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 
@@ -447,7 +436,6 @@ int main()
 
     configure_audio_driver();
 
-    tlvDriverInit();
 
     int step = 0;
     uint32_t keyState = 0;
@@ -477,8 +465,7 @@ int main()
     while(true)
     {
         tud_task(); // tinyusb device task
-        midi_task(); // read and clear incoming midi
-
+        cdc_task();
         if(audioOutReady && audioInReady)
         {
             mutex_enter_blocking(&audioProcessMutex);
@@ -503,7 +490,7 @@ int main()
                 }
                 gbox.syncsRequired--;
             }
-            hardware_get_all_key_state(&keyState);
+            // hardware_get_all_key_state(&keyState);
             
             // act on keychanges
             for (size_t i = 0; i < 25; i++)
@@ -517,19 +504,19 @@ int main()
             lastKeyState = keyState;
             if(needsScreenupdate)
             {
-                adc_select_input(1);
-                uint16_t adc_val = adc_read();
-                adc_select_input(0);
-                // I think that even though adc_read returns 16 bits, the value is only in the top 12
-                //gbox.OnAdcUpdate(adc_val, adc_read());
-                hardware_update_battery_level();
+                // adc_select_input(1);
+                // uint16_t adc_val = adc_read();
+                // adc_select_input(0);
+                // // I think that even though adc_read returns 16 bits, the value is only in the top 12
+                // //gbox.OnAdcUpdate(adc_val, adc_read());
+                // hardware_update_battery_level();
                 queue_entry_complete_t result;
                 //gbox.UpdateDisplay(GetDisplay());
                 // hardware_has_usb_power(); // this call just turns on the green debug led currently
-                ssd1306_show(GetDisplay());
-                ws2812_setColors(color+5);
+                // ssd1306_show(GetDisplay());
+                // ws2812_setColors(color+5);
                 needsScreenupdate = false;
-                ws2812_trigger();
+                // ws2812_trigger();
                 int error = luaL_dostring(L, "update()");
                 if (error) {
                     fprintf(stderr, "%s", lua_tostring(L, -1));
@@ -540,156 +527,4 @@ int main()
         }
     }
     return 0;
-}
-
-// Invoked when cdc when line state changed e.g connected/disconnected
-void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts)
-{
-  (void) itf;
-  (void) rts;
-
-  // DTR = false is counted as disconnected
-  if ( !dtr )
-  {
-    cdc_line_coding_t coding;
-    tud_cdc_get_line_coding(&coding);
-
-    // Implement touch1200 to reset to bootloader
-    if ( coding.bit_rate == 1200 ) reset_usb_boot(0,0);
-  }
-}
-
-//--------------------------------------------------------------------+
-// MSC
-//--------------------------------------------------------------------+
-
-// Callback invoked when received READ10 command.
-// Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
-int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize)
-{
-  (void) lun;
-
-  uint32_t const addr = FATFS_OFFSET + lba*BLOCK_SIZE + offset;
-  flash_read(addr, buffer, bufsize);
-
-  return bufsize;
-}
-
-// Callback invoked when received WRITE10 command.
-// Process data in buffer to disk's storage and return number of written bytes
-int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize)
-{
-  (void) lun;
-
-  uint32_t const addr = FATFS_OFFSET + lba*BLOCK_SIZE + offset;
-  flash_write(addr, buffer, bufsize);
-
-  return bufsize;
-}
-
-void tud_msc_write10_complete_cb(uint8_t lun)
-{
-  (void) lun;
-  flash_flush();
-}
-
-// Invoked when received SCSI_CMD_INQUIRY
-// Application fill vendor id, product id and revision with string up to 8, 16, 4 characters respectively
-void tud_msc_inquiry_cb(uint8_t lun, uint8_t vendor_id[8], uint8_t product_id[16], uint8_t product_rev[4])
-{
-  (void) lun;
-
-  const char vid[] = "TinyUSB";
-  const char pid[] = "Mass Storage";
-  const char rev[] = "1.0";
-
-  memcpy(vendor_id  , vid, strlen(vid));
-  memcpy(product_id , pid, strlen(pid));
-  memcpy(product_rev, rev, strlen(rev));
-}
-
-// Invoked when received Test Unit Ready command.
-// return true allowing host to read/write this LUN e.g SD card inserted
-bool tud_msc_test_unit_ready_cb(uint8_t lun)
-{
-  (void) lun;
-  return true;
-}
-
-// Invoked when received SCSI_CMD_READ_CAPACITY_10 and SCSI_CMD_READ_FORMAT_CAPACITY to determine the disk size
-// Application update block count and block size
-void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_size)
-{
-  (void) lun;
-
-  *block_count = BLOCK_NUM;
-  *block_size  = BLOCK_SIZE;
-}
-
-// Invoked when received Start Stop Unit command
-// - Start = 0 : stopped power mode, if load_eject = 1 : unload disk storage
-// - Start = 1 : active mode, if load_eject = 1 : load disk storage
-bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, bool load_eject)
-{
-  (void) lun;
-  (void) power_condition;
-
-  if ( load_eject )
-  {
-    if (start)
-    {
-      // load disk storage
-    }else
-    {
-      // unload disk storage
-    }
-  }
-
-  return true;
-}
-
-// Callback invoked when received an SCSI command not in built-in list below
-// - READ_CAPACITY10, READ_FORMAT_CAPACITY, INQUIRY, MODE_SENSE6, REQUEST_SENSE
-// - READ10 and WRITE10 has their own callbacks
-int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, uint16_t bufsize)
-{
-  // read10 & write10 has their own callback and MUST not be handled here
-
-  void const* response = NULL;
-  uint16_t resplen = 0;
-
-  // most scsi handled is input
-  bool in_xfer = true;
-
-  switch (scsi_cmd[0])
-  {
-    case SCSI_CMD_PREVENT_ALLOW_MEDIUM_REMOVAL:
-      // Host is about to read/write etc ... better not to disconnect disk
-      resplen = 0;
-    break;
-
-    default:
-      // Set Sense = Invalid Command Operation
-      tud_msc_set_sense(lun, SCSI_SENSE_ILLEGAL_REQUEST, 0x20, 0x00);
-
-      // negative means error -> tinyusb could stall and/or response with failed status
-      resplen = -1;
-    break;
-  }
-
-  // return resplen must not larger than bufsize
-  if ( resplen > bufsize ) resplen = bufsize;
-
-  if ( response && (resplen > 0) )
-  {
-    if(in_xfer)
-    {
-      memcpy(buffer, response, resplen);
-    }else
-    {
-      // SCSI output
-    }
-  }
-
-  return resplen;
 }

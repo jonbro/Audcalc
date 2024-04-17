@@ -12,7 +12,6 @@ extern "C" {
 }
 #include "q15.h"
 #include "Midi.h"
-#include "Serializer.h"
 #include "hardware.h"
 #include "voice_data.h"
 #include "SongData.h"
@@ -29,9 +28,7 @@ extern "C" {
 class GrooveBox {
  public:
   void init(uint32_t *_color, lua_State *L);
-  void OnKeyUpdate(uint key, bool pressed);
   bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
-  void UpdateDisplay(ssd1306_t *p);
   void LowBatteryDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
@@ -41,8 +38,6 @@ class GrooveBox {
   void Render(int16_t* output_buffer, int16_t* input_buffer, size_t size);
   uint8_t GetInstrumentParamA(int voice);
   uint8_t GetInstrumentParamB(int voice);
-  void Serialize();
-  void Deserialize(); 
   void OnFinishRecording();
   int GetLostLockCount();
   Instrument instruments[VOICE_COUNT];
@@ -185,7 +180,6 @@ class GrooveBox {
   uint16_t AdcInterpolatedB = 0;
   Delay delay;
   Reverb2 verb;
-  ffs_file files[16];
   int64_t renderTime = 0;
   int64_t sampleCount = 0;
   GlobalData globalData = GlobalData_init_zero;

@@ -48,7 +48,6 @@ add_executable(tdm
         multicore_support.c
         # usb_audio.c
         usb_descriptors.c
-        diagnostics.cc
         GrooveBox.cc
         GrooveBoxTestUtils.cc
         voice_data.cc
@@ -61,9 +60,6 @@ add_executable(tdm
         ssd1306.c
         ws2812.c
         hardware.c
-        Serializer.cc
-        # USBSerialDevice.cc
-        filesystem.c
         audio/macro_oscillator.cc
         i2c_dma.c
         audio/analog_oscillator.cc
@@ -72,10 +68,11 @@ add_executable(tdm
         audio/random.cc 
         AudioSampleSecondbloop.cpp
         m6x118pt7b.cc 
-        LuaAutoC/lautoc.c
         ${luaSrcFiles}
         ${PROTO_SRCS} ${PROTO_HDRS}
         flash.c
+        littlefs/lfs.c
+        littlefs/lfs_util.c
 )
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
 pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)

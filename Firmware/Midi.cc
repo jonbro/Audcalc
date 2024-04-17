@@ -60,23 +60,6 @@ void Midi::Init()
 
 uint16_t Midi::Write(const uint8_t* data, uint16_t length)
 {
-    tud_midi_stream_write(0, data, length);
-
-    if (!initialized || length == 0) {
-        return 0;
-    }
-    // copy the data into the buffer if possible
-    uint8_t* start = &TxBuffer[TxIndex + MIDI_BUF_LENGTH*pingPong];
-    // truncate copy amount to fit into buffer
-    length = TxIndex + length > MIDI_BUF_LENGTH - 1
-        ? MIDI_BUF_LENGTH - 1 - TxIndex
-        : length;
-    memcpy(start, data,
-            length);
-    TxIndex += length;
-    // attempt to flush immediately
-    Flush();
-    return length;
 }
 
 void Midi::Flush()

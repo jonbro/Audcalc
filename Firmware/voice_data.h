@@ -5,9 +5,7 @@
 #include <string.h>
 #include "audio/macro_oscillator.h"
 #include "audio/quantizer_scales.h"
-#include "filesystem.h"
 #include "ParamLockPool.h"
-#include "Serializer.h"
 #include "VoiceDataInternal.pb.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
@@ -15,7 +13,6 @@
 
 extern "C" {
   #include "ssd1306.h"
-  #include "lautoc.h"
 }
 
 using namespace braids;
@@ -108,17 +105,7 @@ class VoiceData
             internalData = VoiceDataInternal_init_default;
             InitDefaults();
         }
-        static void SetupLuaBinds(lua_State *L)
-        {
-            luaA_struct(L, VoiceDataInternal_EnvelopeData);
-            luaA_struct_member(L, VoiceDataInternal_EnvelopeData, attack, uint8_t);
-            luaA_struct_member(L, VoiceDataInternal_EnvelopeData, decay, uint8_t);
-            luaA_struct(L, VoiceDataInternal);
-            luaA_struct_member(L, VoiceDataInternal, env1, VoiceDataInternal_EnvelopeData);
-        }
         void InitDefaults();
-        void Serialize(pb_ostream_t *s);
-        void Deserialize(pb_istream_t *s);
         void CopyPattern(uint8_t from, uint8_t to)
         {
             internalData.patterns[to].rate = internalData.patterns[from].rate; // 1x 
@@ -185,14 +172,6 @@ class VoiceData
         void SetInstrumentType(InstrumentType instrumentType) {
             internalData.instrumentType = (internalData.instrumentType * (0xff / 4));
         }
-        void SetFile(ffs_file *_file)
-        {
-          file = _file;
-        }
-        ffs_file* GetFile()
-        {
-          return file;
-        }
         uint8_t GetLength(uint8_t pattern)
         {
             return internalData.patterns[pattern].length/4+1;
@@ -219,8 +198,6 @@ class VoiceData
             nextRequestedStep = 0;
         }
         
-        static void SerializeStatic(pb_ostream_t *s);
-        static void DeserializeStatic(pb_istream_t *s);
         void CopyFrom(VoiceData &copy)
         {
             internalData.instrumentType = copy.internalData.instrumentType;
@@ -266,7 +243,6 @@ class VoiceData
     private:
         VoiceDataInternal internalData;
         bool GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param);
-        ffs_file *file;
 };
 
 void TestVoiceData();
