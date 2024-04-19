@@ -83,18 +83,11 @@ int file_read(const struct lfs_config *c, lfs_block_t block,
 int __not_in_flash_func(file_write)(const struct lfs_config *c, lfs_block_t block,
                     lfs_off_t off, const void *buffer, lfs_size_t size)
 {
-    // multicore_lockout_start_blocking();
+    multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + block*FLASH_SECTOR_SIZE + off, buffer, size);
     restore_interrupts(ints);
-    // multicore_lockout_end_blocking();
-    printf("write complete\n");
-    // write check
-    char charArray[size];
-    file_read(c, block, off, charArray, size);
-    for(int i=0;i<size; i++){
-        printf("%c, %c\n", charArray[i], ((char*)buffer)[i]);
-    }
+    multicore_lockout_end_blocking();
     return LFS_ERR_OK;
 }
 
@@ -104,11 +97,11 @@ int __not_in_flash_func(file_erase)(const struct lfs_config *c, lfs_block_t bloc
 
     // flash erase automatically switches between sector & block erase depending on the address alignment and requested erase size
     // see https://github.com/raspberrypi/pico-bootrom/blob/master/bootrom/program_flash_generic.c#L333
-    // multicore_lockout_start_blocking();
+    multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     flash_range_erase(FS_START + block*FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE);
     restore_interrupts(ints);
-    // multicore_lockout_end_blocking();
+    multicore_lockout_end_blocking();
     return LFS_ERR_OK;
 }
 

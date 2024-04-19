@@ -22,7 +22,6 @@
 
 extern "C" {
 #include "ssd1306.h"
-//#include "usb_audio.h"
 }
 #include "m6x118pt7b.h"
 
@@ -39,7 +38,8 @@ extern "C" {
 #include "GlobalDefines.h"
 #include "bsp/board.h"
 #include "lua.hpp"
-
+#include "filesystem.h"
+#include "printwrapper.h"
 using namespace braids;
 
 
@@ -383,6 +383,7 @@ static void cdc_task(void) {
   }
 }
 
+
 int main()
 {
     board_init();
@@ -406,7 +407,7 @@ int main()
 
     hardware_init();
     stdio_init_all();
-
+    usb_printf_init();
     ws2812_init();
     memset(color, 0, 25 * sizeof(uint32_t));
     ws2812_setColors(color+5);
@@ -424,10 +425,10 @@ int main()
     struct repeating_timer timer;
     struct repeating_timer timer2;
 
+    InitFilesystem();
 
     // if the user is holding down specific keys on powerup, then clear the full file system
     // InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
-
     //usbSerialDevice.Init();
     gbox.init(color, L);
 

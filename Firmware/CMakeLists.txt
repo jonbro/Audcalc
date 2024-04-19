@@ -65,12 +65,14 @@ add_executable(tdm
         audio/analog_oscillator.cc
         audio/digital_oscillator.cc
         audio/resources.cc
+        printwrapper.c
         audio/random.cc 
         AudioSampleSecondbloop.cpp
         m6x118pt7b.cc 
         ${luaSrcFiles}
         ${PROTO_SRCS} ${PROTO_HDRS}
         flash.c
+        filesystem.c
         littlefs/lfs.c
         littlefs/lfs_util.c
 )
