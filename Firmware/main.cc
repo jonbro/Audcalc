@@ -32,7 +32,6 @@ extern "C" {
 #include "hardware.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
-#include "ParamLockPoolInternal.pb.h"
 #include "USBSerialDevice.h"
 #include "multicore_support.h"
 #include "GlobalDefines.h"

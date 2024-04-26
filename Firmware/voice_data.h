@@ -5,7 +5,6 @@
 #include <string.h>
 #include "audio/macro_oscillator.h"
 #include "audio/quantizer_scales.h"
-#include "ParamLockPool.h"
 #include "VoiceDataInternal.pb.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
@@ -106,32 +105,6 @@ class VoiceData
             InitDefaults();
         }
         void InitDefaults();
-        void CopyPattern(uint8_t from, uint8_t to)
-        {
-            internalData.patterns[to].rate = internalData.patterns[from].rate; // 1x 
-            internalData.patterns[to].length = internalData.patterns[from].length; // need to up this to fit into 0xff
-            for (size_t i = 0; i < 64; i++)
-            {
-                internalData.patterns[to].notes[i] = internalData.patterns[from].notes[i]; // 1x 
-                internalData.patterns[to].keys[i] = internalData.patterns[from].keys[i]; // 1x 
-            }
-        }
-        uint8_t* GetNotesForPattern(uint8_t pattern)
-        {
-            return internalData.patterns[pattern].notes;
-        }
-        uint8_t* GetKeysForPattern(uint8_t pattern)
-        {
-            return internalData.patterns[pattern].keys;
-        }
-        uint8_t GetRateForPattern(uint8_t pattern)
-        {
-            return internalData.patterns[pattern].rate;
-        }
-        uint8_t GetLengthForPattern(uint8_t pattern)
-        {
-            return internalData.patterns[pattern].length;
-        }
         uint8_t GetSampleStart(uint8_t key)
         {
             return internalData.sampleStart[key];
@@ -172,22 +145,11 @@ class VoiceData
         void SetInstrumentType(InstrumentType instrumentType) {
             internalData.instrumentType = (internalData.instrumentType * (0xff / 4));
         }
-        uint8_t GetLength(uint8_t pattern)
-        {
-            return internalData.patterns[pattern].length/4+1;
-        }
         VoiceDataInternal* GetVoiceData()
         {
             return &internalData;
         }
-        void StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value);
-        void ClearParameterLocks(uint8_t pattern);
-        void RemoveLocksForStep(uint8_t pattern, uint8_t step);
-        void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern);
-        bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value);
-        bool HasAnyLockForStep(uint8_t step, uint8_t pattern);
 
-        bool LockableParam(uint8_t param);
         
         void SetNextRequestedStep(uint8_t step)
         {
@@ -238,11 +200,8 @@ class VoiceData
         // these are per pattern
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         
-        static ParamLockPool lockPool;
-        uint16_t locksForPattern[16] = {0};
     private:
         VoiceDataInternal internalData;
-        bool GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param);
 };
 
 void TestVoiceData();

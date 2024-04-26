@@ -317,17 +317,6 @@ void GrooveBox::TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t p
         voiceCounter = (++voiceCounter)%VOICE_COUNT;
     }
 }
-bool GrooveBox::GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key)
-{
-    note = patterns[voice].GetNotesForPattern(GetCurrentPattern())[step];
-    key = patterns[voice].GetKeysForPattern(GetCurrentPattern())[step];
-    if(note >> 7 == 1)
-    {
-        note = note&0x7f;
-        return true;
-    }
-    return false;
-}
 int GrooveBox::GetNote()
 {
     int res = needsNoteTrigger;
@@ -421,114 +410,6 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         lastAdcValB = b;
         needsInitialADC--;
         return;
-    }
-    // check to see if the adcs have moved since we last changed the page
-    if(!paramSetA)
-    {
-        if(lastAdcValA>a)
-        {
-            if(lastAdcValA-a > 3)
-            {
-                paramSetA = true;
-            }
-        }
-        else
-        {
-            if(a-lastAdcValA > 3)
-            {
-                paramSetA = true;
-            }
-        }
-    }
-    if(!paramSetB)
-    {
-        if(lastAdcValB>b)
-        {
-            if(lastAdcValB-b > 3)
-            {
-                paramSetB = true;
-            }
-        }
-        else
-        {
-            if(b-lastAdcValB > 3)
-            {
-                paramSetB = true;
-            }
-        }
-    }
-    if(selectedGlobalParam)
-        return SetGlobalParameter(a, b, paramSetA, paramSetB);
-    // live param recording
-    if(holdingWrite && IsPlaying())
-    {
-        // only store the param lock if the voice has a trigger for this step
-        uint8_t _key = {0};
-        uint8_t _note;
-        // for now only store parameter locks for steps that have triggers
-        // eventually we might want to do "motion recording", but we will need to refactor the Instrument::UpdateVoiceData
-        // to correctly request data for the currently playing step (rather than the step where the note was triggered)
-        if(GetTrigger(currentVoice, patternStep[currentVoice], _note, _key))
-        {
-            if(paramSetA)
-            {
-                lastAdcValA = a;
-                patterns[currentVoice].StoreParamLock(param*2, patternStep[currentVoice], GetCurrentPattern(), a);
-                parameterLocked = true;
-            }
-            if(paramSetB)
-            {
-                lastAdcValB = b;
-                patterns[currentVoice].StoreParamLock(param*2+1, patternStep[currentVoice], GetCurrentPattern(), b);
-                parameterLocked = true;
-            }
-        }
-        return;
-    }
-    // should use the distance from the parameter to trigger this
-    if(storingParamLockForStep >> 7 == 1)
-    {
-        if(paramSetA)
-        {
-            lastAdcValA = a;
-            patterns[currentVoice].StoreParamLock(param*2, storingParamLockForStep&0x7f, GetCurrentPattern(), a);
-            parameterLocked = true;
-        }
-        if(paramSetB)
-        {
-            lastAdcValB = b;
-            patterns[currentVoice].StoreParamLock(param*2+1, storingParamLockForStep&0x7f, GetCurrentPattern(), b);
-            parameterLocked = true;
-        }
-        return;
-    }
-    uint8_t& current_a = patterns[currentVoice].GetParam(param*2, lastKeyPlayed, GetCurrentPattern());
-    uint8_t& current_b = patterns[currentVoice].GetParam(param*2+1, lastKeyPlayed, GetCurrentPattern());
-    bool voiceNeedsUpdate = false;
-    if(paramSetA)
-    {
-        // eventually will need to encode the page number in the param - not there yet
-        lastEditedParam = param*2;
-        current_a = a;
-        voiceNeedsUpdate = true;
-        lastAdcValA = a;
-    }
-    if(paramSetB)
-    {
-        lastEditedParam = param*2+1;
-        current_b = b;
-        voiceNeedsUpdate = true;
-        lastAdcValB = b;
-    }
-    if(voiceNeedsUpdate)
-    {
-        for (size_t i = 0; i < 8; i++)
-        {
-            if(voiceChannel[i] == currentVoice)
-            {
-                instruments[i].UpdateVoiceData(patterns[currentVoice]);
-            }
-        }
     }
 }
 void GrooveBox::OnFinishRecording()

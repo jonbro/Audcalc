@@ -394,55 +394,5 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
     }
-    else if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
-    {
-        
-        uint8_t noteHoldTime = (voiceData.GetParamValue(MidiHold, lastPressedKey, playingStep, playingPattern)>>4)+1;
-
-        noteHoldTime *= GrooveBox::getTickCountForRateIndex((voiceData.GetRateForPattern(playingPattern)*7)>>8);
-
-        // determine if this note is already playing
-        voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1;
-        bool noteIsPlaying = false;
-        for(int i=0;i<16;i++)
-        {
-            if(midiNoteStates[i].note == note)
-            {
-                noteIsPlaying = true;
-                midiNoteStates[i].ticksRemaining = 96;
-            }
-        }
-        if(!noteIsPlaying)
-        {
-            int16_t lowestTime = 0x7fff;
-            uint8_t lowestTimeIdx = 0;
-            bool triggered = false;
-            for(int i=0;i<16;i++)
-            {
-                if(midiNoteStates[i].ticksRemaining < lowestTime)
-                {
-                    lowestTime = midiNoteStates[i].ticksRemaining;
-                    lowestTimeIdx = i;
-                }
-                if(midiNoteStates[i].note < 0)
-                {
-                    // found a channel that is no longer playing, we can use this one to trigger
-                    midi->NoteOn(voiceData.GetMidiChannel(), note-12, voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1);
-                    midiNoteStates[i].note = note;
-                    midiNoteStates[i].ticksRemaining = noteHoldTime;
-                    triggered = true;
-                    break;
-                }
-            }
-            if(!triggered)
-            {
-                // need to steal a channel
-                midi->NoteOff(voiceData.GetMidiChannel(), midiNoteStates[lowestTimeIdx].note-12);
-                midi->NoteOn(voiceData.GetMidiChannel(), note-12, voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1);
-                midiNoteStates[lowestTimeIdx].note = note;
-                midiNoteStates[lowestTimeIdx].ticksRemaining = noteHoldTime;
-            }
-        }
-    } 
     lastNoteOnPitch = note;
 }

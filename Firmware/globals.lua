@@ -1,0 +1,53 @@
+paramId = {
+    timbre = 10,
+    color = 11,
+    cutoff = 12,
+    resonance = 13,
+    volume = 14,
+    pan = 15,
+    attackTime = 20,
+    decayTime = 21,
+    attackTime2 = 22,
+    decayTime2 = 23,
+    LFORate = 24,
+    LFODepth = 25,
+    retriggerSpeed = 26,
+    retriggerLength = 27,
+    env1Target = 30,
+    env1Depth = 31,
+    env2Target = 32,
+    env2Depth = 33,
+    lfo1Target = 34,
+    retriggerFade = 36,
+    length = 40,
+    conditionMode = 42,
+    conditionData = 43,
+    delaySend = 44, 
+    reverbSend = 45
+}
+
+envTarget = {
+    volume = 0,
+    timbre = 1,
+    color = 2,
+    cutoff = 3,
+    resonance = 4,
+    pitch = 5,
+    pan = 6,
+}
+
+lfoTargets = {
+    volume = 0,
+    timbre = 1,
+    color = 2,
+    cutoff = 3,
+    resonance = 4,
+    pitch = 5,
+    pan = 6,
+    env1Attack = 7,
+    env1Decay = 8,
+    env2Attack = 9,
+    env2Decay = 10,
+    env12Attack = 11,
+    env12Decay = 12,
+}

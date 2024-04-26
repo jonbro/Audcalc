@@ -28,7 +28,6 @@ extern "C" {
 class GrooveBox {
  public:
   void init(uint32_t *_color, lua_State *L);
-  bool GetTrigger(uint voice, uint step, uint8_t &note, uint8_t &key);
   void LowBatteryDisplay(ssd1306_t *p);
   void OnAdcUpdate(uint16_t a, uint16_t b);
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
@@ -39,7 +38,6 @@ class GrooveBox {
   uint8_t GetInstrumentParamA(int voice);
   uint8_t GetInstrumentParamB(int voice);
   void OnFinishRecording();
-  int GetLostLockCount();
   Instrument instruments[VOICE_COUNT];
   int CurrentStep = 0;
   uint8_t currentVoice = 0;

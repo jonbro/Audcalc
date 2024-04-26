@@ -22,7 +22,6 @@ find_package(Nanopb REQUIRED)
 include_directories(${NANOPB_INCLUDE_DIRS})
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         VoiceDataInternal.proto
-        ParamLockPoolInternal.proto
         SongDataInternal.proto
         GlobalData.proto
 )
@@ -52,7 +51,6 @@ add_executable(tdm
         GrooveBoxTestUtils.cc
         voice_data.cc
         SongData.cc
-        ParamLockPool.cpp
         Instrument.cc
         Midi.cc
         MidiParamMapper.cc
