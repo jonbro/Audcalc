@@ -159,6 +159,7 @@ class GrooveBox {
   // clamped to the length of this pattern / sound
   uint8_t editPage[16] = {0};
   uint8_t playingPattern = 0;
+  uint8_t globalVolume = 0xff;
   int patternChain[16] = {0};
   int8_t voiceChannel[16] = {-1};
   

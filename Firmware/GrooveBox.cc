@@ -219,8 +219,8 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             mainL += l;
             mainR += r;
 
-            mainL *= 0x40;
-            mainR *= 0x40;
+            mainL *= globalVolume;
+            mainR *= globalVolume;
             mainL = mainL >> 8;
             mainR = mainR >> 8;
 
@@ -411,6 +411,7 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         needsInitialADC--;
         return;
     }
+    globalVolume = a;
 }
 void GrooveBox::OnFinishRecording()
 {

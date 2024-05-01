@@ -27,6 +27,11 @@ void VoiceData::InitDefaults()
     internalData.retriggerLength = 0;
     internalData.retriggerFade = 0x7f;
     internalData.octave = 0x7f;
+    
+    internalData.delaySend = 0;
+    internalData.reverbSend = 0;
+    
+    internalData.extraTypeUnion.synthShape = 0;
 }
 
 // incorporates the lock if any
@@ -38,52 +43,52 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
     {
         switch(param)
         {
-            case Timbre: internalData.timbre;
-            case Color: internalData.color;
+            case Timbre: return internalData.timbre;
+            case Color: return internalData.color;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_MIDI)
     {
         switch(param)
         {
-            case Timbre: internalData.timbre;
-            case MidiHold: internalData.color;
+            case Timbre: return internalData.timbre;
+            case MidiHold: return internalData.color;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         switch(param)
         {
-            case SampleIn: internalData.sampleStart[lastNotePlayed];
-            case SampleOut: internalData.sampleLength[lastNotePlayed];
-            case AttackTime: internalData.sampleAttack;
-            case DecayTime: internalData.sampleDecay;
+            case SampleIn: return internalData.sampleStart[lastNotePlayed];
+            case SampleOut: return internalData.sampleLength[lastNotePlayed];
+            case AttackTime: return internalData.sampleAttack;
+            case DecayTime: return internalData.sampleDecay;
         }
     }
     switch(param)
     {
-        case Cutoff: internalData.cutoff;
-        case Resonance: internalData.resonance;
-        case Volume: internalData.volume;
-        case Pan: internalData.pan;
-        case AttackTime: internalData.env1.attack;
-        case DecayTime: internalData.env1.decay;
-        case Env1Target: internalData.env1.target;
-        case Env1Depth: internalData.env1.depth;
-        case AttackTime2: internalData.env2.attack;
-        case DecayTime2: internalData.env2.decay;
-        case Env2Target: internalData.env2.target;
-        case Env2Depth: internalData.env2.depth;
-        case LFORate: internalData.lfoRate;
-        case LFODepth: internalData.lfoDepth;
-        case Lfo1Target: internalData.lfoTarget;
-        case RetriggerSpeed: internalData.retriggerSpeed;
-        case RetriggerLength: internalData.retriggerLength;
-        case RetriggerFade: internalData.retriggerFade;
-        case DelaySend: internalData.delaySend;
-        case ReverbSend: internalData.reverbSend;
-        case ConditionMode: internalData.conditionMode;
-        case ConditionData: internalData.conditionData;
+        case Cutoff: return internalData.cutoff;
+        case Resonance: return internalData.resonance;
+        case Volume: return internalData.volume;
+        case Pan: return internalData.pan;
+        case AttackTime: return internalData.env1.attack;
+        case DecayTime: return internalData.env1.decay;
+        case Env1Target: return internalData.env1.target;
+        case Env1Depth: return internalData.env1.depth;
+        case AttackTime2: return internalData.env2.attack;
+        case DecayTime2: return internalData.env2.decay;
+        case Env2Target: return internalData.env2.target;
+        case Env2Depth: return internalData.env2.depth;
+        case LFORate: return internalData.lfoRate;
+        case LFODepth: return internalData.lfoDepth;
+        case Lfo1Target: return internalData.lfoTarget;
+        case RetriggerSpeed: return internalData.retriggerSpeed;
+        case RetriggerLength: return internalData.retriggerLength;
+        case RetriggerFade: return internalData.retriggerFade;
+        case DelaySend: return internalData.delaySend;
+        case ReverbSend: return internalData.reverbSend;
+        case ConditionMode: return internalData.conditionMode;
+        case ConditionData: return internalData.conditionData;
     }
     return 0;
 }

@@ -39,6 +39,8 @@ extern "C" {
 #include "lua.hpp"
 #include "filesystem.h"
 #include "printwrapper.h"
+#include "globals.lua.h"
+
 using namespace braids;
 
 
@@ -289,34 +291,196 @@ static int l_setParam(lua_State *L)
     current_a = luaL_checknumber(L, 3);
     return 0;
 }
+static int l_resetParams(lua_State *L)
+{
+    for(int i=0;i<8;i++)
+    {
+        gbox.patterns[i].InitDefaults();
+    }
+    return 0;
+}
 
 char incomingData[16384];
 int charCount = 0;
+
+static int SaveFile()
+{
+    lfs_file_t file;
+    // extract the filename
+    char *s = incomingData;
+    int searchCount = charCount;
+    while(searchCount--)
+    {
+        if( *s++ == '^' )
+        {
+            if( *s++ == '^' )
+            {
+                if(*s == 'S')
+                {
+                    s++;
+                    break;
+                }
+            }
+        }
+    }
+    char filename[64];
+    char *fn = filename;
+    // extract the filename
+    // TODO: deal with buffer overflow
+    while(searchCount--)
+    {
+        if(*s != '^')
+        {
+            *fn = *s;
+            s++; fn++;
+        }
+        else
+        {
+            s++;
+            break;
+        }
+    }
+    *fn = 0;
+    lfs_file_open(GetFilesystem(), &file, filename, LFS_O_RDWR | LFS_O_CREAT);
+    // reset back to zero in case we've been appending to the end
+    lfs_file_truncate(GetFilesystem(), &file, 0);
+    lfs_file_rewind(GetFilesystem(), &file);
+    lfs_file_write(GetFilesystem(), &file, s, searchCount);
+    lfs_file_close(GetFilesystem(), &file);
+    lfs_file_open(GetFilesystem(), &file, filename, LFS_O_RDONLY);
+    lfs_soff_t size = lfs_file_size(GetFilesystem(), &file);
+    lfs_file_close(GetFilesystem(), &file);
+    printf("wrote file: %s - %i bytes\n", filename, size);
+    return 0;
+}
+
+static int LoadFile()
+{
+    lfs_file_t file;
+    // extract the filename
+    char *s = incomingData;
+    int searchCount = charCount;
+    while(searchCount--)
+    {
+        if( *s++ == '^' )
+        {
+            if( *s++ == '^' )
+            {
+                if(*s == 'L')
+                {
+                    s++;
+                    break;
+                }
+            }
+        }
+    }
+    char filename[64];
+    char *fn = filename;
+    // extract the filename
+    // TODO: deal with buffer overflow
+    while(searchCount--)
+    {
+        if(*s != 0x03)
+        {
+            *fn = *s;
+            s++; fn++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    *fn = 0;
+    printf("attempt to open file: %s\n", filename);
+    int e = lfs_file_open(GetFilesystem(), &file, filename, LFS_O_RDONLY);
+    if(e < LFS_ERR_OK)
+    {
+        printf("file open error: %i\n", e);
+    } 
+    int size = lfs_file_size(GetFilesystem(), &file);
+    e = lfs_file_read(GetFilesystem(), &file, incomingData, size);
+    if(e < LFS_ERR_OK)
+    {
+        printf("file read error: %i\n", e);
+    }
+    lfs_file_close(GetFilesystem(), &file);
+    printf("^^L%s^^E", incomingData);
+    return 0;
+}
+
+static int DeleteFile()
+{
+    lfs_file_t file;
+    // extract the filename
+    char *s = incomingData;
+    int searchCount = charCount;
+    while(searchCount--)
+    {
+        if( *s++ == '^' )
+        {
+            if( *s++ == '^' )
+            {
+                if(*s == 'D')
+                {
+                    s++;
+                    break;
+                }
+            }
+        }
+    }
+    char filename[64];
+    char *fn = filename;
+    // extract the filename
+    // TODO: deal with buffer overflow
+    while(searchCount--)
+    {
+        if(*s != 0x03)
+        {
+            *fn = *s;
+            s++; fn++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    *fn = 0;
+    int e = lfs_remove(GetFilesystem(), filename);
+    if(e < LFS_ERR_OK)
+    {
+        printf("file remove error: %i\n", e);
+    }
+    else
+    {
+        printf("file removed: %s\n", filename);
+    }
+    return 0;
+}
 lua_State *L;
 #define UART_ID uart0
 
-void incoming_uart() {
-    while (uart_is_readable(UART_ID)) {
-        char ch = uart_getc(UART_ID);
-        incomingData[charCount++] = ch;
-        if(ch=='\r')
-            printf("\r\n");
-        else
-            printf("%c", ch);
-        // end of text / control c
-        if(ch == 0x03)
-        {
-            incomingData[--charCount] = 0;
-            printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
-            int error = luaL_dostring(L, incomingData);
-            if (error) {
-                printf("\n%s", lua_tostring(L, -1));
-                lua_pop(L, 1);  /* pop error message from the stack */
-            }
-            charCount = 0;
-        }
-    }
-} 
+// void incoming_uart() {
+//     while (uart_is_readable(UART_ID)) {
+//         char ch = uart_getc(UART_ID);
+//         incomingData[charCount++] = ch;
+//         if(ch=='\r')
+//             printf("\r\n");
+//         else
+//             printf("%c", ch);
+//         // end of text / control c
+//         if(ch == 0x03)
+//         {
+//             incomingData[--charCount] = 0;
+//             printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
+//             int error = luaL_dostring(L, incomingData);
+//             if (error) {
+//                 printf("\n%s", lua_tostring(L, -1));
+//                 lua_pop(L, 1);  /* pop error message from the stack */
+//             }
+//             charCount = 0;
+//         }
+//     }
+// } 
 
 
 static void echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count) {
@@ -356,19 +520,67 @@ static void cdc_task(void) {
         {
             char ch = buf[i];
             incomingData[charCount++] = ch;
-            if(ch=='\r')
-                printf("\r\n");
-            else
-                printf("%c", ch);
             // end of text / control c
             if(ch == 0x03)
             {
+                // clear the end byte of the data
                 incomingData[--charCount] = 0;
-                printf("\n\n attempting to execute \n ----------------------- \n %s", incomingData);
-                int error = luaL_dostring(L, incomingData);
+                bool save = false;
+                bool load = false;
+                bool del = false;
+                // search for the command at the beginning
+                char *s = incomingData;
+                int searchCount = charCount;
+                while(searchCount--)
+                {
+                    if( *s++ == '^' )
+                    {
+                        if( *s++ == '^' )
+                        {
+                            if(*s == 'S')
+                            {
+                                save = true;
+                            }
+                            if(*s == 'L')
+                            {
+                                load = true;
+                            }
+                            if(*s == 'D')
+                            {
+                                del = true;
+                            }
+                        }
+                    }
+                }
+                if(load)
+                {
+                    LoadFile();
+                    charCount = 0;
+                    return;
+                }
+                if(del)
+                {
+                    DeleteFile();
+                    charCount = 0;
+                    return;
+                }
+                if(save)
+                {
+                    s++;
+                }
+                else
+                {
+                    s = incomingData;
+                }
+                printf("attempting to execute\n");
+                int error = luaL_dostring(L, s);
                 if (error) {
-                    printf("\n%s", lua_tostring(L, -1));
+                    printf("%s\n", lua_tostring(L, -1));
                     lua_pop(L, 1);  /* pop error message from the stack */
+                }
+                if(save)
+                {
+                    SaveFile();
                 }
                 charCount = 0;
             }
@@ -381,7 +593,24 @@ static void cdc_task(void) {
     }
   }
 }
-
+bool needsUSBBoot()
+{
+    int gpioDownCount = 0;
+    int gpioUpCount = 0;
+    for(int i=0;i<10;i++)
+    {
+        if(!gpio_get(23))
+        {
+            gpioDownCount++;
+        }
+        else
+        {
+            gpioUpCount++;
+        }
+        sleep_ms(2);
+    }
+    return gpioDownCount>gpioUpCount;
+}
 
 int main()
 {
@@ -402,9 +631,20 @@ int main()
     lua_setglobal(L, "playNote");
     lua_pushcfunction(L, l_setParam);
     lua_setglobal(L, "setParam");
-
+    lua_pushcfunction(L, l_resetParams);
+    lua_setglobal(L, "resetParams");
+    e = luaL_dostring(L, global_lua);
+    if(e)
+    {
+        printf("%s\n", lua_tostring(L, -1));
+    }
 
     hardware_init();
+    sleep_ms(10);
+    if(needsUSBBoot())
+    {
+        reset_usb_boot(1ul<<22,0);
+    }
     stdio_init_all();
     usb_printf_init();
     ws2812_init();
@@ -454,12 +694,38 @@ int main()
         lua_pop(L, 1);  /* pop error message from the stack */
     }
     gbox.StartPlaying();
-    int UART_IRQ = UART0_IRQ;
-    irq_set_exclusive_handler(UART_IRQ, incoming_uart);
-    irq_set_enabled(UART_IRQ, true);
+    // int UART_IRQ = UART0_IRQ;
+    // irq_set_exclusive_handler(UART_IRQ, incoming_uart);
+    // irq_set_enabled(UART_IRQ, true);
 
-    // Now enable the UART to send interrupts - RX only
-    uart_set_irq_enables(uart0, true, false);
+    // // Now enable the UART to send interrupts - RX only
+    // uart_set_irq_enables(uart0, true, false);
+    lfs_dir_t scriptsDir;
+    lfs_dir_open(GetFilesystem(), &scriptsDir, "scripts");
+    struct lfs_info info;
+    bool ranNextFile = false;
+    while(lfs_dir_read(GetFilesystem(), &scriptsDir, &info) && !ranNextFile)
+    {
+        if(info.type == LFS_TYPE_REG)
+        {
+            char path[1024];
+            sprintf(path, "scripts/%s", info.name);
+
+            lfs_file_t file;
+            // attempt to open this file
+            lfs_file_open(GetFilesystem(), &file, path, LFS_O_RDONLY);
+            lfs_file_read(GetFilesystem(), &file, incomingData, info.size);
+            error = luaL_dostring(L, incomingData);
+            if (error) {
+                fprintf(stderr, "%s", lua_tostring(L, -1));
+                lua_pop(L, 1);  /* pop error message from the stack */
+                lfs_file_close(GetFilesystem(), &file);
+            }
+            // this should work fine, lets just go with it
+            lfs_file_close(GetFilesystem(), &file);
+            ranNextFile = true;
+        }
+    }
 
 
     while(true)
@@ -490,25 +756,87 @@ int main()
                 }
                 gbox.syncsRequired--;
             }
-            // hardware_get_all_key_state(&keyState);
-            
-            // act on keychanges
-            for (size_t i = 0; i < 25; i++)
+            // we just have one button, so hardcoding
             {
-                uint32_t s = keyState & (1ul<<i);
-                if((keyState & (1ul<<i)) != (lastKeyState & (1ul<<i)))
+                bool btn = gpio_get(23);
+                if(btn)
+                {
+                    keyState |= 1ul << 0;
+                }
+                else
+                {
+                    keyState &= ~(1ul << 0);
+                }
+                uint32_t s = keyState & (1ul<<0);
+                if((keyState & (1ul<<0)) != (lastKeyState & (1ul<<0)) && s == 1)
                 {
                     //gbox.OnKeyUpdate(i, s>0); 
+                    // get the current files offset
+                    lfs_soff_t off = lfs_dir_tell(GetFilesystem(), &scriptsDir);
+                    // lfs_dir_seek(GetFilesystem(), &scriptsDir, off);
+                    // printf("offset %i\n", off);
+
+                    // attempt to read next file
+                    bool stopFinding = false;
+                    while(!stopFinding)
+                    {
+                        int res = lfs_dir_read(GetFilesystem(), &scriptsDir, &info);
+                        if(res == 0)
+                        {
+                            lfs_dir_rewind(GetFilesystem(), &scriptsDir);
+                            continue;
+                        }
+                        lfs_soff_t newOff = lfs_dir_tell(GetFilesystem(), &scriptsDir);
+                        if(newOff == off)
+                        {
+                            char path[1024];
+                            sprintf(path, "scripts/%s", info.name);
+                            printf("only one file in scripts: %s\n", path);
+                            stopFinding = true;
+                            continue;
+                        }
+                        if(res >= 0 && info.type == LFS_TYPE_REG)
+                        {
+                            char path[1024];
+                            sprintf(path, "scripts/%s", info.name);
+
+                            lfs_file_t file;
+                            // attempt to open this file
+                            printf("attempt to open file: %s\n", path);
+                            int e = lfs_file_open(GetFilesystem(), &file, path, LFS_O_RDONLY);
+                            if(e < LFS_ERR_OK)
+                            {
+                                printf("file open error: %i\n", e);
+                            }
+                            e = lfs_file_read(GetFilesystem(), &file, incomingData, info.size);
+                            if(e < LFS_ERR_OK)
+                            {
+                                printf("file read error: %i\n", e);
+                            }
+                            error = luaL_dostring(L, incomingData);
+                            if (error) {
+                                fprintf(stderr, "%s", lua_tostring(L, -1));
+                                lua_pop(L, 1);  /* pop error message from the stack */
+                                lfs_file_close(GetFilesystem(), &file);
+                            }
+                            // this should work fine, lets just go with it
+                            lfs_file_close(GetFilesystem(), &file);
+                            stopFinding = true;
+                            continue;
+                        }
+                    }
+                    
                 }
+                lastKeyState = keyState;
             }
-            lastKeyState = keyState;
             if(needsScreenupdate)
             {
-                // adc_select_input(1);
-                // uint16_t adc_val = adc_read();
+                adc_select_input(0);
+                uint16_t adc_val = adc_read();
                 // adc_select_input(0);
                 // // I think that even though adc_read returns 16 bits, the value is only in the top 12
-                // //gbox.OnAdcUpdate(adc_val, adc_read());
+                // also the pot is wired backwards, so invert
+                gbox.OnAdcUpdate(0xfff-adc_val, 0x00);
                 // hardware_update_battery_level();
                 queue_entry_complete_t result;
                 //gbox.UpdateDisplay(GetDisplay());
@@ -520,7 +848,7 @@ int main()
                 int error = luaL_dostring(L, "update()");
                 if (error) {
                     fprintf(stderr, "%s", lua_tostring(L, -1));
-                    lua_pop(L, 1);  /* pop error message from the stack */
+                    lua_pop(L, 1);
                 }
 
             }

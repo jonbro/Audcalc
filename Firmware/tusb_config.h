@@ -85,7 +85,7 @@ extern "C" {
 
 
 #define CFG_TUD_CDC_RX_BUFSIZE   256
-#define CFG_TUD_CDC_TX_BUFSIZE   256
+#define CFG_TUD_CDC_TX_BUFSIZE   16384 // TODO: Fix me
 
 // CDC Endpoint transfer buffer size, more is faster
 #define CFG_TUD_CDC_EP_BUFSIZE   64

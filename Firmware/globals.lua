@@ -1,4 +1,6 @@
-paramId = {
+
+
+param = {
     timbre = 10,
     color = 11,
     cutoff = 12,
@@ -23,9 +25,53 @@ paramId = {
     conditionMode = 42,
     conditionData = 43,
     delaySend = 44, 
-    reverbSend = 45
+    reverbSend = 45,
+    shape = 47
 }
-
+shapes = {
+    csaw=0,
+    morph=6,
+    saw_square=12,
+    sine_triangle=18,
+    buzz=24,
+    square_sub=31,
+    saw_sub=37,
+    square_sync=43,
+    saw_sync=49,
+    triple_saw=56,
+    triple_square=62,
+    triple_triangle=68,
+    triple_sine=74,
+    triple_ring_mod=81,
+    saw_swarm=87,
+    toy=93,
+    digital_filter_lp=99,
+    digital_filter_pk=106,
+    digital_filter_bp=112,
+    digital_filter_hp=118,
+    vosim=124,
+    vowel=131,
+    vowel_fof=137,
+    harmonics=143,
+    fm=149,
+    feedback_fm=156,
+    chaotic_feedback_fm=162,
+    struck_bell=168,
+    struck_drum=174,
+    kick=181,
+    cymbal=187,
+    snare=193,
+    wavetables=199,
+    wave_map=206,
+    wave_line=212,
+    wave_paraphonic=218,
+    filtered_noise=224,
+    twin_peaks_noise=231,
+    clocked_noise=237,
+    granular_cloud=243,
+    particle_noise=249,
+    digital_modulaton=256
+}
 envTarget = {
     volume = 0,
     timbre = 1,

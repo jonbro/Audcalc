@@ -18,6 +18,7 @@ list(TRANSFORM luaSrcFiles PREPEND ${luaSrcDir}/)
 set(LUA_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/lua-5.4.3/src")
 include_directories(${LUA_INCLUDE_DIRS})
 include_directories("${CMAKE_CURRENT_LIST_DIR}/LuaAutoC")
+
 find_package(Nanopb REQUIRED)
 include_directories(${NANOPB_INCLUDE_DIRS})
 nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
@@ -25,6 +26,7 @@ nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         SongDataInternal.proto
         GlobalData.proto
 )
+
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
@@ -37,6 +39,16 @@ include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
 
 project(tdm C CXX ASM)
+
+set (py_cmd "lua_to_cstrings.py")
+
+add_custom_target(
+ generateLuaStrings ALL
+ COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/lua_to_cstrings.py ${CMAKE_CURRENT_SOURCE_DIR}
+ BYPRODUCTS globals.lua.h
+ COMMENT "Generating lua headers"
+)
+
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
@@ -82,6 +94,8 @@ pico_set_program_version(tdm "0.1")
 
 pico_enable_stdio_usb(tdm 0)
 pico_enable_stdio_uart(tdm 1)
+
+add_dependencies(tdm generateLuaStrings)
 
 
 target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})

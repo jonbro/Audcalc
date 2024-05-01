@@ -27,73 +27,14 @@ void hardware_init()
     // gpio_put(BLINK_PIN_LED, true);
     set_sys_clock_khz(200000, true);
 
-    // adc_init();
-    // adc_gpio_init(26);
-    // adc_gpio_init(27);
-    // adc_gpio_init(28);
+    adc_init();
+    adc_gpio_init(26);
 
-    // gpio_init(USB_POWER_SENSE);
-    // // in the past I had issues with bad ADC values when this was set to in - keep an eye on this
-    // gpio_set_dir(USB_POWER_SENSE, GPIO_IN);
-    // gpio_pull_down(USB_POWER_SENSE);
-
-    // // power switch / key 1,1
-    // gpio_init(23);
-    // gpio_set_dir(23, GPIO_IN);
-    // gpio_set_pulls(23, true, false);
-
-    // gpio_init(LINE_IN_DETECT);
-    // gpio_set_dir(LINE_IN_DETECT, GPIO_IN);
-    // gpio_pull_down(LINE_IN_DETECT);
-
-    // gpio_init(HEADPHONE_DETECT);
-    // gpio_set_dir(HEADPHONE_DETECT, GPIO_IN);
-    // gpio_pull_up(HEADPHONE_DETECT);
-
-    // // setup the rows / colums for input
-    // for (size_t i = 0; i < 5; i++)
-    // {
-    //     gpio_init(col_pin_base+i);
-    //     gpio_set_dir(col_pin_base+i, GPIO_OUT);
-    //     gpio_disable_pulls(col_pin_base+i);
-    //     gpio_init(row_pin_base+i);
-    //     gpio_set_dir(row_pin_base+i, GPIO_IN);
-    //     gpio_pull_down(row_pin_base+i);
-    // }
-    
-    // gpio_init(SUBSYSTEM_RESET_PIN);
-    // gpio_set_dir(SUBSYSTEM_RESET_PIN, GPIO_OUT);
-
-    // gpio_put(SUBSYSTEM_RESET_PIN, 1);
-    // sleep_ms(10);
-    // gpio_put(SUBSYSTEM_RESET_PIN, 0);
-    // sleep_ms(40);
-    // gpio_put(SUBSYSTEM_RESET_PIN, 1);
-    // sleep_ms(20);
-
-    // gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    // gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    // gpio_pull_up(I2C_SDA);
-    // gpio_pull_up(I2C_SCL);
-
-    // I2C Initialisation. Using it at 400Khz.
-    // const int rc = i2c_dma_init(&i2c_dma, I2C_PORT, 400*1000, I2C_SDA, I2C_SCL);
-    // gpio_pull_up(I2C_SDA);
-    // gpio_pull_up(I2C_SCL);
     i2c_init(I2C_PORT, 400*1000);
 
-    // // setup the screen
-    // ssd1306_t* disp = GetDisplay();
-    // disp->external_vcc=false;
-    // ssd1306_init(disp, 128, 32, 0x3C, I2C_PORT);
-    // ssd1306_poweroff(disp);
-    // sleep_ms(3);
-    // ssd1306_poweron(disp);
-    // ssd1306_clear(disp);
-    // ssd1306_show(disp);
-    // ssd1306_contrast(disp, 0x7f); // lower brightness / power requirement
-
-    // gpio_put(BLINK_PIN_LED, false);
+    gpio_init(23);
+    gpio_set_dir(23, GPIO_IN);
+    gpio_set_pulls(23, true, false);
 }
 void hardware_check_i2c_pullups(bool *scl, bool *sda)
 {
