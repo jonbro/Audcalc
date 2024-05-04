@@ -93,6 +93,7 @@ target_compile_definitions(tdm PRIVATE
 # PICO_AUDIO_I2S_MONO_INPUT=1
 # #define for our example code
 # USE_AUDIO_I2S=1
+PICO_XOSC_STARTUP_DELAY_MULTIPLIER=32
 )
 
 pico_add_extra_outputs(tdm) 
