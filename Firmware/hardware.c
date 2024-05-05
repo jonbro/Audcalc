@@ -170,7 +170,9 @@ void hardware_update_battery_level()
 }
 float hardware_get_battery_level_float()
 {
-    const float conversion_factor = 2.5f / (1 << 8) * 3.1f;
+    // 2.33 is voltage divider r1+r2/r2, or in this case 1m+750k/750k or 2.33f
+    const float conversion_factor = 2.5f / (1 << 8) * 2.33f;
+    // battery level is an int between 0-0xff representing 0-2.5v
     return battery_level * conversion_factor;
 }
 bool hardware_has_usb_power()
