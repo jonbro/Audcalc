@@ -14,16 +14,81 @@ static int chars_rxed = 0;
 uint8_t in_buf[128];
 uint8_t buf_count = 0;
 bool readBuf = false;
+Midi* midi;
+
+
 void on_uart_rx() {
     while (uart_is_readable(UART_ID)) {
         char c = uart_getc(UART_ID);
-        in_buf[buf_count++] = c;
-        readBuf = false;
+        if(midi->OnSync != NULL)
+        {
+            if(c & 0xf8 == 1)
+            {
+                printf("syscmd: %c\n", c);
+            }
+            if(c == 0xf8 || c == 0xfa || c == 0xfc)
+            {
+                
+                midi->OnSync(c);
+            }
+        }
+        // in_buf[buf_count++] = c;
+        // readBuf = false;
     }
+}
+
+int Midi::GetNote()
+{
+    return -1;
+    if(readBuf)
+        return -1;
+    readBuf = false;
+    uint8_t cmdStart = 0;
+    // filter out all non 0x9 commands
+    while(((in_buf[cmdStart]>>4) != 0x9 && (in_buf[cmdStart]>>4) != 0xb) && cmdStart<buf_count)
+    {
+        cmdStart++;
+        while((in_buf[cmdStart]>>7) != 1 && cmdStart<buf_count)
+        {
+            cmdStart++;
+        }
+    }
+    if(cmdStart>buf_count)
+    {
+        buf_count = 0;
+        return -1;
+    }
+    if((in_buf[cmdStart]>>4) == 0x9)
+    {
+        readBuf = true;
+        buf_count = 0;
+        return in_buf[cmdStart+1]&0x7f; // midi data bytes strip off the top bit
+    }
+    // control change
+    if((in_buf[cmdStart]>>4) == 0xb)
+    {
+        uint8_t cc = in_buf[cmdStart+1];
+        uint8_t val = in_buf[cmdStart+2];
+        if(lastCCValue[cc] == 0xff || lastCCValue[cc] != val)
+        {
+            if(OnCCChanged != NULL)
+            {
+                OnCCChanged(cc, val);
+            }
+            lastCCValue[cc] = val;
+        }
+        //printf("cc: %i %i\n",in_buf[cmdStart+1], in_buf[cmdStart+2]);
+        buf_count = 0;
+        return -1;
+    }
+    // note off
+    buf_count = 0;
+    return -1;
 }
 
 void Midi::Init()
 {
+    midi = this;
     // clear out the last values so we immediately update on first get
     for(int i=0;i<128;i++)
     {
@@ -94,53 +159,6 @@ void Midi::Flush()
     TxIndex = 0;
 }
 
-int Midi::GetNote()
-{
-    if(readBuf)
-        return -1;
-
-    uint8_t cmdStart = 0;
-    // filter out all non 0x9 commands
-    while(((in_buf[cmdStart]>>4) != 0x9 && (in_buf[cmdStart]>>4) != 0xb) && cmdStart<buf_count)
-    {
-        cmdStart++;
-        while((in_buf[cmdStart]>>7) != 1 && cmdStart<buf_count)
-        {
-            cmdStart++;
-        }
-    }
-    if(cmdStart>buf_count)
-    {
-        buf_count = 0;
-        return -1;
-    }
-    if((in_buf[cmdStart]>>4) == 0x9)
-    {
-        readBuf = true;
-        buf_count = 0;
-        return in_buf[cmdStart+1]&0x7f; // midi data bytes strip off the top bit
-    }
-    // control change
-    if((in_buf[cmdStart]>>4) == 0xb)
-    {
-        uint8_t cc = in_buf[cmdStart+1];
-        uint8_t val = in_buf[cmdStart+2];
-        if(lastCCValue[cc] == 0xff || lastCCValue[cc] != val)
-        {
-            if(OnCCChanged != NULL)
-            {
-                OnCCChanged(cc, val);
-            }
-            lastCCValue[cc] = val;
-        }
-        //printf("cc: %i %i\n",in_buf[cmdStart+1], in_buf[cmdStart+2]);
-        buf_count = 0;
-        return -1;
-    }
-    // note off
-    buf_count = 0;
-    return -1;
-}
 void Midi::NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity)
 {
     uint8_t send[] = {0x90+channel,pitch,velocity};

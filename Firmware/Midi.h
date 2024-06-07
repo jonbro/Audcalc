@@ -19,7 +19,9 @@ class Midi
         uint16_t Write(const uint8_t* data, uint16_t length);
         void Flush();
         void(*OnCCChanged)(uint8_t cc, uint8_t newValue) = NULL;
+        void (*OnSync)(uint8_t command) = NULL;
     private:
+        void *OnSyncCallback;
         uint8_t lastCCValue[128]; // used for filtering out values so we don't send them all the time
         bool initialized = false;
         uint8_t pingPong = 0; // what half of the buffer we are sending
@@ -27,3 +29,5 @@ class Midi
         uint16_t TxIndex;
         uint16_t DmaChannelTX;
 };
+
+extern Midi *midi; // uart callbacks go here

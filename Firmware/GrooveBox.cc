@@ -21,6 +21,10 @@ void OnCCChangedBare(uint8_t cc, uint8_t newValue)
 {
     groovebox->OnCCChanged(cc, newValue);
 }
+void OnSyncBare(uint8_t command)
+{
+    groovebox->OnMidiSync(command);
+}
 void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[songData.GetBpm()];
@@ -31,7 +35,9 @@ void GrooveBox::init(uint32_t *_color)
     needsInitialADC = 30;
     groovebox = this;
     midi.Init();
+
     midi.OnCCChanged = OnCCChangedBare;
+    midi.OnSync = OnSyncBare;
     ResetADCLatch();
     tempoPhase = 0;
     for(int i=0;i<VOICE_COUNT;i++)
@@ -286,7 +292,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     tempoPulse = true;
                 }
             }
-            else
+            else if(songData.GetSyncInMode() != SyncModeMidi)
             {
                 if(hadExternalSync)
                 {
@@ -370,6 +376,42 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     sampleCount++;
     midi.Flush();
 }
+void GrooveBox::OnMidiSync(uint8_t command)
+{
+    if(command == 0xfa)
+    {
+        StartPlaying();
+        return;
+    }
+    if(command == 0xfc)
+    {
+        StopPlaying();
+        return;
+    }
+    // need to recalculate our samples since last sync, etc
+    //tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/samples_since_last_sync;
+    ssls = samples_since_last_sync;
+    samples_since_last_sync = 0;
+    if(waitingForSync)
+    {
+        waitingForSync = false;
+        StartPlaying();
+    }
+    if((beatCounter[19]+1)%4 == 0)
+    {
+        tempoPhase = 0;
+    }
+    else
+    {
+        // we got the external sync earlier than we were expecting, and need to do catchup
+        while(beatCounter[19] != 0)
+        {
+            OnTempoPulse();
+        }
+    }
+
+}
+
 void GrooveBox::OnTempoPulse()
 {
     bool needsMidiSync = false;
@@ -416,7 +458,7 @@ void GrooveBox::OnTempoPulse()
                 rate = 7;
                 break;
             case 19: // input sync
-                rate = 4;
+                rate = 7;
                 break;
     
             default:
@@ -1136,6 +1178,16 @@ void GrooveBox::StartPlaying()
     }
     ResetPatternOffset();
 }
+void GrooveBox::StopPlaying()
+{
+    playing = false;
+    for(int i=0;i<VOICE_COUNT;i++)
+    {
+        instruments[i].ClearRetriggers();
+    }
+    if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
+        midi.StopSequence();
+}
 void GrooveBox::OnKeyUpdate(uint key, bool pressed)
 {
     framesSinceLastTouch = 0;
@@ -1387,20 +1439,11 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
                 else
                 {
                     StartPlaying();
-                    if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
-                        midi.StartSequence();
-                    ResetPatternOffset();
                 }
             }
             else
             {
-                playing = false;
-                for(int i=0;i<VOICE_COUNT;i++)
-                {
-                    instruments[i].ClearRetriggers();
-                }
-                if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
-                    midi.StopSequence();
+                StopPlaying();
             }
         }
         if(liveWrite)

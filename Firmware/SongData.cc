@@ -27,25 +27,19 @@ SyncMode SongData::GetSyncOutMode(){
     return mode;
 }
 SyncMode SongData::GetSyncInMode(){
-    uint8_t bareSyncMode = ((((uint16_t)internalData.syncIn)*6) >> 8);
+    uint8_t bareSyncMode = ((((uint16_t)internalData.syncIn)*4) >> 8);
     SyncMode mode = SyncModeNone;
     switch(bareSyncMode)
     {
         case 1:
             mode = SyncModeMidi;
             break;
-        case 2:
-            mode = (SyncMode)(SyncModeMidi | SyncModePO);
-            break;
-        case 3:
-            mode = (SyncMode)(SyncModeMidi | SyncMode24);
-            break;
         // PO
-        case 4:
+        case 2:
             mode = SyncModePO;
             break;
         // Volca
-        case 5:
+        case 3:
             mode = SyncMode24;
             break;
     }
@@ -160,6 +154,12 @@ const char *syncOutStrings[6] = {
     "PO",
     "24pq"
 };
+const char *syncInStrings[4] = { 
+    "none",
+    "midi",
+    "PO",
+    "VL",
+};
 const char *rootStrings[12] = { 
     "C",
     "C#",
@@ -217,7 +217,7 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             sprintf(strA, "bpm");
             sprintf(pA, "%i", internalData.bpm+1);
             sprintf(strB, "SncI");
-            sprintf(pB,syncOutStrings[(internalData.syncIn*6)>>8]);
+            sprintf(pB,syncInStrings[(internalData.syncIn*4)>>8]);
             break;
         case 24:
             sprintf(strA, "Octv");

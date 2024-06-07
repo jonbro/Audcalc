@@ -264,13 +264,6 @@ const char *conditionStrings[4] = {
     "Rnd",
     "Len",
 };
-const char *syncInStrings[4] = { 
-    "none",
-    "midi",
-    "PO",
-    "VL",
-};
-
 const char *envTargets[7] = { 
     "Vol",
     "Timb",
