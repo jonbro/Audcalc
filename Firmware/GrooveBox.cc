@@ -21,10 +21,35 @@ void OnCCChangedBare(uint8_t cc, uint8_t newValue)
 {
     groovebox->OnCCChanged(cc, newValue);
 }
-void OnSyncBare(uint8_t command)
+void OnSync()
 {
-    groovebox->OnMidiSync(command);
+    groovebox->OnMidiSync();
 }
+void OnStart()
+{
+    groovebox->OnMidiStart();
+}
+void OnContinue()
+{
+    groovebox->OnMidiContinue();
+}
+void OnStop()
+{
+    groovebox->OnMidiStop();
+}
+void OnPosition(uint16_t position)
+{
+    groovebox->OnMidiPosition(position);
+}
+void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
+{
+    groovebox->OnMidiNote(note);
+}
+void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
+{
+
+}
+
 void GrooveBox::CalculateTempoIncrement()
 {
     tempoPhaseIncrement = lut_tempo_phase_increment[songData.GetBpm()];
@@ -37,7 +62,12 @@ void GrooveBox::init(uint32_t *_color)
     midi.Init();
 
     midi.OnCCChanged = OnCCChangedBare;
-    midi.OnSync = OnSyncBare;
+    midi.OnSync = OnSync;
+    midi.OnStart = OnStart;
+    midi.OnStop = OnStop;
+    midi.OnPosition = OnPosition;
+    midi.OnContinue = OnContinue;
+    
     ResetADCLatch();
     tempoPhase = 0;
     for(int i=0;i<VOICE_COUNT;i++)
@@ -264,14 +294,6 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 
         }
 
-        // handle the midi triggering
-        int midiNote = midi.GetNote();
-        if( midiNote >= 0)
-        {
-            patterns[currentVoice].ClearNextRequestedStep();
-            TriggerInstrumentMidi(midiNote, 0, 0, patterns[currentVoice], currentVoice);
-        }
-
         int requestedNote = GetNote();
         if(requestedNote >= 0)
         {
@@ -376,27 +398,29 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     sampleCount++;
     midi.Flush();
 }
-void GrooveBox::OnMidiSync(uint8_t command)
+
+void GrooveBox::OnMidiNote(int note)
 {
-    if(command == 0xfa)
+    if( note >= 0)
     {
-        StartPlaying();
-        return;
+        patterns[currentVoice].ClearNextRequestedStep();
+        TriggerInstrumentMidi(note, 0, 0, patterns[currentVoice], currentVoice);
     }
-    if(command == 0xfc)
-    {
-        StopPlaying();
-        return;
-    }
+}
+
+void GrooveBox::OnMidiSync()
+{
     // need to recalculate our samples since last sync, etc
     //tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/samples_since_last_sync;
     ssls = samples_since_last_sync;
     samples_since_last_sync = 0;
-    if(waitingForSync)
-    {
-        waitingForSync = false;
-        StartPlaying();
-    }
+
+    // if(waitingForSync)
+    // {
+    //     waitingForSync = false;
+    //     StartPlaying();
+    // }
+    
     if((beatCounter[19]+1)%4 == 0)
     {
         tempoPhase = 0;
@@ -409,12 +433,44 @@ void GrooveBox::OnMidiSync(uint8_t command)
             OnTempoPulse();
         }
     }
-
+}
+void GrooveBox::OnMidiStart()
+{
+    StartPlaying();
+}
+void GrooveBox::OnMidiStop()
+{
+    StopPlaying();
+}
+void GrooveBox::OnMidiContinue()
+{
+    ContinuePlaying();
+}
+void GrooveBox::OnMidiPosition(uint16_t position)
+{
+    // position is given in 16th notes, so we need to tempo pulse up to the current song position from zero
+    // * 6 to get 24ppq, * 4 to get 96 ppq
+    ResetPatternOffset();
+    position = position * 6 * 4;
+    chainStep = 0;
+    for(int i=0;i<position;i++)
+    {
+        OnTempoPulse(true);
+    }
 }
 
-void GrooveBox::OnTempoPulse()
+
+void GrooveBox::OnTempoPulse(bool advanceOnly)
 {
     bool needsMidiSync = false;
+    // send the sync pulse to all the instruments
+    if(!advanceOnly)
+    {
+        for(int v=0;v<VOICE_COUNT;v++)
+        {
+            instruments[v].TempoPulse(patterns[v]);
+        }
+    }
     // advance chain if the global pattern just overflowed on the last beat counter
     if(beatCounter[16]==0 && patternStep[16] == 0)
     {
@@ -425,11 +481,6 @@ void GrooveBox::OnTempoPulse()
             playingPattern = patternChain[chainStep];
             ResetPatternOffset();
         }
-    }
-    // send the sync pulse to all the instruments
-    for(int v=0;v<VOICE_COUNT;v++)
-    {
-        instruments[v].TempoPulse(patterns[v]);
     }
     // four extra counters
     // 17: the pattern change counter
@@ -483,7 +534,7 @@ void GrooveBox::OnTempoPulse()
         // never trigger for the global pattern
         uint8_t requestedNote;
         uint8_t requestedKey = {0};
-        if(v!=16 && v!=17 && GetTrigger(v, patternStep[v], requestedNote, requestedKey))
+        if(!advanceOnly && v!=16 && v!=17 && GetTrigger(v, patternStep[v], requestedNote, requestedKey))
         {
             hadTrigger = hadTrigger|(1<<v);
             if((allowPlayback>>v)&0x1)
@@ -524,7 +575,7 @@ void GrooveBox::OnTempoPulse()
             }
         }
     }
-    if(needsMidiSync && ((songData.GetSyncOutMode()&SyncModeMidi) > 0))
+    if(!advanceOnly && needsMidiSync && ((songData.GetSyncOutMode()&SyncModeMidi) > 0))
     {
         midi.TimingClock();
     }
@@ -1170,13 +1221,17 @@ void GrooveBox::OnFinishRecording()
 }
 void GrooveBox::StartPlaying()
 {
+    ResetPatternOffset();
+    ContinuePlaying();
+}
+void GrooveBox::ContinuePlaying()
+{
     playing = true;
     if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
     {
         midi.StopSequence();
         midi.StartSequence();
     }
-    ResetPatternOffset();
 }
 void GrooveBox::StopPlaying()
 {

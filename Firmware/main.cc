@@ -254,7 +254,6 @@ void midi_task(void)
   // (possibly just discarded) to avoid the sender blocking in IO
   uint8_t packet[4];
   while ( tud_midi_available() ) tud_midi_packet_read(packet);
-
 }
 
 

@@ -36,9 +36,12 @@ class GrooveBox {
   void SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB);
   bool IsPlaying();
   int GetNote();
-  int GetNoteMidi();
   void OnMidiNote(int noteVal);
-  void OnMidiSync(uint8_t command);
+  void OnMidiSync();
+  void OnMidiStart();
+  void OnMidiStop();
+  void OnMidiContinue();
+  void OnMidiPosition(uint16_t);
   void Render(int16_t* output_buffer, int16_t* input_buffer, size_t size);
   uint8_t GetInstrumentParamA(int voice);
   uint8_t GetInstrumentParamB(int voice);
@@ -116,8 +119,9 @@ class GrooveBox {
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
   void StartPlaying();
+  void ContinuePlaying();
   void StopPlaying();
-  void OnTempoPulse();
+  void OnTempoPulse(bool advanceOnly = false);
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];
