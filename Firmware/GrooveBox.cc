@@ -314,7 +314,18 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     tempoPulse = true;
                 }
             }
-            else if(songData.GetSyncInMode() != SyncModeMidi)
+            else if(songData.GetSyncInMode() == SyncModeMidi)
+            {
+                if((beatCounter[19]+1)%4 != 0)
+                {
+                    if((tempoPhase >> 31) > 0)
+                    {
+                        tempoPhase &= 0x7fffffff;
+                        tempoPulse = true;
+                    }
+                }
+            }
+            else
             {
                 if(hadExternalSync)
                 {
@@ -410,25 +421,21 @@ void GrooveBox::OnMidiNote(int note)
 
 void GrooveBox::OnMidiSync()
 {
+    if(songData.GetSyncInMode() != SyncModeMidi)
+        return;
     // need to recalculate our samples since last sync, etc
-    //tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/samples_since_last_sync;
-    ssls = samples_since_last_sync;
-    samples_since_last_sync = 0;
-
-    // if(waitingForSync)
-    // {
-    //     waitingForSync = false;
-    //     StartPlaying();
-    // }
-    
-    if((beatCounter[19]+1)%4 == 0)
+    tempoPhaseIncrement = ((uint64_t)0x7fffffff*16*96)/samples_since_last_sync;
+    if(!IsPlaying())
+        return;
+    if((beatCounter[19]+1)%8 == 0)
     {
         tempoPhase = 0;
+        OnTempoPulse();
     }
     else
     {
         // we got the external sync earlier than we were expecting, and need to do catchup
-        while(beatCounter[19] != 0)
+        while((beatCounter[19]+1)%8 != 0)
         {
             OnTempoPulse();
         }
@@ -436,18 +443,26 @@ void GrooveBox::OnMidiSync()
 }
 void GrooveBox::OnMidiStart()
 {
+    if(songData.GetSyncInMode() != SyncModeMidi)
+        return;
     StartPlaying();
 }
 void GrooveBox::OnMidiStop()
 {
+    if(songData.GetSyncInMode() != SyncModeMidi)
+        return;
     StopPlaying();
 }
 void GrooveBox::OnMidiContinue()
 {
+    if(songData.GetSyncInMode() != SyncModeMidi)
+        return;
     ContinuePlaying();
 }
 void GrooveBox::OnMidiPosition(uint16_t position)
 {
+    if(songData.GetSyncInMode() != SyncModeMidi)
+        return;
     // position is given in 16th notes, so we need to tempo pulse up to the current song position from zero
     // * 6 to get 24ppq, * 4 to get 96 ppq
     ResetPatternOffset();
@@ -509,9 +524,8 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
                 rate = 7;
                 break;
             case 19: // input sync
-                rate = 7;
+                rate = 8;
                 break;
-    
             default:
                 rate = ((patterns[v].GetRateForPattern(GetCurrentPattern())*7)>>8);
         }

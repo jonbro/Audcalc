@@ -104,6 +104,8 @@ class GrooveBox {
         break;
       case 7: // 24ppq
         return 4;
+      case 8: // 24ppq
+        return 96;
     }
     return 24;
   }
