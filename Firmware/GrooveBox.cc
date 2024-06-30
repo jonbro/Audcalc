@@ -1481,7 +1481,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             liveWrite = true;
             if(!playing)
             {
-                if((songData.GetSyncInMode()&SyncModeNone) != 0)
+                if((songData.GetSyncInMode()&(SyncMode24|SyncModePO)) != 0)
                 {
                     waitingForSync = true;
                 }
@@ -1501,7 +1501,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             if(!playing)
             {
-                if(songData.GetSyncInMode() != SyncModeNone)
+                if((songData.GetSyncInMode()&(SyncMode24|SyncModePO)) != 0)
                 {
                     waitingForSync = true;
                 }

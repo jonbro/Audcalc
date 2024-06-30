@@ -209,13 +209,27 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             break;
         case 19:
             sprintf(strA, "bpm");
-            sprintf(pA, "%i", internalData.bpm+1);
+            if(GetSyncInMode()!=SyncModeNone)
+            {
+                sprintf(pA, "sync");
+            }
+            else
+            {
+                sprintf(pA, "%i", internalData.bpm+1);
+            }
             sprintf(strB, "SncO");
             sprintf(pB,syncOutStrings[(internalData.syncOut*6)>>8]);
             break;
         case 19+25:
             sprintf(strA, "bpm");
-            sprintf(pA, "%i", internalData.bpm+1);
+            if(GetSyncInMode()!=SyncModeNone)
+            {
+                sprintf(pA, "sync");
+            }
+            else
+            {
+                sprintf(pA, "%i", internalData.bpm+1);
+            }
             sprintf(strB, "SncI");
             sprintf(pB,syncInStrings[(internalData.syncIn*4)>>8]);
             break;
