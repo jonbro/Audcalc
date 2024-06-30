@@ -16,23 +16,38 @@ uint8_t buf_count = 0;
 bool readBuf = false;
 Midi* midi;
 
+void midi_task(void)
+{
+  // The MIDI interface always creates input and output port/jack descriptors
+  // regardless of these being used or not. Therefore incoming traffic should be read
+  // (possibly just discarded) to avoid the sender blocking in IO
+  uint8_t c[1];
+  while ( tud_midi_available() )
+  {
+    tud_midi_stream_read(c, 1);
+    midi->ProcessMessage(*c, 1);
+  }
+}
+
 
 void on_uart_rx() {
     while (uart_is_readable(UART_ID)) {
-        midi->ProcessMessage(uart_getc(UART_ID));
+        midi->ProcessMessage(uart_getc(UART_ID), 0);
     }
 }
-void Midi::ProcessMessage(char c)
+
+void Midi::ProcessMessage(char c, uint8_t processor)
 {
+    if(processor > 1) return;
     if((c & 0x80) > 0)
     {
         // clear the data buffer
-        dataByteCounter = 0;
-        lastCommand = c;
+        inputProcessors[processor].dataByteCounter = 0;
+        inputProcessors[processor].lastCommand = c;
     }
-    else if(dataByteCounter < 4)
+    else if(inputProcessors[processor].dataByteCounter < 4)
     {
-        dataBuffer[dataByteCounter++] = c&0x7f;
+        inputProcessors[processor].dataBuffer[inputProcessors[processor].dataByteCounter++] = c&0x7f;
     }
     if(c == 0xf8 && OnSync != NULL)
     {
@@ -50,39 +65,39 @@ void Midi::ProcessMessage(char c)
     {
         OnStop();
     }
-    if(lastCommand == 0xf2 && dataByteCounter == 2 && OnPosition != NULL) // song position pointer
+    if(inputProcessors[processor].lastCommand == 0xf2 && inputProcessors[processor].dataByteCounter == 2 && OnPosition != NULL) // song position pointer
     {
-        OnPosition(dataBuffer[0] + dataBuffer[1]);
+        OnPosition(inputProcessors[processor].dataBuffer[0] + inputProcessors[processor].dataBuffer[1]);
     }
     // not a system common message (transport / tick)
-    if(lastCommand & (0xf0 == 0))
+    if(inputProcessors[processor].lastCommand & (0xf0 == 0))
     {
-        uint8_t channel = lastCommand & 0xf;
+        uint8_t channel = inputProcessors[processor].lastCommand & 0xf;
         // note on
-        if(lastCommand & 0x90 > 0 && dataByteCounter == 2)
+        if(inputProcessors[processor].lastCommand & 0x90 > 0 && inputProcessors[processor].dataByteCounter == 2)
         {
             // actually a note off
-            if(dataBuffer[1] == 0 && OnNoteOff != NULL)
+            if(inputProcessors[processor].dataBuffer[1] == 0 && OnNoteOff != NULL)
             {
-                OnNoteOff(channel, dataBuffer[0], dataBuffer[1]);
+                OnNoteOff(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
             }
             else if(OnNoteOn != NULL)
             {
-                OnNoteOn(channel, dataBuffer[0], dataBuffer[1]);
+                OnNoteOn(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
             }
         }
-        if((lastCommand & 0x80) > 0 && dataByteCounter == 2 && OnNoteOff != NULL)
+        if((inputProcessors[processor].lastCommand & 0x80) > 0 && inputProcessors[processor].dataByteCounter == 2 && OnNoteOff != NULL)
         {
-            OnNoteOff(channel, dataBuffer[0], dataBuffer[1]);
+            OnNoteOff(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
         }
         // control change
-        if((lastCommand & 0xb0) > 0 && dataByteCounter == 2 && OnCCChanged != NULL)
+        if((inputProcessors[processor].lastCommand & 0xb0) > 0 && inputProcessors[processor].dataByteCounter == 2 && OnCCChanged != NULL)
         {
             // filter out repeated cc changes
-            if(lastCCValue[dataBuffer[0]] == 0xff || lastCCValue[dataBuffer[0]] != dataBuffer[1])
+            if(lastCCValue[inputProcessors[processor].dataBuffer[0]] == 0xff || lastCCValue[inputProcessors[processor].dataBuffer[0]] != inputProcessors[processor].dataBuffer[1])
             {
-                OnCCChanged(dataBuffer[0], dataBuffer[1]);
-                lastCCValue[dataBuffer[0]] = dataBuffer[1];
+                OnCCChanged(inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
+                lastCCValue[inputProcessors[processor].dataBuffer[0]] = inputProcessors[processor].dataBuffer[1];
             }
         }
     }

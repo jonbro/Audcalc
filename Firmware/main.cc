@@ -40,6 +40,7 @@ extern "C" {
 #include "multicore_support.h"
 #include "GlobalDefines.h"
 #include "bsp/board.h"
+#include "Midi.h"
 
 using namespace braids;
 
@@ -247,15 +248,6 @@ uint8_t note_sequence[] =
   74,69,66,62,57,62,66,69,74,78,81,86,90,93,97,102,97,93,90,85,81,78,73,68,64,61,
   56,61,64,68,74,78,81,86,90,93,98,102
 };
-void midi_task(void)
-{
-  // The MIDI interface always creates input and output port/jack descriptors
-  // regardless of these being used or not. Therefore incoming traffic should be read
-  // (possibly just discarded) to avoid the sender blocking in IO
-  uint8_t packet[4];
-  while ( tud_midi_available() ) tud_midi_packet_read(packet);
-}
-
 
 
 int main()
