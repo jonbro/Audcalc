@@ -38,6 +38,7 @@ class SongData
             internalData.bpm = 119;
             internalData.delayFeedback  = 0x7f;
             internalData.delayTime      = 0x7f;
+            internalData.hpVol          = 44;
         }
         uint8_t GetLength(uint8_t pattern)
         {
@@ -49,6 +50,10 @@ class SongData
         uint8_t GetDelayTime(){
             return internalData.delayTime;
         }
+        int8_t GetHPVol(){
+            return ((internalData.hpVol*35)>>8)-6;
+        }
+
 
         uint8_t GetNote(uint8_t key, int8_t octave);
         uint8_t GetRoot();

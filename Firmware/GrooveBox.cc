@@ -1021,7 +1021,8 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     // update various slow hardware things
     playThroughEnabled = hardware_line_in_detected();
     hardware_set_mic(!playThroughEnabled);
-        
+    hardware_set_hpvol(songData.GetHPVol());
+
 
     // input level monitor
     // ssd1306_draw_line(p, 0, 0, last_input>>8, 0);

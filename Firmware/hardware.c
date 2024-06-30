@@ -15,6 +15,7 @@
 
 static bool last_amp_state;
 static uint8_t battery_level;
+static int8_t lastHpVol = -10; 
 
 i2c_dma_t* i2c_dma;
 
@@ -214,6 +215,14 @@ void hardware_set_mic(bool mic_state)
     {
         last_mic_state = mic_state;
         driver_set_mic(last_mic_state);
+    }
+}
+void hardware_set_hpvol(int8_t hpVol)
+{
+    if(lastHpVol != hpVol)
+    {
+        lastHpVol = hpVol;
+        driver_set_hpvol(lastHpVol);
     }
 }
 bool hardware_line_in_detected()

@@ -28,6 +28,7 @@ float hardware_get_battery_level_float();
 bool hardware_has_usb_power();
 void hardware_update_battery_level();
 void hardware_set_mic(bool mic_state);
+void hardware_set_hpvol(int8_t hpVol);
 bool hardware_line_in_detected();
 bool hardware_headphone_detected();
 bool hardware_disable_power_latch();

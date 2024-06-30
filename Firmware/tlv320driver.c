@@ -190,8 +190,6 @@ void tlvDriverInit()
     // Set the ADC PTM Mode to PTM_R1
     write(1, 0x3d, 0x01);
     // Set the HPL gain to 0dB
-    write(1, 0x10, 0x00);
-    write(1, 0x11, 0x00);
     write(1, 0x10, 0x0); //0x1d maximum for sync output
     write(1, 0x11, 0x0);
     
@@ -223,6 +221,15 @@ void tlvDriverInit()
     // enable headphone detection
     write(0, 0x43, 0x80);
 }
+void driver_set_hpvol(int8_t hpvol)
+{
+    // clamp to valid range
+    if(hpvol < -6) hpvol = -6;
+    if(hpvol > 29) hpvol = 29;
+    write(1, 0x10, hpvol&0x3f);
+    write(1, 0x11, hpvol&0x3f);
+}
+
 void driver_set_mute(bool mute)
 {
     write(1, 0x10, mute?0x40:0x00);

@@ -22,6 +22,7 @@ typedef struct _SongDataInternal {
     uint8_t playingPattern;
     uint8_t patternChain[16];
     uint8_t patternChainLength;
+    uint8_t hpVol;
 } SongDataInternal;
 
 
@@ -30,8 +31,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define SongDataInternal_init_default            {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0}
-#define SongDataInternal_init_zero               {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0}
+#define SongDataInternal_init_default            {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0}
+#define SongDataInternal_init_zero               {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define SongDataInternal_changeLength_tag        1
@@ -45,6 +46,7 @@ extern "C" {
 #define SongDataInternal_playingPattern_tag      10
 #define SongDataInternal_patternChain_tag        11
 #define SongDataInternal_patternChainLength_tag  12
+#define SongDataInternal_hpVol_tag               13
 
 /* Struct field encoding specification for nanopb */
 #define SongDataInternal_FIELDLIST(X, a) \
@@ -58,7 +60,8 @@ X(a, STATIC,   SINGULAR, UINT32,   delayTime,         8) \
 X(a, STATIC,   SINGULAR, UINT32,   delayFeedback,     9) \
 X(a, STATIC,   SINGULAR, UINT32,   playingPattern,   10) \
 X(a, STATIC,   FIXARRAY, UINT32,   patternChain,     11) \
-X(a, STATIC,   SINGULAR, UINT32,   patternChainLength,  12)
+X(a, STATIC,   SINGULAR, UINT32,   patternChainLength,  12) \
+X(a, STATIC,   SINGULAR, UINT32,   hpVol,            13)
 #define SongDataInternal_CALLBACK NULL
 #define SongDataInternal_DEFAULT NULL
 
@@ -68,7 +71,7 @@ extern const pb_msgdesc_t SongDataInternal_msg;
 #define SongDataInternal_fields &SongDataInternal_msg
 
 /* Maximum encoded size of messages (where known) */
-#define SongDataInternal_size                    123
+#define SongDataInternal_size                    126
 
 #ifdef __cplusplus
 } /* extern "C" */

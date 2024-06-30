@@ -59,7 +59,7 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
             return internalData.syncOut;
 
         case 19*2+(25*2):
-            return internalData.bpm;
+            return internalData.hpVol;
         case 19*2+1+(25*2):
             return internalData.syncIn;
 
@@ -221,15 +221,9 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             sprintf(pB,syncOutStrings[(internalData.syncOut*6)>>8]);
             break;
         case 19+25:
-            sprintf(strA, "bpm");
-            if(GetSyncInMode()!=SyncModeNone)
-            {
-                sprintf(pA, "sync");
-            }
-            else
-            {
-                sprintf(pA, "%i", internalData.bpm+1);
-            }
+            sprintf(strA, "vol");
+            sprintf(pA, "%i", GetHPVol());
+
             sprintf(strB, "SncI");
             sprintf(pB,syncInStrings[(internalData.syncIn*4)>>8]);
             break;
