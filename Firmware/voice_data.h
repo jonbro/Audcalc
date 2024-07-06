@@ -118,6 +118,25 @@ class VoiceData
                 internalData.patterns[to].notes[i] = internalData.patterns[from].notes[i]; // 1x 
                 internalData.patterns[to].keys[i] = internalData.patterns[from].keys[i]; // 1x 
             }
+            noteCountForPattern[to] = noteCountForPattern[from];
+        }
+        void SetNoteForPattern(uint8_t pattern, uint8_t note, uint8_t value)
+        {
+            bool lastNoteActive = (internalData.patterns[pattern].notes[note] >> 7) == 1;
+            bool currentNoteActive = (value >> 7) == 1;
+            internalData.patterns[pattern].notes[note] = value;
+            if(!lastNoteActive && currentNoteActive)
+            {
+                noteCountForPattern[pattern]++;
+            }
+            else if(lastNoteActive && !currentNoteActive)
+            {
+                noteCountForPattern[pattern]--;
+            }
+        }
+        bool HasNotesForPattern(uint8_t pattern)
+        {
+            return noteCountForPattern[pattern] > 0;
         }
         uint8_t* GetNotesForPattern(uint8_t pattern)
         {
@@ -253,6 +272,7 @@ class VoiceData
         
         static ParamLockPool lockPool;
         uint16_t locksForPattern[16] = {0};
+        uint8_t noteCountForPattern[16] = {0}; 
     private:
         VoiceDataInternal internalData;
         bool GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param);

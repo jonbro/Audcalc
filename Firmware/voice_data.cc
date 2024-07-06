@@ -93,6 +93,18 @@ void VoiceData::Deserialize(pb_istream_t *s)
         const char * error = PB_GET_ERROR(s);
         printf("VoiceData deserialize error: %s\n", error);
     }
+    // count the number of notes for each pattern
+    for(int i=0;i<16;i++)
+    {
+        noteCountForPattern[i] = 0;
+        for(int j=0;j<64;j++)
+        {
+            if((GetNotesForPattern(i)[j] >> 7) == 1)
+            {
+                noteCountForPattern[i]++;
+            }
+        }
+    }
 }
 void VoiceData::SerializeStatic(pb_ostream_t *s)
 {

@@ -17,6 +17,7 @@ nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         GlobalData.proto
 )
 
+
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_SDK_PATH "C:/Users/jonbro/Documents/Pico/pico-sdk")

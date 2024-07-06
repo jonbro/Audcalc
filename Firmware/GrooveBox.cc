@@ -758,7 +758,7 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
             {
                 for (size_t j = 0; j < 64; j++)
                 {
-                    patterns[voice].GetNotesForPattern(GetCurrentPattern())[j] = 0;
+                    patterns[voice].SetNoteForPattern(GetCurrentPattern(), j, 0);
                 }
             }
         }
@@ -932,14 +932,27 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         }
         else if(patternSelectMode)
         {
+            // if the pattern has notes for any voice
+            for(int j=0;j<16;j++)
+            {
+                if(patterns[j].HasNotesForPattern(i))
+                {
+                    color[key] = urgb_u32(150, 40, 150);
+                    break;
+                }
+            }
             if(GetCurrentPattern() == i)
             {
                 color[key] = urgb_u32(10, 200, 45);
             }
-
         }
         else if(soundSelectMode)
         {
+            // if the pattern has notes for this voice
+            if(patterns[i].HasNotesForPattern(GetCurrentPattern()))
+            {
+                color[key] = urgb_u32(150, 40, 150);
+            }
             if(currentVoice == i)
             {
                 color[key] = urgb_u32(10, 40, 255);
@@ -1322,13 +1335,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             if(GetTrigger(currentVoice, sequenceStep+editPage[currentVoice]*16, note, key))
             {
                 if(!parameterLocked){
-                    patterns[currentVoice].GetNotesForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = 0;
+                    patterns[currentVoice].SetNoteForPattern(GetCurrentPattern(), sequenceStep+editPage[currentVoice]*16, 0);
                     patterns[currentVoice].RemoveLocksForStep(GetCurrentPattern(), sequenceStep);
                 }
             }
             else
             {
-                patterns[currentVoice].GetNotesForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = (0x7f&lastNotePlayed)|0x80;
+                patterns[currentVoice].SetNoteForPattern(GetCurrentPattern(), sequenceStep+editPage[currentVoice]*16, (0x7f&lastNotePlayed)|0x80);
                 patterns[currentVoice].GetKeysForPattern(GetCurrentPattern())[sequenceStep+editPage[currentVoice]*16] = lastKeyPlayed;
             }
         }
@@ -1450,7 +1463,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             uint16_t noteToModify = patternStep[currentVoice];
             uint8_t newValue = (0x7f&songData.GetNote(sequenceStep, patterns[currentVoice].GetOctave()))|0x80;
-            patterns[currentVoice].GetNotesForPattern(patternChain[chainStep])[noteToModify] = newValue;
+            patterns[currentVoice].SetNoteForPattern(patternChain[chainStep], noteToModify, newValue);
             patterns[currentVoice].GetKeysForPattern(patternChain[chainStep])[noteToModify] = sequenceStep;
         }
         else // writing
