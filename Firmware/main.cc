@@ -238,18 +238,6 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
-// Variable that holds the current position in the sequence.
-uint32_t note_pos = 0;
-
-// Store example melody as an array of note values
-uint8_t note_sequence[] =
-{
-  74,78,81,86,90,93,98,102,57,61,66,69,73,78,81,85,88,92,97,100,97,92,88,85,81,78,
-  74,69,66,62,57,62,66,69,74,78,81,86,90,93,97,102,97,93,90,85,81,78,73,68,64,61,
-  56,61,64,68,74,78,81,86,90,93,98,102
-};
-
-
 int main()
 {
     stdio_init_all();
@@ -376,7 +364,7 @@ int main()
                 adc_select_input(1);
                 uint16_t adc_val = adc_read();
                 adc_select_input(0);
-                // I think that even though adc_read returns 16 bits, the value is only in the top 12
+                // I think that even though adc_read returns 16 bits, the value is only in the bottom? 12
                 gbox.OnAdcUpdate(adc_val, adc_read());
                 hardware_update_battery_level();
                 queue_entry_complete_t result;

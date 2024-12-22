@@ -1110,8 +1110,30 @@ void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
     }
 }
 
+
 void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
 {
+    // remap the scale to add a deadzone at the bottom (top deadzones are less important, beacause that end of the scale doesn't hurt us)
+
+    const uint16_t input_min = 0x0300;
+    const uint16_t input_max = 0xFE00;
+    const uint16_t output_max = 0xFFFF;
+
+    auto remap = [input_min, input_max, output_max](uint16_t input) -> uint16_t {
+        if (input < input_min) {
+            input = input_min;
+        }
+        if (input > input_max) {
+            input = input_max;
+        }
+        return static_cast<uint16_t>(
+            ((static_cast<uint32_t>(input - input_min) * output_max) / (input_max - input_min))
+        );
+    };
+
+    a_in = remap(a_in<<4)>>4;
+    b_in = remap(b_in<<4)>>4;
+    
     // interpolate the input values
     uint16_t interpolationbias = 0xd000; 
     AdcInterpolatedA = (((uint32_t)a_in)*(0xffff-interpolationbias) + ((uint32_t)AdcInterpolatedA)*interpolationbias)>>16;
