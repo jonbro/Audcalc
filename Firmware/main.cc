@@ -260,10 +260,10 @@ int main()
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
-        // if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
-        // {
-        //     hardware_shutdown();
-        // }
+        if(!hardware_get_key_state(0,0) || hardware_get_key_state(3, 0))
+        {
+            hardware_shutdown();
+        }
         if(hardware_get_key_state(4, 4) && hardware_get_key_state(0, 4))
         {
             Diagnostics diag;
