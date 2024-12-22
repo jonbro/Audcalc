@@ -11,6 +11,10 @@ void VoiceData::InitDefaults()
         internalData.patterns[i].rate = 2*37; // 1x 
         internalData.patterns[i].length = 15*4; // need to up this to fit into 0xff
     }
+    
+    internalData.portamento = 0x00;
+    internalData.fineTune = 0x80;
+
     internalData.env1.attack = 0x10;
     internalData.env1.decay = 0x20;
     internalData.env1.depth = 0x7f;
@@ -152,6 +156,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case Resonance: return HasLockForStep(step, pattern, Resonance, value)?value:internalData.resonance;
         case Volume: return HasLockForStep(step, pattern, Volume, value)?value:internalData.volume;
         case Pan: return HasLockForStep(step, pattern, Pan, value)?value:internalData.pan;
+        case Portamento: return HasLockForStep(step, pattern, Portamento, value)?value:internalData.portamento;
+        case FineTune: return HasLockForStep(step, pattern, FineTune, value)?value:internalData.fineTune;
         case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:internalData.env1.attack;
         case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:internalData.env1.decay;
         case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:internalData.env1.target;
@@ -203,6 +209,8 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 13: return internalData.resonance;
         case 14: return internalData.volume;
         case 15: return internalData.pan;
+        case 16: return internalData.portamento;
+        case 17: return internalData.fineTune;
         case 22: return internalData.env2.attack;
         case 23: return internalData.env2.decay;
         case 24: return internalData.lfoRate;
@@ -443,10 +451,16 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 }
                 return;
             case 8:
-                // sprintf(strA, "Octv");
-                // sprintf(strB, "");
-                // sprintf(pA, "%i", GetOctave());
-                // sprintf(pB, "");
+                sprintf(strA, "Port");
+                sprintf(strB, "Fine");
+                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Portamento, internalData.portamento, pA);
+                if(showForStep && HasLockForStep(step, pattern, (FineTune), valB))
+                {
+                    sprintf(pB, "%i", (valB-0x80));
+                    lockB = true;
+                }
+                else
+                    sprintf(pB, "%i", (internalData.fineTune-0x80));
                 return;
             case 11:
                 sprintf(strA, "Atk");
@@ -648,35 +662,6 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
     ssd1306_t* disp = GetDisplay();
     uint8_t width = 36;
     uint8_t column4 = 128-width;
-    if(param == 8)
-    {
-        // lol
-        uint8_t x = 0;
-        uint8_t y = 0;
-        for(int i=0;i<64;i++)
-        {
-            for(int b=0;b<8;b++)
-            {
-                if((head_map[i]&(0x1<<(7-b))) > 0)
-                {
-                    ssd1306_draw_pixel(disp, x+column4, y);
-                }
-                else
-                {
-                    ssd1306_clear_pixel(disp, x+column4, y);
-                }
-                x++;
-                if(x>=32)
-                {
-                    x = 0;
-                    y++;
-                }
-            }
-        }
-
-    }
-    else
-    {
         bool lockA = false, lockB = false;
         GetParamsAndLocks(param, paramLock, currentPattern, str, str+16, lastNotePlayed, str+32, str+48, lockA, lockB, showForStep);
         if(lockA)
@@ -688,7 +673,6 @@ void VoiceData::DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed
         
         ssd1306_draw_string_gfxfont(disp, column4-33, 12, str, true, 1, 1, &m6x118pt7b);    
         ssd1306_draw_string_gfxfont(disp, column4-33, 17+12, str+16, true, 1, 1, &m6x118pt7b);
-    }
 }
 
 

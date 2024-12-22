@@ -70,6 +70,8 @@ enum ParamType {
     Resonance = 13,
     Volume = 14,
     Pan = 15,
+    Portamento = 16,
+    FineTune = 17,
     AttackTime = 20,
     DecayTime = 21,
     AttackTime2 = 22,
@@ -238,7 +240,10 @@ class VoiceData
 
             internalData.delaySend = copy.internalData.delaySend;
             internalData.reverbSend = copy.internalData.reverbSend;
-            
+
+            internalData.portamento = copy.internalData.portamento;
+            internalData.fineTune = copy.internalData.fineTune;
+
             internalData.sampleAttack = copy.internalData.sampleAttack;
             internalData.sampleDecay = copy.internalData.sampleDecay;
 

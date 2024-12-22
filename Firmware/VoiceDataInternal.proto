@@ -69,4 +69,7 @@ message VoiceDataInternal {
     uint32 retriggerFade                 = 31 [(nanopb).int_size = IS_8];
     uint32 retriggerTargetEnv            = 32 [(nanopb).int_size = IS_8];
     uint32 octave                        = 33 [(nanopb).int_size = IS_8];
+
+    uint32 portamento                    = 34 [(nanopb).int_size = IS_8];
+    uint32 fineTune                      = 35 [(nanopb).int_size = IS_8];
 }

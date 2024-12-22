@@ -29,6 +29,8 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     env.Trigger(ADSR_ENV_SEGMENT_DEAD);
     env2.Init();
     env2.Trigger(ADSR_ENV_SEGMENT_DEAD);
+    portamentoEnv.Init();
+    portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DEAD);
 }
 
 const char *macroparams[16] = { 
@@ -97,7 +99,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
     q15_t param1_withMods = param1Base;
     q15_t param2_withMods = param2Base;
     q15_t cutoffWithMods = mainCutoff;
-    q15_t pitchWithMods = pitch;
+    q15_t pitchWithMods = pitch = Mix(pitchStart, pitchTarget, 65535-portamentoAmt);
     panWithMods = panning;
     q15_t lfo = GetLfoState();
     switch(lfo1Target)
@@ -264,6 +266,7 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
     {
         lastenv2val = env2.Render();
         lastenvval = env.Render();
+        portamentoAmt = portamentoEnv.Render();
         q15_t envval = lastenvval >> 1;
         if(enable_env)
         {
@@ -303,7 +306,8 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
     volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
     panning = ((q15_t)voiceData.GetParamValue(Pan, lastPressedKey, playingStep, playingPattern))<<7;
-
+    portamentoParamAmt = voiceData.GetParamValue(Portamento, lastPressedKey, playingStep, playingPattern);
+    fineTuneParamAmt = voiceData.GetParamValue(FineTune, lastPressedKey, playingStep, playingPattern);
     q15_t env1A = voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)<<7;
     q15_t env1D = voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)<<7;
     q15_t env2A = voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)<<7;
@@ -523,12 +527,16 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
         // only set shape on initial trigger
         osc.set_shape(voiceData.GetShape());
         enable_env = true;
-        pitch = note<<7;
+        pitchTarget = (note<<7)+((fineTuneParamAmt-0x80)<<1);
+        pitchStart = pitch;
         osc.set_pitch(pitch);
         instrumentType = voiceData.GetInstrumentType();
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
+        // the first parameter doesn't matter here, because we only trigger from the decay
+        portamentoEnv.Update(0x7f, portamentoParamAmt);
+        portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DECAY);
     }
     else if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
     {

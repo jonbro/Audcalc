@@ -56,6 +56,10 @@ class ADSREnvelope {
     if (segment == ADSR_ENV_SEGMENT_DEAD) {
       value_ = 0;
     }
+    if(segment == ADSR_ENV_SEGMENT_DECAY)
+    {
+      value_ = 65535;
+    }
     a_ = value_;
     b_ = target_[segment];
     priorValue_ = value_;

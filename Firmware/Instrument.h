@@ -130,12 +130,14 @@ class Instrument
         MidiNoteState midiNoteStates[16];
         EnvTargets env1Target, env2Target;
         LfoTargets lfo1Target;
-        int16_t pitch;
+        int16_t pitch, pitchTarget, pitchStart;
         q15_t env1Depth, env2Depth;
         q15_t distortionAmount;
         uint32_t fullSampleLength;
-        ADSREnvelope env, env2;
-        uint16_t lastenvval = 0, lastenv2val = 0;
+        ADSREnvelope env, env2, portamentoEnv;
+        uint16_t lastenvval = 0, lastenv2val = 0, portamentoAmt = 0;
+        uint8_t portamentoParamAmt;
+        int fineTuneParamAmt;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
         LoopMode loopMode = INSTRUMENT_LOOPMODE_NONE;
         SamplePlaybackSegment sampleSegment = SMP_COMPLETE;
