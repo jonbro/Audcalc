@@ -1,6 +1,10 @@
-# TDM
+# AudCalc
 
 a pocket sized groovebox.
+
+## Note to folks stumbing across this repo.
+
+I'm happy with this, but its not 100% feature complete on the firmware side. Its really neat though, and I think you'll like it.
 
 ![prototype v6](Images/twrtdm_card.jpg)
 *v5 prototype*
