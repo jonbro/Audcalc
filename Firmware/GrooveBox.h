@@ -47,7 +47,7 @@ class GrooveBox {
   uint8_t GetInstrumentParamB(int voice);
   void Serialize();
   void Deserialize(); 
-  void OnFinishRecording();
+  void FinishRecording();
   int GetLostLockCount();
   Instrument instruments[VOICE_COUNT];
   int CurrentStep = 0;
@@ -124,6 +124,7 @@ class GrooveBox {
   void ContinuePlaying();
   void StopPlaying();
   void OnTempoPulse(bool advanceOnly = false);
+  uint GetRemainingRecordingBytes();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
   uint8_t instrumentParamB[8];

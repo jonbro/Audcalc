@@ -245,6 +245,8 @@ int main()
     tusb_init();
 
     hardware_init();
+    // Diagnostics diag;
+    // diag.flashQuickClear();
     {
         // if the user isn't holding the powerkey, 
         // or if holding power & esc then immediately shutdown
@@ -256,7 +258,9 @@ int main()
         {
             Diagnostics diag;
             diag.run();
-        } else if(hardware_get_key_state(4, 4))
+            // diag.flashQuickClear();
+        }
+        else if(hardware_get_key_state(4, 4))
         {
             hardware_reboot_usb();
         }

@@ -394,14 +394,23 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 
     if(recording)
     {
-        if(recordBufferOffset == 0)
-            ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
+        if(((int)GetRemainingRecordingBytes())-256 <= 0)
+        {
+            // finish recording
+            FinishRecording();
+        }
+        else
+        {
+            if(recordBufferOffset == 0)
+                ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
+        }
         for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
             int16_t* chan = (output_buffer+i*2);
             chan[0] = workBuffer2[i*2];
             chan[1] = workBuffer2[i*2+1];
         }
+
     }
     absolute_time_t renderEndTime = get_absolute_time();
     int64_t currentRender = absolute_time_diff_us(renderStartTime, renderEndTime);
@@ -795,23 +804,33 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(holdingArm && !recording)
     {
-        sprintf(str, "hold red to sample");
-        // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
-        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-        ssd1306_draw_square(p, 0, 17, last_input>>8, 32-17);
-        for(int i=0;i<16;i++)
+        if(((int)GetRemainingRecordingBytes())-256>0)
         {
-            int x = i%4;
-            int y = i/4;
-            int key = x+(y+1)*5;
-            if(!files[i].initialized)
+            sprintf(str, "hold red to sample");
+            // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
+            ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+            ssd1306_draw_square(p, 0, 17, last_input>>8, 32-17);
+            for(int i=0;i<16;i++)
             {
-                color[key] = urgb_u32(200, 50, 50);
+                int x = i%4;
+                int y = i/4;
+                int key = x+(y+1)*5;
+                if(!files[i].initialized)
+                {
+                    color[key] = urgb_u32(200, 50, 50);
+                }
+                else
+                {
+                    color[key] = urgb_u32(0,0,0);
+                }
             }
-            else
-            {
-                color[key] = urgb_u32(0,0,0);
-            }
+        }
+        else
+        {
+            sprintf(str, "no time remaining");
+            // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
+            ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+            ssd1306_draw_square(p, 0, 17, last_input>>8, 32-17);
         }
         return;
     }
@@ -834,14 +853,9 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
     else if(recording)
     {
-        uint32_t allFileSizes = 0;
-        for(int i=0;i<16;i++)
-        {
-            allFileSizes += ffs_file_size(GetFilesystem(), &files[i]);
-        }
         sprintf(str, "Sampling to %i", recordingTarget+1);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-        sprintf(str, "%i Secs Remaining", (16*1024*1024-0x40000-allFileSizes)/64000);
+        sprintf(str, "%i Secs Remaining", (GetRemainingRecordingBytes())/64000);
         ssd1306_draw_string_gfxfont(p, 3, 17+12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
@@ -1087,6 +1101,15 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     // ssd1306_draw_string(p, 0,0, 1, str);
 
 }
+uint GrooveBox::GetRemainingRecordingBytes()
+{
+    uint32_t allFileSizes = 0;
+    for(int i=0;i<16;i++)
+    {
+        allFileSizes += ffs_file_size(GetFilesystem(), &files[i]);
+    }
+    return MAX_RECORDED_SAMPLES_SIZE-allFileSizes;
+}
 void GrooveBox::SetGlobalParameter(uint8_t a, uint8_t b, bool setA, bool setB)
 {
     // references must be initialized and can't change
@@ -1256,8 +1279,9 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         }
     }
 }
-void GrooveBox::OnFinishRecording()
+void GrooveBox::FinishRecording()
 {
+    recording = false;
     // determine how the file should be split
     if(patterns[recordingTarget].GetSampler() == SAMPLE_PLAYER_SLICE)
     {
@@ -1306,8 +1330,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         if(!holdingArm && recording)
         {
             // finish recording
-            recording = false;
-            OnFinishRecording();
+            FinishRecording();
         }
     }
     if(x==3&&y==0)
@@ -1328,9 +1351,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         holdingArm = pressed;
         if(!holdingArm && recording)
         {
-            // finish recording
-            recording = false;
-            OnFinishRecording();
+            FinishRecording();
         }
     }
     // page select
@@ -1385,7 +1406,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         }
         else if(holdingArm)
         {
-            if(pressed && !recording && !files[sequenceStep].initialized)
+            if(pressed && !recording && !files[sequenceStep].initialized && ((int)GetRemainingRecordingBytes())-256 > 0)
             {
                 recordingLength = 0;
                 recordingTarget = sequenceStep;
@@ -1393,9 +1414,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             }
             else if(recording)
             {
-                // finish recording
-                recording = false;
-                OnFinishRecording();
+                FinishRecording();
             }
         }
         else if(soundSelectMode)
