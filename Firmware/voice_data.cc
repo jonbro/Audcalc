@@ -11,7 +11,11 @@ void VoiceData::InitDefaults()
         internalData.patterns[i].rate = 2*37; // 1x 
         internalData.patterns[i].length = 15*4; // need to up this to fit into 0xff
     }
-    
+    SetDefaultParams();
+}
+
+void VoiceData::SetDefaultParams()
+{
     internalData.portamento = 0x00;
     internalData.fineTune = 0x80;
 

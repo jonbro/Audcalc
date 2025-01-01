@@ -758,17 +758,29 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     // // ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
     if(clearTime > 0 && holdingEscape)
     {
-        sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/30);
-        clearTime--;
-        if(clearTime == 0)
+        if(patternSelectMode)
         {
-            // empty the current pattern
-            for (size_t voice = 0; voice < 16; voice++)
+            sprintf(str, "clear pat %i in %i", GetCurrentPattern()+1, clearTime/30);
+            clearTime--;
+            if(clearTime == 0)
             {
-                for (size_t j = 0; j < 64; j++)
+                // empty the current pattern
+                for (size_t voice = 0; voice < 16; voice++)
                 {
-                    patterns[voice].SetNoteForPattern(GetCurrentPattern(), j, 0);
+                    for (size_t j = 0; j < 64; j++)
+                    {
+                        patterns[voice].SetNoteForPattern(GetCurrentPattern(), j, 0);
+                    }
                 }
+            }
+        }
+        else if(paramSelectMode)
+        {
+            sprintf(str, "clear voice %i in %i", currentVoice+1, clearTime/30);
+            clearTime--;
+            if(clearTime == 0)
+            {
+                patterns[currentVoice].SetDefaultParams();
             }
         }
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
@@ -851,6 +863,12 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
+    else if(clearTime == 0 && paramSelectMode && holdingEscape)
+    {
+        sprintf(str, "voice %i cleared", currentVoice+1);
+        ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+        return;
+    }
     else if(recording)
     {
         sprintf(str, "Sampling to %i", recordingTarget+1);
@@ -886,7 +904,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     }
 
     // copy pattern
-
     if(patternSelectMode && clearTime < 0 && !holdingWrite)
     {
         ssd1306_draw_string(p, 0, 8, 1, "chn");
@@ -1437,12 +1454,18 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         else if(paramSelectMode)
         {
             uint8_t targetParam = x+y*5;
-            // hardcode handlers for the delay edit
             selectedGlobalParam = false;
+            // hardcode handler for duplicating pattern
+            if(targetParam == 20 && param == 20)
+            {
+                paramSetA = false;
+                patterns[currentVoice].DoublePatternLength(GetCurrentPattern());
+            }
             if(targetParam == 19 || targetParam == 22)
             {
                 switch(param)
                 {
+                    // hardcode handlers for the delay edit
                     case 22:
                         targetParam = 22+25;
                         selectedGlobalParam = true;
@@ -1658,6 +1681,10 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
     // param select
     if(x==2 && y==0)
     {
+        if(holdingEscape && pressed)
+        {
+            clearTime = 90;
+        }
         paramSelectMode = pressed;
     }
 }

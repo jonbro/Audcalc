@@ -108,6 +108,22 @@ class VoiceData
             internalData = VoiceDataInternal_init_default;
             InitDefaults();
         }
+        void SetDefaultParams();
+        void DoublePatternLength(uint8_t pattern)
+        {
+            uint8_t priorLength = internalData.patterns[pattern].length/4+1; // I store the pattern lengths all weird - sue me.
+            uint8_t targetLength = priorLength*2;
+            if(targetLength>64)
+                return;
+            noteCountForPattern[pattern] = noteCountForPattern[pattern]*2;
+            internalData.patterns[pattern].length = (targetLength-1)*4;
+            for (size_t i = 0; i < priorLength; i++)
+            {
+                internalData.patterns[pattern].notes[i+priorLength] = internalData.patterns[pattern].notes[i]; // 1x 
+                internalData.patterns[pattern].keys[i+priorLength] = internalData.patterns[pattern].keys[i]; // 1x 
+            }
+        }
+
         void InitDefaults();
         void Serialize(pb_ostream_t *s);
         void Deserialize(pb_istream_t *s);
