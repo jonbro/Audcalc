@@ -15,6 +15,8 @@ static inline void u32_urgb(uint32_t urgb, uint8_t *r, uint8_t *g, uint8_t *b) {
 }
 
 int16_t temp_buffer[SAMPLES_PER_BLOCK];
+int16_t trigger_detect_buffer[4];
+uint8_t trigger_detect_counter = 0;
 GrooveBox* groovebox;
 
 void OnCCChangedBare(uint8_t cc, uint8_t newValue)
@@ -70,6 +72,10 @@ void GrooveBox::init(uint32_t *_color)
     
     ResetADCLatch();
     tempoPhase = 0;
+    for(int i=0;i<4;i++)
+    {
+        trigger_detect_buffer[i] = 0;
+    }
     for(int i=0;i<VOICE_COUNT;i++)
     {
         instruments[i].Init(&midi, temp_buffer);
@@ -113,7 +119,6 @@ uint32_t counter = 0;
 uint32_t countToHalfSecond = 0;
 uint8_t sync_count = 0;
 bool audio_sync_state;
-uint16_t audio_sync_countdown = 0;
 uint32_t samples_since_last_sync = 0;
 uint32_t ssls = 0;
 void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* input_buffer, size_t size)
@@ -137,17 +142,23 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         // collapse input buffer so its easier to copy to the recording device
         // temporarily use the output buffer
         recordBuffer[i+recordBufferOffset] = input;
-        
+        // all this code should only 
+        trigger_detect_buffer[trigger_detect_counter++] = input;
+        trigger_detect_counter = trigger_detect_counter & 0x3; // count to 4
+        int delta = trigger_detect_buffer[trigger_detect_counter] - trigger_detect_buffer[(trigger_detect_counter-1)&0x3];
         if(!audio_sync_state){
-            if(abs(input) > 0x6fff)
+            if(delta > 0x7000)
             {
                 // need to recalculate the tempo phase here based on the number of samples that have passed since the last sync
                 // samples since last sync is 1/8th notes, and we need to get up to 96ppq where the phase overflows at 31bits aka 0x7fffffff
                 // 0x7fffffff * 1/(samples_since_last_sync / 2 / 96) - I'm not sure where the 32 is coming from here :/ I just tweaked it until it seemed right
-                tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/samples_since_last_sync;
+                int syncMultiplier = 32;
+                // if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                //     syncMultiplier = 48;
+
+                tempoPhaseIncrement = ((uint64_t)0x7fffffff*syncMultiplier*96)/(samples_since_last_sync);
                 ssls = samples_since_last_sync;
                 samples_since_last_sync = 0;
-                audio_sync_countdown = 0x4ff;
                 audio_sync_state = true;
                 hadExternalSync = true;
                 if(waitingForSync)
@@ -157,16 +168,13 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                 }
             }
         }
-        else
+        else if(samples_since_last_sync > 250)
         {
-            if(abs(input) < 0x1fff && samples_since_last_sync > 0xff)
-            {
-                audio_sync_state = false;
-            }
+            audio_sync_state = false;
         }
         if(playThroughEnabled)
         {
-            if((songData.GetSyncInMode()&(SyncMode24|SyncModePO)) > 0)
+            if((songData.GetSyncInMode()&(SyncMode4PQ|SyncModePO)) > 0)
             {
                 workBuffer2[i*2] = input_buffer[i*2+1];
             }
@@ -181,8 +189,6 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             input *= -1;
         }
         last_input = input>last_input?input:last_input;
-        if(audio_sync_countdown>0)
-            audio_sync_countdown--;
     }
 
     // our file system only handles appends every 256 bytes, so we need to respect that
@@ -329,7 +335,12 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             {
                 if(hadExternalSync)
                 {
-                    if((beatCounter[19]+1)%48 == 0)
+                    int syncRate = getTickCountForRateIndex(4);
+                    // if((songData.GetSyncOutMode() & SyncModePO) > 0)
+                    //     rate = 4;
+                    if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                        syncRate = getTickCountForRateIndex(2);
+                    if((beatCounter[19]+1)%syncRate == 0)
                     {
                         tempoPhase = 0;
                         tempoPulse = true;
@@ -341,18 +352,21 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                         {
                             OnTempoPulse();
                         }
+                        tempoPhase = 0;
                     }
                 }
                 // if we are running from an external clock, and the next pulse would be the clock pulse of the external sync, then wait for it to pulse
                 else
                 {
-                    if((beatCounter[19]+1)%48 != 0)
+                    int syncRate = getTickCountForRateIndex(4);
+                    // if((songData.GetSyncOutMode() & SyncModePO) > 0)
+                    //     rate = 4;
+                    if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                        syncRate = getTickCountForRateIndex(2);
+                    if(beatCounter[19]%syncRate == 0 && (tempoPhase >> 31) > 0)
                     {
-                        if((tempoPhase >> 31) > 0)
-                        {
-                            tempoPhase &= 0x7fffffff;
-                            tempoPulse = true;
-                        }
+                        tempoPhase &= 0x7fffffff;
+                        tempoPulse = true;
                     }
                 }
             }
@@ -362,7 +376,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
             }
         }
     }
-    if((songData.GetSyncOutMode()&(SyncModePO|SyncMode24)) > 0)
+    if((songData.GetSyncOutMode()&(SyncModePO|SyncMode4PQ)) > 0)
     {
         for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
@@ -384,7 +398,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     chan[0] = 32767;
                 }
                 else
-                {
+                {   
                     chan[0] = 0;
                 }
             }
@@ -524,8 +538,8 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
             case 17: // pocket operator / pulse sync
                 if((songData.GetSyncOutMode() & SyncModePO) > 0)
                     rate = 4;
-                else if((songData.GetSyncOutMode() & SyncMode24) > 0)
-                    rate = 7;
+                else if((songData.GetSyncOutMode() & SyncMode4PQ) > 0)
+                    rate = 2;
                 else
                     rate = 0;
                 break;
@@ -533,7 +547,11 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
                 rate = 7;
                 break;
             case 19: // input sync
-                rate = 8;
+                // rate = 8;
+                if((songData.GetSyncInMode() & SyncModePO) > 0)
+                    rate = 4;
+                else if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                    rate = 2;
                 break;
             default:
                 rate = ((patterns[v].GetRateForPattern(GetCurrentPattern())*7)>>8);
@@ -741,10 +759,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     ssd1306_clear(p);
     char str[64];
     ssd1306_set_string_color(p, false);
-    // if(audio_sync_countdown > 0)
-    // {
-    //     ssd1306_draw_square(p, 0,0,3,3);
-    // }
 
     //printf("raw: 0x%03x, volt: %f V\n", result, result * conversion_factor * 2.3368f);
     // 3.1f here is a number that I just typed in until it lined up correctly with the measurement from the board
@@ -1315,6 +1329,10 @@ void GrooveBox::StartPlaying()
     ResetPatternOffset();
     ContinuePlaying();
 }
+void GrooveBox::StartWaitingForSync()
+{
+    waitingForSync = true;
+}
 void GrooveBox::ContinuePlaying()
 {
     playing = true;
@@ -1559,9 +1577,9 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             liveWrite = true;
             if(!playing)
             {
-                if((songData.GetSyncInMode()&(SyncMode24|SyncModePO)) != 0)
+                if((songData.GetSyncInMode()&(SyncMode4PQ|SyncModePO)) != 0)
                 {
-                    waitingForSync = true;
+                    StartWaitingForSync();
                 }
                 else
                 {
@@ -1579,9 +1597,9 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             if(!playing)
             {
-                if((songData.GetSyncInMode()&(SyncMode24|SyncModePO)) != 0)
+                if((songData.GetSyncInMode()&(SyncMode4PQ|SyncModePO)) != 0)
                 {
-                    waitingForSync = true;
+                    StartWaitingForSync();
                 }
                 else
                 {

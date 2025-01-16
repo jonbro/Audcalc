@@ -13,15 +13,15 @@ SyncMode SongData::GetSyncOutMode(){
             mode = (SyncMode)(SyncModeMidi | SyncModePO);
             break;
         case 3:
-            mode = (SyncMode)(SyncModeMidi | SyncMode24);
+            mode = (SyncMode)(SyncModeMidi | SyncMode4PQ);
             break;
         // PO
         case 4:
             mode = SyncModePO;
             break;
-        // Volca
+        // 4ppq
         case 5:
-            mode = SyncMode24;
+            mode = SyncMode4PQ;
             break;
     }
     return mode;
@@ -38,9 +38,9 @@ SyncMode SongData::GetSyncInMode(){
         case 2:
             mode = SyncModePO;
             break;
-        // Volca
+        // 4ppq
         case 3:
-            mode = SyncMode24;
+            mode = SyncMode4PQ;
             break;
     }
     return mode;
@@ -150,15 +150,15 @@ const char *syncOutStrings[6] = {
     "none",
     "midi",
     "m+PO",
-    "m+24",
+    "m+4P",
     "PO",
-    "24pq"
+    "4PPQ"
 };
 const char *syncInStrings[4] = { 
     "none",
     "midi",
     "PO",
-    "VL",
+    "4PPQ",
 };
 const char *rootStrings[12] = { 
     "C",

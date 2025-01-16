@@ -13,8 +13,8 @@ extern "C" {
 enum SyncMode { 
     SyncModeNone = 0,
     SyncModeMidi = 1 << 0,
-    SyncModePO   = 1 << 1,
-    SyncMode24   = 1 << 2,
+    SyncModePO   = 1 << 1, // 2ppq
+    SyncMode4PQ   = 1 << 2, // 4ppq
 };
 
 class SongData

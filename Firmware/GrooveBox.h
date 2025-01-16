@@ -76,6 +76,8 @@ class GrooveBox {
           patternLoopCount[i] = 0;
     }
     beatCounter[17] = 0;
+    // external sync counter
+    beatCounter[19] = 0;
   }
   void OnCCChanged(uint8_t cc, uint8_t newValue);
   static int getTickCountForRateIndex(int rate)
@@ -121,6 +123,7 @@ class GrooveBox {
   void TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel);
   void CalculateTempoIncrement();
   void StartPlaying();
+  void StartWaitingForSync();
   void ContinuePlaying();
   void StopPlaying();
   void OnTempoPulse(bool advanceOnly = false);
