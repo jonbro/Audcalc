@@ -135,6 +135,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     delay.SetTime(songData.GetDelayTime());
     bool hadExternalSync = false;
     //printf("input %i\n", workBuffer2[0]);
+    bool ExternalSyncModeEnabled = (songData.GetSyncInMode() & (SyncMode4PQ|SyncModePO))>0;
     for(int i=0;i<SAMPLES_PER_BLOCK;i++)
     {
         samples_since_last_sync++;
@@ -142,39 +143,42 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         // collapse input buffer so its easier to copy to the recording device
         // temporarily use the output buffer
         recordBuffer[i+recordBufferOffset] = input;
-        // all this code should only 
+        // all this code should only be run if the user is waiting on an external sync
         trigger_detect_buffer[trigger_detect_counter++] = input;
         trigger_detect_counter = trigger_detect_counter & 0x3; // count to 4
         int delta = trigger_detect_buffer[trigger_detect_counter] - trigger_detect_buffer[(trigger_detect_counter-1)&0x3];
-        if(!audio_sync_state){
-            if(delta > 0x7000)
-            {
-                // need to recalculate the tempo phase here based on the number of samples that have passed since the last sync
-                // samples since last sync is 1/8th notes, and we need to get up to 96ppq where the phase overflows at 31bits aka 0x7fffffff
-                // 0x7fffffff * 1/(samples_since_last_sync / 2 / 96) - I'm not sure where the 32 is coming from here :/ I just tweaked it until it seemed right
-                int syncMultiplier = 32;
-                // if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
-                //     syncMultiplier = 48;
-
-                tempoPhaseIncrement = ((uint64_t)0x7fffffff*syncMultiplier*96)/(samples_since_last_sync);
-                ssls = samples_since_last_sync;
-                samples_since_last_sync = 0;
-                audio_sync_state = true;
-                hadExternalSync = true;
-                if(waitingForSync)
+        if(ExternalSyncModeEnabled)
+        {
+            if(!audio_sync_state){
+                if(delta > 0x7000)
                 {
-                    waitingForSync = false;
-                    StartPlaying();
+                    // need to recalculate the tempo phase here based on the number of samples that have passed since the last sync
+                    // samples since last sync is 1/8th notes, and we need to get up to 96ppq where the phase overflows at 31bits aka 0x7fffffff
+                    // 0x7fffffff * 1/(samples_since_last_sync / 2 / 96) - I'm not sure where the 32 is coming from here :/ I just tweaked it until it seemed right
+                    int syncMultiplier = 32;
+                    // if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                    //     syncMultiplier = 48;
+
+                    tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/(samples_since_last_sync);
+                    ssls = samples_since_last_sync;
+                    samples_since_last_sync = 0;
+                    audio_sync_state = true;
+                    hadExternalSync = true;
+                    if(waitingForSync)
+                    {
+                        waitingForSync = false;
+                        StartPlaying();
+                    }
                 }
             }
-        }
-        else if(samples_since_last_sync > 250)
-        {
-            audio_sync_state = false;
+            else if(samples_since_last_sync > 250)
+            {
+                audio_sync_state = false;
+            }
         }
         if(playThroughEnabled)
         {
-            if((songData.GetSyncInMode()&(SyncMode4PQ|SyncModePO)) > 0)
+            if(ExternalSyncModeEnabled)
             {
                 workBuffer2[i*2] = input_buffer[i*2+1];
             }
@@ -320,18 +324,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     tempoPulse = true;
                 }
             }
-            else if(songData.GetSyncInMode() == SyncModeMidi)
-            {
-                if((beatCounter[19]+1)%4 != 0)
-                {
-                    if((tempoPhase >> 31) > 0)
-                    {
-                        tempoPhase &= 0x7fffffff;
-                        tempoPulse = true;
-                    }
-                }
-            }
-            else
+            else if(songData.GetSyncInMode() != SyncModeMidi)
             {
                 if(hadExternalSync)
                 {
@@ -450,19 +443,13 @@ void GrooveBox::OnMidiSync()
     tempoPhaseIncrement = ((uint64_t)0x7fffffff*16*96)/samples_since_last_sync;
     if(!IsPlaying())
         return;
-    if((beatCounter[19]+1)%8 == 0)
+    // we got the external sync earlier than we were expecting, and need to do catchup
+    while((beatCounter[18]+1)%getTickCountForRateIndex(7) != 0)
     {
-        tempoPhase = 0;
         OnTempoPulse();
     }
-    else
-    {
-        // we got the external sync earlier than we were expecting, and need to do catchup
-        while((beatCounter[19]+1)%8 != 0)
-        {
-            OnTempoPulse();
-        }
-    }
+    tempoPhase = 0;
+    OnTempoPulse();
 }
 void GrooveBox::OnMidiStart()
 {
@@ -1832,13 +1819,12 @@ void GrooveBox::Deserialize()
         }
         return;
     }
-
+    
     // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
     Serializer s;
     s.Init(globalData.songId);
     pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
     songData.Deserialize(&serializerStream);
-
     // load pattern data
     for(int i=0;i<16;i++)
     {
@@ -1849,6 +1835,14 @@ void GrooveBox::Deserialize()
     playingPattern = songData.GetPlayingPattern();
     songData.LoadPatternChain(patternChain);
     patternChainLength = songData.GetPatternChainLength();
+    if(globalData.version == 1)
+    {
+        globalData.version = 2;
+        for(int i=0;i<16;i++)
+        {
+            patterns[i].GetVoiceData()->fineTune = 0x80;
+        }
+    }
 
     printf("loaded filesize %i\n", s.writeFile.filesize);
 }
