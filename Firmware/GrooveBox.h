@@ -65,20 +65,7 @@ class GrooveBox {
   {
     paramSetA = paramSetB = false;
   }
-
-  void ResetPatternOffset()
-  {
-    for (size_t i = 0; i < 17; i++)
-    {
-        patternStep[i] = 0;
-        beatCounter[i] = 0;
-        if(i<16)
-          patternLoopCount[i] = 0;
-    }
-    beatCounter[17] = 0;
-    // external sync counter
-    beatCounter[19] = 0;
-  }
+  void ResetPatternOffset();
   void OnCCChanged(uint8_t cc, uint8_t newValue);
   static int getTickCountForRateIndex(int rate)
   {

@@ -119,7 +119,7 @@ uint32_t counter = 0;
 uint32_t countToHalfSecond = 0;
 uint8_t sync_count = 0;
 bool audio_sync_state;
-uint32_t samples_since_last_sync = 0;
+uint64_t samples_since_last_sync = 0;
 uint32_t ssls = 0;
 void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* input_buffer, size_t size)
 {
@@ -155,11 +155,14 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     // need to recalculate the tempo phase here based on the number of samples that have passed since the last sync
                     // samples since last sync is 1/8th notes, and we need to get up to 96ppq where the phase overflows at 31bits aka 0x7fffffff
                     // 0x7fffffff * 1/(samples_since_last_sync / 2 / 96) - I'm not sure where the 32 is coming from here :/ I just tweaked it until it seemed right
-                    int syncMultiplier = 32;
-                    // if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
-                    //     syncMultiplier = 48;
-
-                    tempoPhaseIncrement = ((uint64_t)0x7fffffff*32*96)/(samples_since_last_sync);
+                    uint64_t syncMultiplier = getTickCountForRateIndex(4);
+                    if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                        syncMultiplier = getTickCountForRateIndex(2);
+                    tempoPhaseIncrement = (((uint64_t)0x7fffffff*syncMultiplier)/((uint64_t)(samples_since_last_sync-1)))*60;
+                    //printf("external sync, bc: %u TPI: %u remain: %u ssls: %u\n", beatCounter[19], tempoPhaseIncrement, tempoPhase, samples_since_last_sync);
+                    tempoPhase = 0;
+                    
+                    // tempoPhaseIncrement = ((((uint64_t)0x7fffffff<<8)/(samples_since_last_sync))/syncMultiplier)>>8;
                     ssls = samples_since_last_sync;
                     samples_since_last_sync = 0;
                     audio_sync_state = true;
@@ -168,6 +171,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     {
                         waitingForSync = false;
                         StartPlaying();
+                        beatCounter[19] = syncMultiplier-1;
                     }
                 }
             }
@@ -314,58 +318,47 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
  
         if(IsPlaying())
         {
-            bool tempoPulse = false;
             tempoPhase += tempoPhaseIncrement;
             if(songData.GetSyncInMode() == SyncModeNone)
             {
                 if((tempoPhase >> 31) > 0)
                 {
                     tempoPhase &= 0x7fffffff;
-                    tempoPulse = true;
+                    OnTempoPulse();
                 }
             }
             else if(songData.GetSyncInMode() != SyncModeMidi)
             {
+                int syncRate = getTickCountForRateIndex(4);
+                if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
+                    syncRate = getTickCountForRateIndex(2);
                 if(hadExternalSync)
                 {
-                    int syncRate = getTickCountForRateIndex(4);
-                    // if((songData.GetSyncOutMode() & SyncModePO) > 0)
-                    //     rate = 4;
-                    if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
-                        syncRate = getTickCountForRateIndex(2);
-                    if((beatCounter[19]+1)%syncRate == 0)
+                    // we got the external sync earlier than we were expecting, and need to do catchup
+                    while((beatCounter[19]+1)%syncRate != 0)
                     {
-                        tempoPhase = 0;
-                        tempoPulse = true;
+                        OnTempoPulse();
                     }
-                    else
-                    {
-                        // we got the external sync earlier than we were expecting, and need to do catchup
-                        while(beatCounter[19] != 0)
-                        {
-                            OnTempoPulse();
-                        }
-                        tempoPhase = 0;
-                    }
+                    OnTempoPulse();
+                    tempoPhase = 0;
+                    hadExternalSync = false;
                 }
                 // if we are running from an external clock, and the next pulse would be the clock pulse of the external sync, then wait for it to pulse
                 else
                 {
-                    int syncRate = getTickCountForRateIndex(4);
-                    // if((songData.GetSyncOutMode() & SyncModePO) > 0)
-                    //     rate = 4;
-                    if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
-                        syncRate = getTickCountForRateIndex(2);
-                    if(beatCounter[19]%syncRate == 0 && (tempoPhase >> 31) > 0)
+                    // need to check that the next beat isn't one that we should be waiting on external sync for
+                    if((tempoPhase >> 31) > 0)
                     {
-                        tempoPhase &= 0x7fffffff;
-                        tempoPulse = true;
+                        //printf("missed external sync, remain: %u, (bc19+1) %u\n", tempoPhase, (beatCounter[19]+1));
+                        if((beatCounter[19]+1)%syncRate != 0)
+                        {
+                            //printf("missed external sync, remain: %u, beatcount %u\n", tempoPhase, beatCounter[19]);
+                            tempoPhase &= 0x7fffffff;
+                            OnTempoPulse();
+
+                        }
                     }
                 }
-            }
-            if(tempoPulse)
-            {
-                OnTempoPulse();
             }
         }
     }
@@ -508,10 +501,10 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
         }
     }
     // four extra counters
-    // 17: the pattern change counter
-    // 18: the pulse sync output counter
-    // 19: the midi sync
-    // 20: input pulse counter
+    // 16: the pattern change counter
+    // 17: the pulse sync output counter
+    // 18: the midi sync
+    // 19: input pulse counter
     for(int v=0;v<20;v++)
     {
         bool needsTrigger = beatCounter[v]==0;
@@ -522,7 +515,7 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
             case 16: // global pattern (pattern change counter) always uses 16th notes
                 rate = 2;
                 break;
-            case 17: // pocket operator / pulse sync
+            case 17: // pocket operator / pulse sync output
                 if((songData.GetSyncOutMode() & SyncModePO) > 0)
                     rate = 4;
                 else if((songData.GetSyncOutMode() & SyncMode4PQ) > 0)
@@ -534,7 +527,6 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
                 rate = 7;
                 break;
             case 19: // input sync
-                // rate = 8;
                 if((songData.GetSyncInMode() & SyncModePO) > 0)
                     rate = 4;
                 else if((songData.GetSyncInMode() & SyncMode4PQ) > 0)
@@ -1316,6 +1308,20 @@ void GrooveBox::StartPlaying()
     ResetPatternOffset();
     ContinuePlaying();
 }
+void GrooveBox::ResetPatternOffset()
+{
+    for (size_t i = 0; i < 17; i++)
+    {
+        patternStep[i] = 0;
+        beatCounter[i] = 0;
+        if(i<16)
+            patternLoopCount[i] = 0;
+    }
+    beatCounter[17] = 0;
+    // external sync counter
+    beatCounter[19] = 0;
+}
+
 void GrooveBox::StartWaitingForSync()
 {
     waitingForSync = true;
