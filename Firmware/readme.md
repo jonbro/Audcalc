@@ -3,10 +3,13 @@
 run vscode in developer / admistrator mode for access to nmake (developer command prompt for vs 2019)
 check to make sure the "kit" is selected (`GCC for arm-none-eabi 10.2.1`)
 
+picotool save -r 0x10040000 0x11000000 
+0x40000 
+0x1000000
 see this as an option for installing the toolchain
 https://github.com/ndabas/pico-setup-windows
 
-*Resource Generation*
+<!-- *Resource Generation* -->
 `>C:\Python27\python.exe resources_compiler.py resources/resources.py`
 
 *NanoPB generation* 
