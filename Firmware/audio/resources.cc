@@ -30,7 +30,7 @@
 // make resources
 
 
-#include "audio\resources.h"
+#include "audio/resources.h"
 
 namespace braids {
 

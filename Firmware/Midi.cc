@@ -1,4 +1,4 @@
-#include "midi.h"
+#include "Midi.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include <stdio.h>

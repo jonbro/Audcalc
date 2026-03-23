@@ -781,6 +781,8 @@ bool VoiceData::HasAnyLockForStep(uint8_t step, uint8_t pattern)
 }
 bool VoiceData::GetLockForStep(ParamLock **lockOut, uint8_t step, uint8_t pattern, uint8_t param)
 {
+    if(!lockPool.IsValidLock(locksForPattern[pattern]))
+        return false;
     ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
     while(lockPool.IsValidLock(lock))
     {

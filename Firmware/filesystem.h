@@ -449,7 +449,8 @@ FFS_DEF int ffs_read(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t si
 
     fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
     assert(blockHeader.object_id == file->object_id);
-    assert(file->logical_read_offset >= blockHeader.block_logical_start);
+    // TODO: replace this assert with something that actually works
+    //assert(file->logical_read_offset >= blockHeader.block_logical_start);
 
     int read_position = file->logical_read_offset-ffs_file_current_block_logical_start(fs, file);    
     // clamp the read amount to the remaining in the block

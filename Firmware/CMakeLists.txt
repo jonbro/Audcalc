@@ -1,4 +1,19 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.2.0)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.2.0-a4)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 # Generated Cmake Pico project file
+
 
 cmake_minimum_required(VERSION 3.13)
 
@@ -17,16 +32,18 @@ nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
         GlobalData.proto
 )
 
-
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "C:/Users/jonbro/Documents/Pico/pico-sdk")
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR})
 set(PICO_BOARD "tdm_board")
 
+# set(CMAKE_BUILD_TYPE "Debug")
+# set(CMAKE_C_FLAGS_DEBUG "-g -O0")
+# set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
-include(pico_extras_import.cmake)
+# include(pico_extras_import.cmake)
 
 project(tdm C CXX ASM)
 
@@ -81,13 +98,15 @@ target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(tdm
         pico_stdlib
         pico_multicore
-        hardware_sleep
+        # hardware_sleep
         hardware_i2c
         hardware_pio
         hardware_adc
+        hardware_dma
         hardware_flash
         pico_rand
-        pico_audio_i2s
+        # pico_audio_i2s
+        #pico_sleep
         tinyusb_device tinyusb_board
         )
 target_compile_definitions(tdm PRIVATE

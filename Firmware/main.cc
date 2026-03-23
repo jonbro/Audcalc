@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "pico/sleep.h"
+// #include "pico/sleep.h"
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
@@ -10,7 +10,7 @@
 #include "pico/multicore.h"
 #include "pico/util/queue.h"
 #include "hardware/structs/scb.h"
-#include "hardware/rosc.h"
+// #include "hardware/rosc.h"
 
 #include <math.h>
 

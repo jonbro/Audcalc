@@ -78,6 +78,10 @@ typedef struct {
 	int dma_chan_output;
 	bool string_invert;
 } ssd1306_t;
+
+GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c);
+uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont);
+
 // our colors actually go the other way around gbr
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
     return
