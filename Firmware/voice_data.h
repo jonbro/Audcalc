@@ -234,7 +234,7 @@ class VoiceData
         void CopyParameterLocks(uint8_t fromPattern, uint8_t toPattern);
         bool HasLockForStep(uint8_t step, uint8_t pattern, uint8_t param, uint8_t &value);
         bool HasAnyLockForStep(uint8_t step, uint8_t pattern);
-
+        uint16_t CountLocksForPattern(uint8_t pattern);
         bool LockableParam(uint8_t param);
         
         void SetNextRequestedStep(uint8_t step)

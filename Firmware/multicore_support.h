@@ -7,7 +7,6 @@ extern "C" {
 
 typedef struct
 {
-    bool screen_flip_ready;
     int renderInstrument;
     uint8_t *sync_buffer;
     int16_t *workBuffer;
@@ -15,7 +14,6 @@ typedef struct
 
 typedef struct
 {
-    bool screenFlipComplete;
     bool renderInstrumentComplete;
 } queue_entry_complete_t;
 

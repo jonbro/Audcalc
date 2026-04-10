@@ -30,6 +30,7 @@ class ParamLockPool
         bool IsValidLock(ParamLock *lock);
         bool IsValidLock(uint16_t lockPosition);
         uint16_t FreeLockCount();
+        void PrintFreeLockCount();
 
         void Serialize(pb_ostream_t *s);
         void Deserialize(pb_istream_t *s);

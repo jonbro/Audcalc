@@ -101,6 +101,11 @@ uint16_t ParamLockPool::FreeLockCount()
     return count;
 }
 
+void ParamLockPool::PrintFreeLockCount()
+{
+    printf("free locks: %i\n",FreeLockCount());
+}
+
 bool ParamLockPool::IsFreeLock(ParamLock *searchLock)
 {
     ParamLock *lock = GetLock(freeLocks);
@@ -128,14 +133,13 @@ void ParamLockPool::ReturnLockToPool(ParamLock *lock)
 uint16_t ParamLockPool::GetLockPosition(ParamLock *lock)
 {
     uint16_t res = lock-locks;
-    if(res >= LOCKCOUNT)
+    if(res&(~LOCKCOUNT))
         return LOCKCOUNT;
     return res;
 }
 
 ParamLock* ParamLockPool::GetLock(uint16_t position)
 {
-    assert(position < LOCKCOUNT);
     return locks+position;
 }
 

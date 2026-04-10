@@ -157,7 +157,6 @@ void __not_in_flash_func(draw_screen)()
             {
                 gbox.instruments[entry.renderInstrument].Render(entry.sync_buffer, entry.workBuffer, 64);
                 queue_entry_complete_t result;
-                result.screenFlipComplete = false;
                 result.renderInstrumentComplete = true;
                 queue_add_blocking(&renderCompleteQueue, &result);
             }
@@ -238,8 +237,7 @@ uint8_t adc2_prev;
 #define LINE_IN_DETECT 24
 #define HEADPHONE_DETECT 16
 
-int main()
-{
+int main(){
     stdio_init_all();
     board_init();
     tusb_init();
@@ -277,7 +275,6 @@ int main()
     queue_init(&complete_queue, sizeof(queue_entry_complete_t), 2);
     queue_init(&renderCompleteQueue, sizeof(queue_entry_complete_t), 2);
     queue_entry_complete_t result;
-    result.screenFlipComplete = true;
     result.renderInstrumentComplete = false;
     queue_add_blocking(&complete_queue, &result);
     multicore_launch_core1(draw_screen);
@@ -368,12 +365,9 @@ int main()
                 adc_select_input(1);
                 uint16_t adc_val = adc_read();
                 adc_select_input(0);
-                // I think that even though adc_read returns 16 bits, the value is only in the bottom? 12
                 gbox.OnAdcUpdate(adc_val, adc_read());
                 hardware_update_battery_level();
-                queue_entry_complete_t result;
                 gbox.UpdateDisplay(GetDisplay());
-                // hardware_has_usb_power(); // this call just turns on the green debug led currently
                 ssd1306_show(GetDisplay());
                 ws2812_setColors(color+5);
                 needsScreenupdate = false;

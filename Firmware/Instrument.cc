@@ -82,20 +82,7 @@ q15_t Instrument::GetLfoState()
     return mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
 }
 void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffer, size_t size)
-{
-    if(instrumentType == INSTRUMENT_MIDI)
-    {
-        for(int i=0;i<SAMPLES_PER_BLOCK;i++)
-        {
-            noteOffSchedule--;
-            if(noteOffSchedule == 0)
-            {
-                //midi->NoteOff();
-            }
-        }
-        return;
-    }
-    
+{    
     q15_t param1_withMods = param1Base;
     q15_t param2_withMods = param2Base;
     q15_t cutoffWithMods = mainCutoff;
@@ -553,7 +540,7 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
             if(midiNoteStates[i].note == note)
             {
                 noteIsPlaying = true;
-                midiNoteStates[i].ticksRemaining = 96;
+                midiNoteStates[i].ticksRemaining = noteHoldTime;
             }
         }
         if(!noteIsPlaying)

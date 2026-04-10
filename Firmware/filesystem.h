@@ -64,9 +64,9 @@ typedef struct
 {
     uint16_t    object_id;
     uint16_t    written_page_mask;
-    uint32_t    next_block; // should rename to "next block"
+    uint32_t    next_block;
+     // also 0xff defines initial page
     uint32_t    prior_block;
-    uint8_t     initial_page;
 } ffs_blockheader;
 
 
@@ -224,7 +224,6 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
             return -1;
         }
         blockHeader.object_id = file->object_id;
-        blockHeader.initial_page = true;
         blockHeader.next_block = EMPTY_BLOCK;
         blockHeader.prior_block = EMPTY_BLOCK;
         blockHeader.written_page_mask = ~1; // mark the first page as filled - this is done in inverted
@@ -291,7 +290,6 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
                     blockHeader.next_block = EMPTY_BLOCK;
                     blockHeader.object_id = file->object_id;
                     blockHeader.written_page_mask = 0xffff;
-                    //blockHeader.block_logical_start = last_logical_start+15*256;
                     blockHeader.prior_block = block_offset;
                     memset(fs->work_buf, 0xff, 256);
                     memcpy(fs->work_buf, &blockHeader, sizeof(ffs_blockheader));

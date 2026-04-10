@@ -103,7 +103,32 @@ void GrooveBox::init(uint32_t *_color)
     color = _color;
     lastKeyPlayed = {static_cast<unsigned int>(0 & 0xf)};
 }
+void GrooveBox::PrintLostLockData()                  
+{
+    // // dump lock info
+    // for(int i=0;i<4096;i++)
+    // {
+    //     ParamLock lock = VoiceData::lockPool.locks[i];
+    //     printf("%i :: %i :: %i :: %i\n", i, lock.param, lock.step, lock.next);
 
+    // }
+    int count = 0;
+    for(int i=0;i<16;i++)
+    {
+        printf("locks for voice: %i\n", i);
+        for(int j=0;j<16;j++)
+        {
+            int plock = patterns[i].CountLocksForPattern(j);
+            if(plock > 0)
+            printf("p %i : %i\n", j, plock);
+            count += plock;
+        }
+    }
+    int freelockCount = VoiceData::lockPool.FreeLockCount();
+    int totalLocks = count + freelockCount;
+    printf("freelocks %i\n", freelockCount);
+    printf("total locks %i :: missing %i\n", totalLocks, 4096-totalLocks);
+}
 int16_t workBuffer[SAMPLES_PER_BLOCK];
 int16_t workBuffer3[SAMPLES_PER_BLOCK];
 int32_t workBuffer2[SAMPLES_PER_BLOCK*2];
@@ -215,7 +240,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
 
             {
                 memset(workBuffer3, 0, sizeof(int16_t)*SAMPLES_PER_BLOCK);
-                queue_entry_t entry = {false, v, sync_buffer, workBuffer3};
+                queue_entry_t entry = {v, sync_buffer, workBuffer3};
                 queue_add_blocking(&signal_queue, &entry);
                 hasSecondCore = true;
                 v++;
@@ -760,10 +785,13 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
                 // empty the current pattern
                 for (size_t voice = 0; voice < 16; voice++)
                 {
+                    // clear all the notes
                     for (size_t j = 0; j < 64; j++)
                     {
                         patterns[voice].SetNoteForPattern(GetCurrentPattern(), j, 0);
                     }
+                    // free all the locks on the current pattern
+                    patterns[voice].ClearParameterLocks(GetCurrentPattern());
                 }
             }
         }
@@ -803,7 +831,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
     {
         ssd1306_clear(p);
         sprintf(str, "ERASING...");
-        // ssd1306_draw_square_rounded(p, 0, 17, width, 15);
         ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
         return;
     }
@@ -1267,15 +1294,17 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     {
         // eventually will need to encode the page number in the param - not there yet
         lastEditedParam = param*2;
+        if(current_a != a)
+            voiceNeedsUpdate = true;
         current_a = a;
-        voiceNeedsUpdate = true;
         lastAdcValA = a;
     }
     if(paramSetB)
     {
         lastEditedParam = param*2+1;
+        if(current_b != b)
+            voiceNeedsUpdate = true;
         current_b = b;
-        voiceNeedsUpdate = true;
         lastAdcValB = b;
     }
     if(voiceNeedsUpdate)
@@ -1407,7 +1436,7 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             {
                 if(!parameterLocked){
                     patterns[currentVoice].SetNoteForPattern(GetCurrentPattern(), sequenceStep+editPage[currentVoice]*16, 0);
-                    patterns[currentVoice].RemoveLocksForStep(GetCurrentPattern(), sequenceStep);
+                    patterns[currentVoice].RemoveLocksForStep(GetCurrentPattern(), sequenceStep+editPage[currentVoice]*16);
                 }
             }
             else

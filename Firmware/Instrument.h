@@ -90,7 +90,6 @@ class Instrument
         Svf svf;
         InstrumentType instrumentType = INSTRUMENT_MACRO;
         Midi *midi;
-        uint32_t noteOffSchedule;
         int16_t lastNoteOnPitch = 0;
         bool enable_env = true;
         bool enable_filter = true;

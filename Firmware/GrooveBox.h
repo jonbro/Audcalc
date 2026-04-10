@@ -49,6 +49,7 @@ class GrooveBox {
   void Deserialize(); 
   void FinishRecording();
   int GetLostLockCount();
+  void PrintLostLockData();
   Instrument instruments[VOICE_COUNT];
   int CurrentStep = 0;
   uint8_t currentVoice = 0;
