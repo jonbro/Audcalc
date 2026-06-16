@@ -250,7 +250,7 @@ class VoiceData
         }
         
         static void SerializeStatic(pb_ostream_t *s);
-        static void DeserializeStatic(pb_istream_t *s);
+        static void DeserializeStatic(pb_istream_t *s, VoiceData *patterns);
         void CopyFrom(VoiceData &copy)
         {
             internalData.instrumentType = copy.internalData.instrumentType;
@@ -295,7 +295,7 @@ class VoiceData
         uint8_t nothing; // used for returning a reference when we don't want it to do anything
         
         static ParamLockPool lockPool;
-        uint16_t locksForPattern[16] = {0};
+        uint16_t locksForPatternStep[16][64];
         uint8_t noteCountForPattern[16] = {0}; 
     private:
         VoiceDataInternal internalData;

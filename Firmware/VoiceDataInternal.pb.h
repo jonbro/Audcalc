@@ -71,6 +71,7 @@ typedef struct _VoiceDataInternal {
 typedef struct _VoiceDataInternal_LockPointer {
     uint8_t pattern;
     uint16_t pointer;
+    uint8_t step;
 } VoiceDataInternal_LockPointer;
 
 
@@ -82,11 +83,11 @@ extern "C" {
 #define VoiceDataInternal_init_default           {0, {{NULL}, NULL}, 0, 0, 0, 0, false, VoiceDataInternal_EnvelopeData_init_default, false, VoiceDataInternal_EnvelopeData_init_default, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, {VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default, VoiceDataInternal_Pattern_init_default}}
 #define VoiceDataInternal_Pattern_init_default   {0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define VoiceDataInternal_EnvelopeData_init_default {0, 0, 0, 0}
-#define VoiceDataInternal_LockPointer_init_default {0, 0}
+#define VoiceDataInternal_LockPointer_init_default {0, 0, 0}
 #define VoiceDataInternal_init_zero              {0, {{NULL}, NULL}, 0, 0, 0, 0, false, VoiceDataInternal_EnvelopeData_init_zero, false, VoiceDataInternal_EnvelopeData_init_zero, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, {VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero, VoiceDataInternal_Pattern_init_zero}}
 #define VoiceDataInternal_Pattern_init_zero      {0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define VoiceDataInternal_EnvelopeData_init_zero {0, 0, 0, 0}
-#define VoiceDataInternal_LockPointer_init_zero  {0, 0}
+#define VoiceDataInternal_LockPointer_init_zero  {0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define VoiceDataInternal_Pattern_rate_tag       1
@@ -134,6 +135,7 @@ extern "C" {
 #define VoiceDataInternal_patterns_tag           69
 #define VoiceDataInternal_LockPointer_pattern_tag 1
 #define VoiceDataInternal_LockPointer_pointer_tag 2
+#define VoiceDataInternal_LockPointer_step_tag    3
 
 /* Struct field encoding specification for nanopb */
 #define VoiceDataInternal_FIELDLIST(X, a) \
@@ -197,7 +199,8 @@ X(a, STATIC,   SINGULAR, UINT32,   depth,             4)
 
 #define VoiceDataInternal_LockPointer_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   pattern,           1) \
-X(a, STATIC,   SINGULAR, UINT32,   pointer,           2)
+X(a, STATIC,   SINGULAR, UINT32,   pointer,           2) \
+X(a, STATIC,   SINGULAR, UINT32,   step,              3)
 #define VoiceDataInternal_LockPointer_CALLBACK NULL
 #define VoiceDataInternal_LockPointer_DEFAULT NULL
 
@@ -215,7 +218,7 @@ extern const pb_msgdesc_t VoiceDataInternal_LockPointer_msg;
 /* Maximum encoded size of messages (where known) */
 /* VoiceDataInternal_size depends on runtime parameters */
 #define VoiceDataInternal_EnvelopeData_size      12
-#define VoiceDataInternal_LockPointer_size       7
+#define VoiceDataInternal_LockPointer_size       9
 #define VoiceDataInternal_Pattern_size           390
 
 #ifdef __cplusplus

@@ -18,6 +18,7 @@ message VoiceDataInternal {
     message LockPointer {
         uint32 pattern    = 1 [(nanopb).int_size = IS_8];
         uint32 pointer    = 2 [(nanopb).int_size = IS_16];
+        uint32 step       = 3 [(nanopb).int_size = IS_8];
     }
     
     uint32 version                      = 1;

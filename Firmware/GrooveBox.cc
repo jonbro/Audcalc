@@ -771,9 +771,6 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
 
     ssd1306_clear(p);
     char str[64];
-    sprintf(str, "Free RAM: %lu B", getFreeRAM());
-    ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
-    return; // RAM measurement — remove after reading
     ssd1306_set_string_color(p, false);
 
     //printf("raw: 0x%03x, volt: %f V\n", result, result * conversion_factor * 2.3368f);
@@ -1877,8 +1874,8 @@ void GrooveBox::Deserialize()
     {
         patterns[i].Deserialize(&serializerStream);
     }
-    VoiceData::DeserializeStatic(&serializerStream);
-    
+    VoiceData::DeserializeStatic(&serializerStream, patterns);
+
     playingPattern = songData.GetPlayingPattern();
     songData.LoadPatternChain(patternChain);
     patternChainLength = songData.GetPatternChainLength();
