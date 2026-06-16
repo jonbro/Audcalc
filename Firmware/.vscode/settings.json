@@ -34,7 +34,7 @@
         "PATH": "${env:HOME}/.pico-sdk/toolchain/14_2_Rel1/bin:${env:HOME}/.pico-sdk/picotool/2.2.0-a4/picotool:${env:HOME}/.pico-sdk/cmake/v3.31.5/bin:${env:HOME}/.pico-sdk/ninja/v1.12.1:${env:PATH}"
     },
     "raspberry-pi-pico.cmakeAutoConfigure": false,
-    "raspberry-pi-pico.useCmakeTools": false,
+    "raspberry-pi-pico.useCmakeTools": true,
     "raspberry-pi-pico.cmakePath": "${HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake",
     "raspberry-pi-pico.ninjaPath": "${HOME}/.pico-sdk/ninja/v1.12.1/ninja"
 }

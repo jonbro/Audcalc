@@ -16,10 +16,15 @@ jobs:
 
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: nanopb
           fetch-depth: "0"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
@@ -37,7 +42,7 @@ jobs:
           openssl sha256 nanopb/dist/*.tar.gz
 
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: nanopb/dist/*.tar.gz
           name: nanopb-binary-linux
@@ -57,13 +62,20 @@ jobs:
           (cd cmake_simple; mkdir build; cd build; cmake ..; make)
           (cd cmake_relpath; mkdir build; cd build; cmake ..; make)
 
+      - name: Run build tests
+        run: |
+          cd nanopb-*/build-tests
+          (cd cmake_with_components; mkdir build; cd build; cmake ..; make)
+          (cd legacy_cmake_relpath; mkdir build; cd build; cmake ..; make)
+          (cd legacy_cmake_simple; mkdir build; cd build; cmake ..; make)
+
   build_windows:
     name: Build binary on Windows 2019
     runs-on: windows-2019
 
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: nanopb
           fetch-depth: "0"
@@ -86,7 +98,7 @@ jobs:
           openssl sha256 nanopb/dist/*.zip
 
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: nanopb/dist/*.zip
           name: nanopb-binary-windows
@@ -100,23 +112,25 @@ jobs:
           python3 -m SCons
 
   build_macos:
-    name: Build binary on Mac OS X Big Sur 11
-    runs-on: macos-11
+    name: Build binary on Mac OS X 14
+    runs-on: macos-14
 
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: nanopb
           fetch-depth: "0"
 
       - name: Install dependencies
         run: |
-          python3 -m pip install --user --upgrade scons protobuf grpcio-tools pyinstaller
-          python3 -c 'import google.protobuf; print(google.protobuf.__file__)'
+          python3 -m venv venv
+          venv/bin/python3 -m pip install --upgrade scons protobuf grpcio-tools pyinstaller
+          venv/bin/python3 -c 'import google.protobuf; print(google.protobuf.__file__)'
 
       - name: Build binary package
         run: |
+          source venv/bin/activate
           cd nanopb
           git clean -dxf
           tools/make_mac_package.sh
@@ -126,7 +140,7 @@ jobs:
           openssl sha256 nanopb/dist/*.tar.gz
 
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: nanopb/dist/*.tar.gz
           name: nanopb-binary-macos
@@ -135,7 +149,7 @@ jobs:
         run: |
           tar xzf nanopb/dist/*.tar.gz
           cd nanopb-*/tests
-          python3 -m SCons
+          ../../venv/bin/python3 -m SCons
           cd ../examples/simple
           make
           ./simple

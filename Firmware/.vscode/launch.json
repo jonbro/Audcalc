@@ -3,6 +3,7 @@
     "configurations": [
         {
             "name": "Pico Debug (Cortex-Debug)",
+            "preLaunchTask": "Compile Project",
             "cwd": "${userHome}/.pico-sdk/openocd/0.12.0+dev/scripts",
             "executable": "${command:raspberry-pi-pico.launchTargetPath}",
             "request": "launch",
@@ -29,6 +30,7 @@
         },
         {
             "name": "Pico Debug (Cortex-Debug with external OpenOCD)",
+            "preLaunchTask": "Compile Project",
             "cwd": "${workspaceRoot}",
             "executable": "${command:raspberry-pi-pico.launchTargetPath}",
             "request": "launch",

@@ -1,3 +1,65 @@
+
+# ====================================================================================
+# Generated Cmake Pico project file
+
+
+cmake_minimum_required(VERSION 3.13)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
+
+# Add venv and protoc to PATH so they can be found by nanopb and cmake
+# Convert paths to use backslashes for Windows
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.venv/Scripts" VENV_SCRIPTS)
+file(TO_NATIVE_PATH "$ENV{USERPROFILE}/.local/bin/bin" PROTOC_BIN)
+set(ENV{PATH} "${VENV_SCRIPTS};${PROTOC_BIN};$ENV{PATH}")
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/nanopb/extra)
+
+set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/nanopb/generator-bin/protoc.exe" CACHE FILEPATH "The Google Protocol Buffers Compiler" FORCE)
+
+find_package(Nanopb REQUIRED)
+include_directories(${NANOPB_INCLUDE_DIRS})
+nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
+        VoiceDataInternal.proto
+        ParamLockPoolInternal.proto
+        SongDataInternal.proto
+        GlobalData.proto
+)
+
+# The nanopb protoc-gen-nanopb.bat calls system Python which may lack google.protobuf.
+# Instead, use the self-contained pre-built protoc-gen-nanopb.exe from generator-bin.
+# We write a wrapper bat at configure time, then install it after the nanopb copy_directory
+# step runs at build time (which would otherwise overwrite it). The APPEND form of
+# add_custom_command injects this as an ordering dependency on the proto generation steps.
+set(_nanopb_plugin_exe "${CMAKE_CURRENT_SOURCE_DIR}/nanopb/generator-bin/protoc-gen-nanopb.exe")
+set(_nanopb_gen_dir "${CMAKE_CURRENT_BINARY_DIR}/nanopb/generator")
+set(_nanopb_plugin_stamp "${CMAKE_CURRENT_BINARY_DIR}/protoc-gen-nanopb-wrapper.stamp")
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/nanopb-plugin-wrapper.bat"
+    "@echo off\n\"${_nanopb_plugin_exe}\" %*\n")
+
+add_custom_command(
+    OUTPUT "${_nanopb_plugin_stamp}"
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_BINARY_DIR}/nanopb-plugin-wrapper.bat"
+        "${_nanopb_gen_dir}/protoc-gen-nanopb.bat"
+    COMMAND ${CMAKE_COMMAND} -E touch "${_nanopb_plugin_stamp}"
+    DEPENDS "${_nanopb_gen_dir}/nanopb_generator.py"
+    COMMENT "Installing pre-built protoc-gen-nanopb wrapper"
+    VERBATIM
+)
+
+foreach(_proto_src
+        "${CMAKE_CURRENT_BINARY_DIR}/VoiceDataInternal.pb.c"
+        "${CMAKE_CURRENT_BINARY_DIR}/ParamLockPoolInternal.pb.c"
+        "${CMAKE_CURRENT_BINARY_DIR}/SongDataInternal.pb.c"
+        "${CMAKE_CURRENT_BINARY_DIR}/GlobalData.pb.c")
+    add_custom_command(OUTPUT "${_proto_src}" APPEND DEPENDS "${_nanopb_plugin_stamp}")
+endforeach()
+
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
@@ -11,26 +73,6 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
-# ====================================================================================
-# Generated Cmake Pico project file
-
-
-cmake_minimum_required(VERSION 3.13)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
-
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/nanopb/extra)
-
-find_package(Nanopb REQUIRED)
-include_directories(${NANOPB_INCLUDE_DIRS})
-nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS
-        VoiceDataInternal.proto
-        ParamLockPoolInternal.proto
-        SongDataInternal.proto
-        GlobalData.proto
-)
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
