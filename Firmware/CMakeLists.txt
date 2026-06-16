@@ -82,6 +82,9 @@ set(PICO_BOARD "tdm_board")
 # set(CMAKE_BUILD_TYPE "Debug")
 # set(CMAKE_C_FLAGS_DEBUG "-g -O0")
 # set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+# For debugging with breakpoints use RelWithDebInfo instead of Release
+# set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)

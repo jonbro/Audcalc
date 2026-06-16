@@ -757,7 +757,7 @@ int8_t VoiceData::GetOctave()
 }
 
 /* PARAMETER LOCK BEHAVIOR */
-// void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
+void VoiceData::StoreParamLock(uint8_t param, uint8_t step, uint8_t pattern, uint8_t value)
 {
     ParamLock *lock;
     // if we find a lock for this step / pattern / param group, we update the value and return
