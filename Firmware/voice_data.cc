@@ -185,6 +185,57 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
     return 0;
 }
 
+void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache)
+{
+    InstrumentType itype = (InstrumentType)GetInstrumentType();
+
+    // Fill defaults — mirrors the switch logic in GetParamValue
+    if(itype == INSTRUMENT_SAMPLE) {
+        cache[SampleIn]   = internalData.sampleStart[lastNotePlayed];
+        cache[SampleOut]  = internalData.sampleLength[lastNotePlayed];
+        cache[AttackTime] = internalData.sampleAttack;
+        cache[DecayTime]  = internalData.sampleDecay;
+    } else {
+        cache[Timbre]     = internalData.timbre;
+        cache[Color]      = internalData.color;
+        cache[AttackTime] = internalData.env1.attack;
+        cache[DecayTime]  = internalData.env1.decay;
+    }
+    cache[Cutoff]          = internalData.cutoff;
+    cache[Resonance]       = internalData.resonance;
+    cache[Volume]          = internalData.volume;
+    cache[Pan]             = internalData.pan;
+    cache[Portamento]      = internalData.portamento;
+    cache[FineTune]        = internalData.fineTune;
+    cache[AttackTime2]     = internalData.env2.attack;
+    cache[DecayTime2]      = internalData.env2.decay;
+    cache[LFORate]         = internalData.lfoRate;
+    cache[LFODepth]        = internalData.lfoDepth;
+    cache[RetriggerSpeed]  = internalData.retriggerSpeed;
+    cache[RetriggerLength] = internalData.retriggerLength;
+    cache[Env1Target]      = internalData.env1.target;
+    cache[Env1Depth]       = internalData.env1.depth;
+    cache[Env2Target]      = internalData.env2.target;
+    cache[Env2Depth]       = internalData.env2.depth;
+    cache[Lfo1Target]      = internalData.lfoTarget;
+    cache[RetriggerFade]   = internalData.retriggerFade;
+    cache[DelaySend]       = internalData.delaySend;
+    cache[ReverbSend]      = internalData.reverbSend;
+    cache[ConditionMode]   = internalData.conditionMode;
+    cache[ConditionData]   = internalData.conditionData;
+
+    // Override with any locks for this step — single traversal
+    if(!lockPool.IsValidLock(locksForPattern[pattern]))
+        return;
+    ParamLock* lock = lockPool.GetLock(locksForPattern[pattern]);
+    while(lockPool.IsValidLock(lock))
+    {
+        if(lock->step == step && lock->param < PARAM_CACHE_SIZE)
+            cache[lock->param] = lock->value;
+        lock = lockPool.GetLock(lock->next);
+    }
+}
+
 // used for setting the value in place
 // currentPattern is used for alterning things that have per pattern values (pattern length)
 // last n

@@ -287,18 +287,21 @@ void Instrument::SetOscillator(uint8_t oscillator)
 
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
-    lfo1Target = (LfoTargets)((((uint16_t)voiceData.GetParamValue(Lfo1Target, lastPressedKey, playingStep, playingPattern))*Lfo_Target_Count)>>8);
+    uint8_t pv[VoiceData::PARAM_CACHE_SIZE];
+    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv);
 
-    delaySend = voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern);
-    reverbSend = voiceData.GetParamValue(ReverbSend, lastPressedKey, playingStep, playingPattern);
-    volume = ((q15_t)voiceData.GetParamValue(Volume, lastPressedKey, playingStep, playingPattern))<<7;
-    panning = ((q15_t)voiceData.GetParamValue(Pan, lastPressedKey, playingStep, playingPattern))<<7;
-    portamentoParamAmt = voiceData.GetParamValue(Portamento, lastPressedKey, playingStep, playingPattern);
-    fineTuneParamAmt = voiceData.GetParamValue(FineTune, lastPressedKey, playingStep, playingPattern);
-    q15_t env1A = voiceData.GetParamValue(AttackTime, lastPressedKey, playingStep, playingPattern)<<7;
-    q15_t env1D = voiceData.GetParamValue(DecayTime, lastPressedKey, playingStep, playingPattern)<<7;
-    q15_t env2A = voiceData.GetParamValue(AttackTime2, lastPressedKey, playingStep, playingPattern)<<7;
-    q15_t env2D = voiceData.GetParamValue(DecayTime2, lastPressedKey, playingStep, playingPattern)<<7;
+    lfo1Target = (LfoTargets)(((uint16_t)pv[Lfo1Target] * Lfo_Target_Count) >> 8);
+
+    delaySend = pv[DelaySend];
+    reverbSend = pv[ReverbSend];
+    volume = ((q15_t)pv[Volume]) << 7;
+    panning = ((q15_t)pv[Pan]) << 7;
+    portamentoParamAmt = pv[Portamento];
+    fineTuneParamAmt = pv[FineTune];
+    q15_t env1A = (q15_t)pv[AttackTime] << 7;
+    q15_t env1D = (q15_t)pv[DecayTime] << 7;
+    q15_t env2A = (q15_t)pv[AttackTime2] << 7;
+    q15_t env2D = (q15_t)pv[DecayTime2] << 7;
     q15_t lfoState = GetLfoState();
     switch(lfo1Target)
     {
@@ -333,22 +336,21 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
     {
         env.Update(env1A>>8, env1D>>8);
         env2.Update(env2A>>8, env2D>>8);
-        lfo_depth = (voiceData.GetParamValue(LFODepth, lastPressedKey, playingStep, playingPattern)>>1)<<7;
-        lfo_rate = (voiceData.GetParamValue(LFORate, lastPressedKey, playingStep, playingPattern)>>1)<<7;
-        mainCutoff = (voiceData.GetParamValue(Cutoff, lastPressedKey, playingStep, playingPattern)>>1) << 7;
+        lfo_depth = (pv[LFODepth] >> 1) << 7;
+        lfo_rate = (pv[LFORate] >> 1) << 7;
+        mainCutoff = (pv[Cutoff] >> 1) << 7;
         svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
-        svf.set_resonance((voiceData.GetParamValue(Resonance, lastPressedKey, playingStep, playingPattern)>>1) << 7);
-        env1Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env1Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
-        env1Depth = (voiceData.GetParamValue(Env1Depth, lastPressedKey, playingStep, playingPattern))<<7;
-        env2Target = (EnvTargets)((((uint16_t)voiceData.GetParamValue(Env2Target, lastPressedKey, playingStep, playingPattern))*Target_Count)>>8);
-        env2Depth = (voiceData.GetParamValue(Env2Depth, lastPressedKey, playingStep, playingPattern))<<7;
-        distortionAmount = (voiceData.GetParamValue(DelaySend, lastPressedKey, playingStep, playingPattern))<<7;
+        svf.set_resonance((pv[Resonance] >> 1) << 7);
+        env1Target = (EnvTargets)(((uint16_t)pv[Env1Target] * Target_Count) >> 8);
+        env1Depth = (q15_t)pv[Env1Depth] << 7;
+        env2Target = (EnvTargets)(((uint16_t)pv[Env2Target] * Target_Count) >> 8);
+        env2Depth = (q15_t)pv[Env2Depth] << 7;
+        distortionAmount = (q15_t)pv[DelaySend] << 7;
     }
     if(voiceData.GetInstrumentType() == INSTRUMENT_MACRO)
     {
-        // copy parameters from voice
-        param1Base = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern) << 7;
-        param2Base = voiceData.GetParamValue(Color, lastPressedKey, playingStep, playingPattern) << 7;
+        param1Base = (q15_t)pv[Timbre] << 7;
+        param2Base = (q15_t)pv[Color] << 7;
     }
 }
 

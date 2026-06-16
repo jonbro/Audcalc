@@ -186,6 +186,9 @@ class VoiceData
         bool CheckLockAndSetDisplay(bool showForStep, uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
         uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
 
+        static constexpr uint8_t PARAM_CACHE_SIZE = 46; // ReverbSend=45 is highest param enum value
+        void FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache);
+
         uint8_t GetMidiChannel(){
             return internalData.extraTypeUnion.midiChannel >> 4;
         }
