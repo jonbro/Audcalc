@@ -53,6 +53,8 @@ class SongData
         int8_t GetHPVol(){
             return ((internalData.hpVol*35)>>8)-6;
         }
+        uint8_t GetSwing() { return internalData.swing; }
+        void    SetSwing(uint8_t v) { internalData.swing = v; }
 
 
         uint8_t GetNote(uint8_t key, int8_t octave);

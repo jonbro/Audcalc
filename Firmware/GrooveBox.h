@@ -127,6 +127,19 @@ class GrooveBox {
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
   uint8_t beatCounter[20] = {0};
+
+  bool swingOdd = false;
+  struct SwingEntry {
+      int8_t  ticks = -1;
+      uint8_t key;
+      int16_t midi_note;
+      uint8_t step;
+      uint8_t pattern;
+      int     channel;
+  };
+  static constexpr int SWING_QUEUE_SIZE = 16;
+  SwingEntry swingQueue[SWING_QUEUE_SIZE];
+
   bool playing = false;
   bool waitingForSync = false;
   bool writing = false;

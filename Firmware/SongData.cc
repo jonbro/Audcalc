@@ -55,13 +55,16 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
         
         case 19*2:
             return internalData.bpm;
-        case 19*2+1:
+        case 19*2+1:         // 39 — B knob, play page 1
+            return internalData.swing;
+
+        case 19*2+(25*2):    // 88 — A knob, play page 2
+            return internalData.syncIn;
+        case 19*2+1+(25*2):  // 89 — B knob, play page 2
             return internalData.syncOut;
 
-        case 19*2+(25*2):
+        case 69*2:           // 138 — A knob, play page 3
             return internalData.hpVol;
-        case 19*2+1+(25*2):
-            return internalData.syncIn;
 
         case 22*2+(25*2): // this offset to the next page must also be doubled
             return internalData.delayFeedback;
@@ -217,15 +220,20 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             {
                 sprintf(pA, "%i", internalData.bpm+1);
             }
-            sprintf(strB, "SncO");
-            sprintf(pB,syncOutStrings[(internalData.syncOut*6)>>8]);
+            sprintf(strB, "Swng");
+            sprintf(pB, "%i", internalData.swing);
             break;
-        case 19+25:
+        case 19+25:    // 44
+            sprintf(strA, "SncI");
+            sprintf(pA, syncInStrings[(internalData.syncIn*4)>>8]);
+            sprintf(strB, "SncO");
+            sprintf(pB, syncOutStrings[(internalData.syncOut*6)>>8]);
+            break;
+        case 19+25+25: // 69
             sprintf(strA, "vol");
             sprintf(pA, "%i", GetHPVol());
-
-            sprintf(strB, "SncI");
-            sprintf(pB,syncInStrings[(internalData.syncIn*4)>>8]);
+            sprintf(strB, "");
+            sprintf(pB, "");
             break;
         case 24:
             sprintf(strA, "Octv");

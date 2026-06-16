@@ -515,6 +515,19 @@ void GrooveBox::OnMidiPosition(uint16_t position)
 void GrooveBox::OnTempoPulse(bool advanceOnly)
 {
     bool needsMidiSync = false;
+
+    int swingOffset = ((int)songData.GetSwing() * 24) >> 8;
+    for (int i = 0; i < SWING_QUEUE_SIZE; i++) {
+        if (swingQueue[i].ticks > 0) {
+            swingQueue[i].ticks--;
+            if (swingQueue[i].ticks == 0) {
+                auto &e = swingQueue[i];
+                TriggerInstrument(e.key, e.midi_note, e.step, e.pattern, false, patterns[e.channel], e.channel);
+                swingQueue[i].ticks = -1;
+            }
+        }
+    }
+
     // send the sync pulse to all the instruments
     if(!advanceOnly)
     {
@@ -611,7 +624,17 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
                 if(trigger)
                 {
                     patterns[v].SetNextRequestedStep(patternStep[v]);
-                    TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                    if (swingOffset > 0 && swingOdd && beatCounter[16] == 0) {
+                        for (int i = 0; i < SWING_QUEUE_SIZE; i++) {
+                            if (swingQueue[i].ticks < 0) {
+                                swingQueue[i] = {(int8_t)swingOffset, requestedKey, requestedNote,
+                                                 patternStep[v], GetCurrentPattern(), v};
+                                break;
+                            }
+                        }
+                    } else {
+                        TriggerInstrument(requestedKey, requestedNote, patternStep[v], GetCurrentPattern(), false, patterns[v], v);
+                    }
                 }
             }
         }
@@ -619,6 +642,7 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
         if(v==16)
         {
             patternStep[v] = (patternStep[v]+1)%songData.GetLength(GetCurrentPattern());
+            swingOdd = !swingOdd;
         }
         else
         {
@@ -1594,9 +1618,13 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             // just hardcode for now
             uint8_t targetParam = x+y*5;
-            if(selectedGlobalParam && param == targetParam)
+            if(selectedGlobalParam && (param == 19 || param == 44 || param == 69))
             {
-                targetParam = (targetParam+25)%50;
+                switch(param) {
+                    case 19: targetParam = 44; break;
+                    case 44: targetParam = 69; break;
+                    default: targetParam = 19; break;
+                }
             }
             if(param != targetParam)
                 paramSetA = paramSetB = false;
