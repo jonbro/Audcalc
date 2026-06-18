@@ -38,7 +38,7 @@ typedef struct _VoiceDataInternal {
     uint8_t lfoRate;
     uint8_t lfoDepth;
     uint8_t lfoTarget;
-    uint8_t lfoDelay;
+    uint8_t lfoShape;
     uint8_t sampleStart[16];
     uint8_t sampleLength[16];
     uint8_t color;
@@ -109,7 +109,7 @@ extern "C" {
 #define VoiceDataInternal_lfoRate_tag            11
 #define VoiceDataInternal_lfoDepth_tag           12
 #define VoiceDataInternal_lfoTarget_tag          13
-#define VoiceDataInternal_lfoDelay_tag           14
+#define VoiceDataInternal_lfoShape_tag           14
 #define VoiceDataInternal_sampleStart_tag        19
 #define VoiceDataInternal_sampleLength_tag       20
 #define VoiceDataInternal_color_tag              21
@@ -150,7 +150,7 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  env2,             10) \
 X(a, STATIC,   SINGULAR, UINT32,   lfoRate,          11) \
 X(a, STATIC,   SINGULAR, UINT32,   lfoDepth,         12) \
 X(a, STATIC,   SINGULAR, UINT32,   lfoTarget,        13) \
-X(a, STATIC,   SINGULAR, UINT32,   lfoDelay,         14) \
+X(a, STATIC,   SINGULAR, UINT32,   lfoShape,         14) \
 X(a, STATIC,   FIXARRAY, UINT32,   sampleStart,      19) \
 X(a, STATIC,   FIXARRAY, UINT32,   sampleLength,     20) \
 X(a, STATIC,   SINGULAR, UINT32,   color,            21) \

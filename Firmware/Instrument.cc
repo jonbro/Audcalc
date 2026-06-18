@@ -2,6 +2,7 @@
 #include "AudioSampleSecondbloop.h"
 #include "GlobalDefines.h"
 #include "GrooveBox.h"
+#include "audio/random.h"
 
 static const uint16_t kPitchTableStart = 128 * 128;
 static const uint16_t kOctave = 12 * 128;
@@ -77,9 +78,36 @@ uint32_t Instrument::ComputePhaseIncrement(int16_t midi_pitch) {
   phase_increment >>= num_shifts;
   return phase_increment;
 }
+q15_t Instrument::GetRawLfoValue()
+{
+    switch(lfo_shape)
+    {
+        case Lfo_Shape_RampUp:
+            return (int16_t)(lfo_phase >> 16);
+        case Lfo_Shape_RampDown:
+            return -(int16_t)(lfo_phase >> 16);
+        case Lfo_Shape_Triangle:
+        {
+            uint32_t p = lfo_phase;
+            if (p >= 0x80000000u) p = 0xFFFFFFFFu - p;
+            return (int16_t)((p >> 15) - 32767);
+        }
+        case Lfo_Shape_Square:
+            return lfo_phase >= 0x80000000u ? (int16_t)0x7fff : (int16_t)-0x7fff;
+        case Lfo_Shape_Random:
+            return lfo_random_value;
+        case Lfo_Shape_SampleGlide:
+        {
+            int32_t t = lfo_phase >> 16;
+            return (int16_t)(((int32_t)lfo_random_prev * (65535 - t) + (int32_t)lfo_random_value * t) >> 16);
+        }
+        default: // Lfo_Shape_Sine
+            return Interpolate824(wav_sine, lfo_phase);
+    }
+}
 q15_t Instrument::GetLfoState()
 {
-    return mult_q15(Interpolate824(wav_sine, lfo_phase), lfo_depth);
+    return mult_q15(GetRawLfoValue(), lfo_depth);
 }
 void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffer, size_t size)
 {    
@@ -88,11 +116,21 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
     q15_t cutoffWithMods = mainCutoff;
     q15_t pitchWithMods = pitch = Mix(pitchStart, pitchTarget, 65535-portamentoAmt);
     panWithMods = panning;
+    volumeWithMods = volume;
     q15_t lfo = GetLfoState();
     switch(lfo1Target)
     {
         case Lfo_Target_Volume:
+        {
+            // lfo_depth maxes at ~0x3fff, so <<1 gives full q15 range.
+            q15_t raw = GetRawLfoValue();
+            q15_t norm = (raw >> 1) + 0x4000;  // [-1,1] -> [0,1] in q15
+            q15_t D = lfo_depth << 1;           // full-range depth
+            // scale: 1.0 at peak, (1-D) at trough
+            q15_t scale = (0x7fff - D) + mult_q15(D, norm);
+            volumeWithMods = mult_q15(volume, scale);
             break;
+        }
         case Lfo_Target_Timbre:
             param1_withMods = add_q15(param1_withMods, lfo);
             break;
@@ -122,7 +160,12 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
     lfoPhaseIncrement = lfoPhaseIncrement + (lfoPhaseIncrement>>1);
     lfoPhaseIncrement = lfoPhaseIncrement/((lfo_rate>>4)+2);
     //int32_t phaseOff = ((uint32_t)(0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7fffff; 
-    lfo_phase += lfoPhaseIncrement;//((0xffff-Interpolate824(lut_env_expo, (0x7fff-lfo_rate)<<16))<<13)-0x7ffff; //((lfo_rate*(0xabf0000-0xfffff))>>4)+0xfffff;
+    uint32_t old_phase = lfo_phase;
+    lfo_phase += lfoPhaseIncrement;
+    if (lfo_phase < old_phase) {  // wrapped — update S&H/SampleGlide random values
+        lfo_random_prev = lfo_random_value;
+        lfo_random_value = stmlib::Random::GetSample();
+    }
 
     for (size_t i = 0; i < 2; i++)
     {
@@ -249,6 +292,7 @@ void __not_in_flash_func(Instrument::Render)(const uint8_t* sync, int16_t* buffe
 }
 void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
 {
+    int32_t volDelta = (int32_t)volumeWithMods - (int32_t)prevVolumeWithMods;
     for(int i=0;i<SAMPLES_PER_BLOCK;i++)
     {
         lastenv2val = env2.Render();
@@ -268,8 +312,10 @@ void Instrument::RenderGlobal(const uint8_t* sync, int16_t* buffer, size_t size)
         // buffer[i] = Interpolate88(ws_moderate_overdrive, shiftedSample);
         // buffer[i] = mult_q15(buffer[i], f32_to_q15(1));
         buffer[i] = mult_q15(buffer[i], retriggerVolume);
-        buffer[i] = mult_q15(buffer[i], volume);
+        q15_t vol_i = prevVolumeWithMods + volDelta * i / SAMPLES_PER_BLOCK;
+        buffer[i] = mult_q15(buffer[i], vol_i);
     }
+    prevVolumeWithMods = volumeWithMods;
 }
 bool Instrument::IsPlaying()
 {
@@ -338,6 +384,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
         env2.Update(env2A>>8, env2D>>8);
         lfo_depth = (pv[LFODepth] >> 1) << 7;
         lfo_rate = (pv[LFORate] >> 1) << 7;
+        lfo_shape = (pv[Lfo1Shape] * Lfo_Shape_Count) >> 8;
         mainCutoff = (pv[Cutoff] >> 1) << 7;
         svf.set_frequency(add_q15(mainCutoff, lastenv2val>>1));
         svf.set_resonance((pv[Resonance] >> 1) << 7);

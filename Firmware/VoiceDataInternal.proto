@@ -45,7 +45,7 @@ message VoiceDataInternal {
     uint32 lfoRate                       = 11 [(nanopb).int_size = IS_8];
     uint32 lfoDepth                      = 12 [(nanopb).int_size = IS_8];
     uint32 lfoTarget                     = 13 [(nanopb).int_size = IS_8];
-    uint32 lfoDelay                      = 14 [(nanopb).int_size = IS_8];
+    uint32 lfoShape                      = 14 [(nanopb).int_size = IS_8];
 
     // these are per pattern
     repeated Pattern patterns           = 69 [(nanopb).max_count = 16, (nanopb).fixed_count = true];

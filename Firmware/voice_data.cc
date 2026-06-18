@@ -195,6 +195,7 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:internalData.lfoRate;
         case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:internalData.lfoDepth;
         case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:internalData.lfoTarget;
+        case Lfo1Shape: return HasLockForStep(step, pattern, Lfo1Shape, value)?value:internalData.lfoShape;
         case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:internalData.retriggerSpeed;
         case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:internalData.retriggerLength;
         case RetriggerFade: return HasLockForStep(step, pattern, RetriggerFade, value)?value:internalData.retriggerFade;
@@ -240,6 +241,7 @@ void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t la
     cache[Env2Target]      = internalData.env2.target;
     cache[Env2Depth]       = internalData.env2.depth;
     cache[Lfo1Target]      = internalData.lfoTarget;
+    cache[Lfo1Shape]       = internalData.lfoShape;
     cache[RetriggerFade]   = internalData.retriggerFade;
     cache[DelaySend]       = internalData.delaySend;
     cache[ReverbSend]      = internalData.reverbSend;
@@ -297,7 +299,7 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         case 32: return internalData.env2.target;
         case 33: return internalData.env2.depth;
         case 34: return internalData.lfoTarget;
-        case 35: return internalData.lfoDelay;
+        case 35: return internalData.lfoShape;
         case 36: return internalData.retriggerFade;
         case 40: return internalData.patterns[currentPattern].length;
         case 41: return internalData.patterns[currentPattern].rate;
@@ -369,7 +371,18 @@ const char *envTargets[7] = {
     "Pan"
 };
 
-const char *lfoTargets[13] = { 
+const char *lfoShapes[8] = {
+    "Sin",
+    "Tri",
+    "Sqr",
+    "Rmp/",
+    "Rmp\\",
+    "Rnd",
+    "SRnd",
+    "Sin"  // fallback matches Lfo_Shape_Count
+};
+
+const char *lfoTargets[13] = {
     "Vol",
     "Timb",
     "Col",
@@ -588,15 +601,21 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 return;
             case 17:
                 sprintf(strA, "Trgt");
-                sprintf(strB, "");
-                if(showForStep && HasLockForStep(step, pattern, Lfo1Target, valB))
+                sprintf(strB, "Shp");
+                if(showForStep && HasLockForStep(step, pattern, Lfo1Target, valA))
                 {
                     sprintf(pA, "%s", lfoTargets[(((uint16_t)valA)*Lfo_Target_Count) >> 8]);
                     lockA = true;
                 }
                 else
                     sprintf(pA, "%s", lfoTargets[(((uint16_t)internalData.lfoTarget)*Lfo_Target_Count)>>8]);
-                sprintf(pB, "");
+                if(showForStep && HasLockForStep(step, pattern, Lfo1Shape, valB))
+                {
+                    sprintf(pB, "%s", lfoShapes[(((uint16_t)valB)*Lfo_Shape_Count) >> 8]);
+                    lockB = true;
+                }
+                else
+                    sprintf(pB, "%s", lfoShapes[(((uint16_t)internalData.lfoShape)*Lfo_Shape_Count) >> 8]);
                 return;
             case 20:
                 sprintf(strA, "Len");

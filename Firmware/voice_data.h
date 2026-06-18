@@ -44,6 +44,16 @@ enum EnvTargets {
     Target_Pan,
     Target_Count
 };
+enum LfoShape {
+    Lfo_Shape_Sine,
+    Lfo_Shape_Triangle,
+    Lfo_Shape_Square,
+    Lfo_Shape_RampUp,
+    Lfo_Shape_RampDown,
+    Lfo_Shape_Random,
+    Lfo_Shape_SampleGlide,
+    Lfo_Shape_Count
+};
 enum LfoTargets {
     Lfo_Target_Volume,
     Lfo_Target_Timbre,
@@ -85,6 +95,7 @@ enum ParamType {
     Env2Target = 32,
     Env2Depth = 33,
     Lfo1Target = 34,
+    Lfo1Shape = 35,
     RetriggerFade = 36,
     Length = 40,
     ConditionMode = 42,
@@ -279,7 +290,7 @@ class VoiceData
             internalData.lfoRate = copy.internalData.lfoRate;
             internalData.lfoDepth = copy.internalData.lfoDepth;
             internalData.lfoTarget = copy.internalData.lfoTarget;
-            internalData.lfoDelay = copy.internalData.lfoDelay;
+            internalData.lfoShape = copy.internalData.lfoShape;
 
             internalData.color = copy.internalData.color;
             internalData.timbre = copy.internalData.timbre;

@@ -69,6 +69,7 @@ class Instrument
         VoiceData *playingVoice;
         void Retrigger();
         q15_t GetLfoState();
+        q15_t GetRawLfoValue();
         // lets hardcode some retriggers here
         uint8_t retriggerNextPulse = 0;
         uint8_t retriggersRemaining = 0;
@@ -104,14 +105,20 @@ class Instrument
         q15_t mainCutoff;
         q15_t panning;
         q15_t panWithMods;
+        q15_t volumeWithMods = 0x7fff;
+        q15_t prevVolumeWithMods = 0x7fff;
         
         uint8_t resonance;
         uint32_t sampleOffset;
         uint32_t lastTriggerSampleOffset; 
         uint32_t lfo_phase = 0;
         uint32_t lfo_phase_increment = 0;
+        uint32_t lfo_prev_phase = 0;
         q15_t lfo_depth = 0;
         q15_t lfo_rate = 0;
+        uint8_t lfo_shape = 0;
+        int16_t lfo_random_value = 0;
+        int16_t lfo_random_prev = 0;
         
         uint32_t sampleEnd; 
         ffs_file *file = 0;
