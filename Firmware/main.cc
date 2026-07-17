@@ -150,6 +150,8 @@ void __not_in_flash_func(draw_screen)()
     multicore_lockout_victim_init();
     while(true)
     {
+        // drain any live-sampling record blocks to flash off the audio core
+        gbox.DrainRecording();
         queue_entry_t entry;
         if(queue_try_remove(&signal_queue, &entry))
         {
@@ -305,6 +307,12 @@ int main(){
             }
         }
     }
+    // core1 now writes flash during live sampling (GrooveBox::DrainRecording),
+    // so core0 must be a lockout victim for that flash-program handshake to
+    // complete. core1 already registered itself as a victim inside draw_screen
+    // (after its 20ms startup sleep, so the FIFO launch handshake is done).
+    multicore_lockout_victim_init();
+
     // if the user is holding down specific keys on powerup, then clear the full file system
     InitializeFilesystem(hardware_get_key_state(0,4) && hardware_get_key_state(3, 4), get_rand_32());
 

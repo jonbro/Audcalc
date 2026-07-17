@@ -48,6 +48,7 @@ class GrooveBox {
   void Serialize();
   void Deserialize(); 
   void FinishRecording();
+  void DrainRecording(); // called on core1 to flush record blocks to flash
   int GetLostLockCount();
   void PrintLostLockData();
   Instrument instruments[VOICE_COUNT];

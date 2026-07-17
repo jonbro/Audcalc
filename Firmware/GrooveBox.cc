@@ -8,6 +8,7 @@
 #include "tlv320driver.h"
 #include "multicore_support.h"
 #include "GlobalDefines.h"
+#include "hardware/sync.h"
 
 static uint32_t getFreeRAM() {
     extern char __StackLimit;
@@ -146,6 +147,37 @@ int16_t toDelayBuffer[SAMPLES_PER_BLOCK];
 int16_t toReverbBuffer[SAMPLES_PER_BLOCK];
 int16_t recordBuffer[128]; // this must be 128 due to the requirements of the filesystem
 uint8_t recordBufferOffset = 0;
+
+// --- live-sampling flash write handoff (core0 producer -> core1 consumer) ---
+// Writing to flash inside the audio render (core0) stalls the whole audio path:
+// each ffs_append does a linear scan plus 2-3 flash page programs, and every
+// program brackets a multicore lockout + interrupts-disabled window that can
+// starve the output DMA and cause underruns. Instead, core0 just copies each
+// filled 256-byte (128-sample) record block into this ring, and core1 drains it
+// to flash via ffs_append off the audio path (see GrooveBox::DrainRecording,
+// called from the core1 loop in main.cc). 16 slots = 16*128 samples = 64ms of
+// buffering at 32kHz, far more than any realistic flash write stall.
+#define RECORD_RING_SLOTS 16 // must be a power of two
+static int16_t recordRing[RECORD_RING_SLOTS][128];
+static volatile uint32_t recordRingHead = 0; // advanced by core0 (producer) only
+static volatile uint32_t recordRingTail = 0; // advanced by core1 (consumer) only
+static volatile bool recordRingOverrun = false;
+
+// core0: hand the just-filled recordBuffer to core1. Never touches flash.
+static void PublishRecordBlock()
+{
+    uint32_t head = recordRingHead;
+    if(head - recordRingTail >= RECORD_RING_SLOTS)
+    {
+        // core1 fell behind and the ring is full - drop this block rather than
+        // stomp one still being written to flash. Should not happen in practice.
+        recordRingOverrun = true;
+        return;
+    }
+    memcpy(recordRing[head & (RECORD_RING_SLOTS-1)], recordBuffer, 256);
+    __dmb(); // publish the block data before advancing head
+    recordRingHead = head + 1;
+}
 //absolute_time_t lastRenderTime = -1;
 int16_t last_delay = 0;
 int16_t last_input;
@@ -436,7 +468,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         else
         {
             if(recordBufferOffset == 0)
-                ffs_append(GetFilesystem(), &files[recordingTarget], recordBuffer, 256);
+                PublishRecordBlock(); // hand off to core1; do NOT write flash here
         }
         for(int i=0;i<SAMPLES_PER_BLOCK;i++)
         {
@@ -1351,9 +1383,30 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         }
     }
 }
+// core1: flush queued record blocks to flash, off the audio path. Called from
+// the core1 loop in main.cc. This is where ffs_append (and its flash writes)
+// actually run, so the multicore lockout it triggers parks core0 only for the
+// brief flash-program window instead of for the whole append.
+void GrooveBox::DrainRecording()
+{
+    while(recordRingTail != recordRingHead)
+    {
+        uint32_t tail = recordRingTail;
+        __dmb(); // ensure the block data is visible before we read it
+        ffs_append(GetFilesystem(), &files[recordingTarget], recordRing[tail & (RECORD_RING_SLOTS-1)], 256);
+        __dmb();
+        recordRingTail = tail + 1;
+    }
+}
 void GrooveBox::FinishRecording()
 {
     recording = false;
+    // core0 stops publishing now; wait for core1 to flush every queued block to
+    // flash before we treat the file as complete. Both index reads are volatile
+    // so this cannot be optimized away.
+    while(recordRingTail != recordRingHead)
+    {
+    }
     // determine how the file should be split
     if(patterns[recordingTarget].GetSampler() == SAMPLE_PLAYER_SLICE)
     {
