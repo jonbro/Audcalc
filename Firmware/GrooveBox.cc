@@ -1435,6 +1435,11 @@ void GrooveBox::ResetPatternOffset()
     beatCounter[17] = 0;
     // external sync counter
     beatCounter[19] = 0;
+    // reset swing phase so it stays locked to beatCounter[16], and drop any
+    // pending swing-delayed notes so they don't fire after a restart
+    swingOdd = false;
+    for (int i = 0; i < SWING_QUEUE_SIZE; i++)
+        swingQueue[i].ticks = -1;
 }
 
 void GrooveBox::StartWaitingForSync()
