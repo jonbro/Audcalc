@@ -39,67 +39,103 @@ void on_uart_rx() {
 void Midi::ProcessMessage(char c, uint8_t processor)
 {
     if(processor > 1) return;
-    if((c & 0x80) > 0)
+    uint8_t byte = (uint8_t)c;
+
+    // realtime messages (clock, transport, active sensing) can arrive
+    // interleaved inside other messages and must not disturb the parser state
+    if(byte >= 0xf8)
     {
-        // clear the data buffer
-        inputProcessors[processor].dataByteCounter = 0;
-        inputProcessors[processor].lastCommand = c;
-    }
-    else if(inputProcessors[processor].dataByteCounter < 4)
-    {
-        inputProcessors[processor].dataBuffer[inputProcessors[processor].dataByteCounter++] = c&0x7f;
-    }
-    if(c == 0xf8 && OnSync != NULL)
-    {
-        OnSync();
-    }
-    if(c == 0xfa && OnStart != NULL)
-    {
-        OnStart();
-    }
-    if(c == 0xfb && OnContinue != NULL)
-    {
-        OnContinue();
-    }
-    if(c == 0xfc && OnStop != NULL)
-    {
-        OnStop();
-    }
-    if(inputProcessors[processor].lastCommand == 0xf2 && inputProcessors[processor].dataByteCounter == 2 && OnPosition != NULL) // song position pointer
-    {
-        OnPosition(inputProcessors[processor].dataBuffer[0] + inputProcessors[processor].dataBuffer[1]);
-    }
-    // not a system common message (transport / tick)
-    if(inputProcessors[processor].lastCommand & (0xf0 == 0))
-    {
-        uint8_t channel = inputProcessors[processor].lastCommand & 0xf;
-        // note on
-        if(inputProcessors[processor].lastCommand & 0x90 > 0 && inputProcessors[processor].dataByteCounter == 2)
+        if(byte == 0xf8 && OnSync != NULL)
         {
-            // actually a note off
-            if(inputProcessors[processor].dataBuffer[1] == 0 && OnNoteOff != NULL)
+            OnSync();
+        }
+        else if(byte == 0xfa && OnStart != NULL)
+        {
+            OnStart();
+        }
+        else if(byte == 0xfb && OnContinue != NULL)
+        {
+            OnContinue();
+        }
+        else if(byte == 0xfc && OnStop != NULL)
+        {
+            OnStop();
+        }
+        return;
+    }
+
+    InputProcessor &in = inputProcessors[processor];
+    if(byte & 0x80)
+    {
+        in.lastCommand = byte;
+        in.dataByteCounter = 0;
+        return;
+    }
+
+    // data byte with no status seen yet: nothing to attach it to
+    if(in.dataByteCounter < 0)
+    {
+        return;
+    }
+    if(in.dataByteCounter < (int8_t)sizeof(in.dataBuffer))
+    {
+        in.dataBuffer[in.dataByteCounter++] = byte;
+    }
+
+    uint8_t command = ((uint8_t)in.lastCommand) & 0xf0;
+    uint8_t channel = ((uint8_t)in.lastCommand) & 0x0f;
+    if(in.dataByteCounter != 2)
+    {
+        return;
+    }
+    // after a complete message the counter resets but lastCommand stays,
+    // so running status (one status byte, many data pairs) works
+    switch(command)
+    {
+        case 0x80: // note off
+            if(OnNoteOff != NULL)
             {
-                OnNoteOff(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
+                OnNoteOff(channel, in.dataBuffer[0], in.dataBuffer[1]);
+            }
+            in.dataByteCounter = 0;
+            break;
+        case 0x90: // note on (velocity 0 is a note off)
+            if(in.dataBuffer[1] == 0)
+            {
+                if(OnNoteOff != NULL)
+                {
+                    OnNoteOff(channel, in.dataBuffer[0], in.dataBuffer[1]);
+                }
             }
             else if(OnNoteOn != NULL)
             {
-                OnNoteOn(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
+                OnNoteOn(channel, in.dataBuffer[0], in.dataBuffer[1]);
             }
-        }
-        if((inputProcessors[processor].lastCommand & 0x80) > 0 && inputProcessors[processor].dataByteCounter == 2 && OnNoteOff != NULL)
-        {
-            OnNoteOff(channel, inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
-        }
-        // control change
-        if((inputProcessors[processor].lastCommand & 0xb0) > 0 && inputProcessors[processor].dataByteCounter == 2 && OnCCChanged != NULL)
-        {
-            // filter out repeated cc changes
-            if(lastCCValue[inputProcessors[processor].dataBuffer[0]] == 0xff || lastCCValue[inputProcessors[processor].dataBuffer[0]] != inputProcessors[processor].dataBuffer[1])
+            in.dataByteCounter = 0;
+            break;
+        case 0xb0: // control change
+            if(OnCCChanged != NULL)
             {
-                OnCCChanged(inputProcessors[processor].dataBuffer[0], inputProcessors[processor].dataBuffer[1]);
-                lastCCValue[inputProcessors[processor].dataBuffer[0]] = inputProcessors[processor].dataBuffer[1];
+                // filter out repeated cc values (lastCCValue inits to 0xff,
+                // which no 7 bit data byte matches, so the first one passes)
+                if(lastCCValue[in.dataBuffer[0]] != in.dataBuffer[1])
+                {
+                    OnCCChanged(in.dataBuffer[0], in.dataBuffer[1]);
+                    lastCCValue[in.dataBuffer[0]] = in.dataBuffer[1];
+                }
             }
-        }
+            in.dataByteCounter = 0;
+            break;
+        case 0xf0: // system common
+            if((uint8_t)in.lastCommand == 0xf2)
+            {
+                if(OnPosition != NULL)
+                {
+                    OnPosition(in.dataBuffer[0] | (in.dataBuffer[1] << 7));
+                }
+                in.dataByteCounter = 0;
+            }
+            break;
     }
 }
 
