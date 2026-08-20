@@ -144,7 +144,9 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
     while(block_offset < fs->size)
     {
         fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
-        if(blockHeader.object_id == file_id)
+        // need to check if it is the first block in the file, since we need to walk the tree to get the filesize
+        // this requires a full filesystem scan when checking
+        if(blockHeader.object_id == file_id && blockHeader.prior_block == EMPTY_BLOCK)
         {
             found = true;
             file->current_block         = block_offset;
@@ -321,6 +323,7 @@ FFS_DEF int __not_in_flash_func(ffs_erase)(ffs_filesystem *fs, ffs_file *file)
     // find any blocks that have this file in them and remove
     uint32_t block_offset = 0;
     ffs_blockheader blockHeader;
+    bool found = false;
     while(block_offset < fs->size)
     {
         fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
@@ -328,28 +331,19 @@ FFS_DEF int __not_in_flash_func(ffs_erase)(ffs_filesystem *fs, ffs_file *file)
         if(blockHeader.object_id == file->object_id)
         {
             fs->erase(block_offset, BLOCK_SIZE);
-            // use jumps to erase the rest
-            while(blockHeader.next_block != EMPTY_BLOCK)
-            {
-                block_offset = blockHeader.next_block;
-                fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
-                fs->erase(block_offset, BLOCK_SIZE);
-            }
-
-            file->initialized = false;
-            file->inblock_read_offset   = 0;
-            file->logical_read_offset   = 0; 
-            file->filesize              = 0;
-            return 0;
+            found = true;
         }
         block_offset+=BLOCK_SIZE;
     }
-    // couldn't find the file
     // lets just make sure its all unitialized anyways
     file->initialized = false;
     file->inblock_read_offset   = 0;
     file->logical_read_offset   = 0; 
     file->filesize              = 0;
+    if(found)
+    {
+        return 0;
+    }
     return -1;
 }
 
