@@ -1953,14 +1953,28 @@ void GrooveBox::Deserialize()
     // because we don't have a "real" song id, we can just rely on the zero'd data - which stores the song id in position 0
     Serializer s;
     s.Init(globalData.songId);
-    pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
-    songData.Deserialize(&serializerStream);
-    // load pattern data
-    for(int i=0;i<16;i++)
+    if(s.writeFile.initialized)
     {
-        patterns[i].Deserialize(&serializerStream);
+        pb_istream_t serializerStream = {&deserialize_callback, &s, SIZE_MAX};
+        songData.Deserialize(&serializerStream);
+        // load pattern data
+        for(int i=0;i<16;i++)
+        {
+            patterns[i].Deserialize(&serializerStream);
+        }
+        VoiceData::DeserializeStatic(&serializerStream, patterns);
     }
-    VoiceData::DeserializeStatic(&serializerStream, patterns);
+    else
+    {
+        // ffs_open couldn't walk the chain (or there's nothing there - power lost
+        // between writing the global data and the song). drop whatever blocks
+        // still claim this id and keep the defaults from InitDefaults above. the
+        // next Serialize writes a fresh song file under the same id.
+        printf("song file %i unreadable, starting a new one\n", globalData.songId);
+        erasing = true;
+        ffs_erase(GetFilesystem(), &s.writeFile);
+        erasing = false;
+    }
 
     playingPattern = songData.GetPlayingPattern();
     songData.LoadPatternChain(patternChain);
