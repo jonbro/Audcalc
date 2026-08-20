@@ -3,15 +3,32 @@
 
 // arbitrary offset into flash, hopefully doesn't overlap with the program space lol
 #define FS_START 0x40000
+#define FS_SIZE (16*1024*1024-FS_START)
 const uint8_t *flash_start = (const uint8_t *) (XIP_BASE + FS_START);
 
 int file_read(uint32_t offset, size_t size, void *buffer)
 {
+    // fail if we want a read that is bigger than the filesystem.
+    if(size > FS_SIZE)
+    {
+        return -1;
+    }
+    // if we are attempting to read outside the filesystem, fail and return a buffer of 0xffs
+    if(offset > FS_SIZE - size)
+    {
+        memset(buffer, 0xff, size);
+        return -1;
+    }
     memcpy(buffer, flash_start+offset, size);
     return 0;
 }
 int __not_in_flash_func(file_write)(uint32_t offset, size_t size, void *buffer)
 {
+    // never program outside the filesystem
+    if(size > FS_SIZE || offset > FS_SIZE - size)
+    {
+        return -1;
+    }
     multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     flash_range_program(FS_START + offset, buffer, size);
@@ -25,6 +42,11 @@ int __not_in_flash_func(file_erase)(uint32_t offset, size_t size)
     // flash erase automatically switches between sector & block erase depending on the address alignment and requested erase size
     // see https://github.com/raspberrypi/pico-bootrom/blob/master/bootrom/program_flash_generic.c#L333
     //printf("ERASE: %p, %d\n", FS_START + offset, size);
+    // don't erase outside the file region
+    if(size > FS_SIZE || offset > FS_SIZE - size)
+    {
+        return -1;
+    }
     multicore_lockout_start_blocking();
     uint32_t ints = save_and_disable_interrupts();
     // // re-enable the audio related interrupts so we don't mess up the dac

@@ -133,12 +133,19 @@ inline FFS_DEF uint32_t ffs_file_current_block_logical_start(ffs_filesystem *fs,
     return file->logical_read_offset-(file->logical_read_offset%(256*15));
 }
 
+inline FFS_DEF bool ffs_block_valid(ffs_filesystem *fs, uint32_t block)
+{
+    // confirm the block is within the filesystem and aligned to a block boundary
+    return block < fs->size && (block % BLOCK_SIZE) == 0;
+}
+
 FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
 {
     // cannot use the top bit of the file id, used for marking dead pages
     assert((file_id & 0x8000) == 0);
     // search the blocks for the start block that contains this id
     bool found = false;
+    bool corrupt = false;
     uint32_t block_offset = 0;
     ffs_blockheader blockHeader;
     while(block_offset < fs->size)
@@ -164,8 +171,17 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
             {
                 file->filesize+=15*256;
             }
+            uint32_t block_jumps = fs->size/BLOCK_SIZE;
             while(blockHeader.next_block != EMPTY_BLOCK)
             {
+                // if we have an invalid block or we have walked more blocks than the filesystem has, then the file is corrupt.
+                if(!ffs_block_valid(fs, blockHeader.next_block) || block_jumps-- == 0)
+                {
+                    // don't hand back a half walked filesize, the caller can't
+                    // tell it from a real one. report the file as unopenable.
+                    corrupt = true;
+                    break;
+                }
                 fs->read(blockHeader.next_block, sizeof(ffs_blockheader), &blockHeader);
                 int writtenPages = ffs_find_empty_page(&blockHeader);
                 if(writtenPages >= 0)
@@ -181,13 +197,14 @@ FFS_DEF int ffs_open(ffs_filesystem *fs, ffs_file *file, uint16_t file_id)
         }
         block_offset += BLOCK_SIZE;
     }
-    if(!found)
+    if(!found || corrupt)
     {
         file->initialized = false;
         file->filesize = 0;
     }
     file->object_id = file_id;
-    return 0;
+    // we set object id so that that if the file is corrupt we can clean it up with an erase.
+    return corrupt?-1:0;
 }
 
 static int ffs_find_empty_block(ffs_filesystem *fs, uint32_t search_start, uint32_t fssize)
@@ -205,7 +222,8 @@ static int ffs_find_empty_block(ffs_filesystem *fs, uint32_t search_start, uint3
         }
         block_offset += BLOCK_SIZE;
         readPos = readPos+BLOCK_SIZE;
-        if(readPos>fssize)
+        // ffsize is larger than the valid space, so we need to check if we are equal or greater
+        if(readPos>=fssize)
         {
             readPos-=fssize;
         }
@@ -253,14 +271,22 @@ FFS_DEF int ffs_append(ffs_filesystem *fs, ffs_file *file, void *buffer, size_t 
     else
     {
         // faster writes if we store the blockwrite position
+        // block_jumps is so we can check that we haven't consumed the entire filesystem walking the blocks. Detects loops.
+        uint32_t block_jumps = fs->size/BLOCK_SIZE;
+        // because block_offset can move both forward and backwards, this is just a simple out of bounds check
         while(block_offset < fs->size)
         {
             fs->read(block_offset, sizeof(ffs_blockheader), &blockHeader);
             // look for last block
             if(blockHeader.object_id == file->object_id)
             {
-                if(blockHeader.next_block != 0xffffffff)
+                if(blockHeader.next_block != EMPTY_BLOCK)
                 {
+                    if(!ffs_block_valid(fs, blockHeader.next_block) || block_jumps-- == 0)
+                    {
+                        // corrupt chain, we have no tail to append to
+                        return -1;
+                    }
                     block_offset = blockHeader.next_block;
                     continue;
                 }
@@ -382,8 +408,14 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         else
         {
             // we are going forward to a later block
+            // cap the number of block jumps so that we can detect loops in the blocks
+            uint32_t block_jumps = fs->size/BLOCK_SIZE;
             while(blockHeader.next_block != EMPTY_BLOCK)
             {
+                if(!ffs_block_valid(fs, blockHeader.next_block) || block_jumps-- == 0)
+                {
+                    return -1;
+                }
                 file->current_block = blockHeader.next_block;
                 fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
                 current_block_logical_start += 256*15;
@@ -396,14 +428,21 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
             }
             // we shouldn't hit this, it should have caught this error because we are asking for something
             // past the end of the file
+            // Asserts don't post on device when not in debug mode - just here for an eventual test rig
             assert(false);
+            return -1;
         }
     }
     else
     {
         // seeking backwards
+        uint32_t block_jumps = fs->size/BLOCK_SIZE;
         while(blockHeader.prior_block != EMPTY_BLOCK)
         {
+            if(!ffs_block_valid(fs, blockHeader.prior_block) || block_jumps-- == 0)
+            {
+                return -1;
+            }
             file->current_block = blockHeader.prior_block;
             fs->read(file->current_block, sizeof(blockHeader), &blockHeader);
             current_block_logical_start -= 256*15;
@@ -418,8 +457,9 @@ inline FFS_DEF int ffs_seek(ffs_filesystem *fs, ffs_file *file, size_t position)
         // past the beginning of the file. Should be impossible to even do this, since we are using uints
         // anyways, asserts are for logical errors
         assert(false);
+        return -1;
     }
-    
+    return -1;
 }
 
 
