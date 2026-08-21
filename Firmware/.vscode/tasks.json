@@ -4,7 +4,29 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Configure Project",
+            "detail": "Generates build/ with CMake if missing",
+            "type": "process",
+            "command": "${userHome}/.pico-sdk/cmake/v3.31.5/bin/cmake",
+            "args": [
+                "-S", "${workspaceFolder}",
+                "-B", "${workspaceFolder}/build",
+                "-G", "Ninja",
+                "-DCMAKE_MAKE_PROGRAM=${userHome}/.pico-sdk/ninja/v1.12.1/ninja.exe"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            },
+            "windows": {
+                "command": "${env:USERPROFILE}/.pico-sdk/cmake/v3.31.5/bin/cmake.exe"
+            }
+        },
+        {
             "label": "Compile Project",
+            "dependsOn": ["Configure Project"],
+            "dependsOrder": "sequence",
             "type": "process",
             "isBuildCommand": true,
             "command": "${userHome}/.pico-sdk/ninja/v1.12.1/ninja",

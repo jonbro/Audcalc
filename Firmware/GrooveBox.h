@@ -116,6 +116,11 @@ class GrooveBox {
   void ContinuePlaying();
   void StopPlaying();
   void OnTempoPulse(bool advanceOnly = false);
+  // ticks the per instrument clock (midi note off countdowns, retriggers)
+  void PulseInstruments();
+  // number of samples we will wait for a sequencer pulse before assuming the
+  // clock has stalled and taking over with the free running instrument clock
+  uint32_t GetInstrumentClockTimeoutSamples();
   uint GetRemainingRecordingBytes();
   uint8_t voiceCounter = 0;
   uint8_t instrumentParamA[8];
@@ -127,6 +132,11 @@ class GrooveBox {
   uint8_t lastKeyPlayed = 0;
   bool paramSetA, paramSetB;
   uint32_t tempoPhaseIncrement = 0, tempoPhase = 0;
+  // free running clock so midi note offs and retriggers keep advancing at the
+  // current sequencer rate even when the transport is stopped or an external
+  // sync has gone quiet
+  uint32_t instrumentClockPhase = 0;
+  uint32_t samplesSinceSequencerPulse = 0;
   uint8_t beatCounter[20] = {0};
 
   bool swingOdd = false;

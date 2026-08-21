@@ -3,8 +3,9 @@
 #include "hardware/uart.h"
 #include "pico/stdlib.h"
 
-#define MIDI_BUF_LENGTH_POW 5
-#define MIDI_BUF_LENGTH 1 << MIDI_BUF_LENGTH_POW
+// midiTX is double buffered, 256 bytes per each half of the buffer
+#define MIDI_BUF_LENGTH_POW 8
+#define MIDI_BUF_LENGTH (1 << MIDI_BUF_LENGTH_POW)
 
 void midi_task();
 

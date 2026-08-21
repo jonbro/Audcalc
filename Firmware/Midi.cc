@@ -216,7 +216,6 @@ void Midi::Init()
     channel_config_set_transfer_data_size(&txConfig, DMA_SIZE_8);
     channel_config_set_read_increment(&txConfig, true);
     channel_config_set_write_increment(&txConfig, false);
-    channel_config_set_ring(&txConfig, false, MIDI_BUF_LENGTH_POW);
     channel_config_set_dreq(&txConfig, DREQ_UART1_TX);
     dma_channel_set_config(DmaChannelTX, &txConfig, false);
     dma_channel_set_write_addr(DmaChannelTX, &uart1_hw->dr, false);
@@ -230,14 +229,13 @@ uint16_t Midi::Write(const uint8_t* data, uint16_t length)
     if (!initialized || length == 0) {
         return 0;
     }
-    // copy the data into the buffer if possible
+    // if this message doesn't fit in the remaining buffer, then drop it
+    // avoids sending malformed messages.
+    if (TxIndex + length > MIDI_BUF_LENGTH) {
+        return 0;
+    }
     uint8_t* start = &TxBuffer[TxIndex + MIDI_BUF_LENGTH*pingPong];
-    // truncate copy amount to fit into buffer
-    length = TxIndex + length > MIDI_BUF_LENGTH - 1
-        ? MIDI_BUF_LENGTH - 1 - TxIndex
-        : length;
-    memcpy(start, data,
-            length);
+    memcpy(start, data, length);
     TxIndex += length;
     // attempt to flush immediately
     Flush();

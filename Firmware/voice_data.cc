@@ -714,11 +714,11 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
                 lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Timbre, internalData.timbre, pA);
                 if(showForStep && HasLockForStep(step, pattern, Color, valB))
                 {
-                    sprintf(pB, "%s", (valB>>4)+1);
+                    sprintf(pB, "%s", midiHoldLabels[valB>>4]);
                     lockB = true;
                 }
                 else
-                    sprintf(pB, "%i", (internalData.color>>4)+1);
+                    sprintf(pB, "%s", midiHoldLabels[internalData.color>>4]);
                 return;
             // 0
             case 23:

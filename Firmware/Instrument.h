@@ -57,7 +57,7 @@ class Instrument
           return panWithMods;
         }
         void GetParamString(uint8_t param, char *str);
-        void TempoPulse(VoiceData &voiceData);
+        void TempoPulse();
         void ClearRetriggers();
         MacroOscillator osc;
         uint8_t delaySend = 0;
@@ -131,6 +131,9 @@ class Instrument
         {
           int16_t ticksRemaining;
           int8_t note;
+          // the channel the note was triggered on for note off routing to the correct channels
+          // user changes channel prior to note off
+          uint8_t channel;
         };
         
         MidiNoteState midiNoteStates[16];

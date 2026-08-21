@@ -70,6 +70,18 @@ enum LfoTargets {
     Lfo_Target_Env12Decay,
     Lfo_Target_Count
 };
+// Midi gate length, in twenty-fourths of a sequencer step, so the gate still
+// scales with the pattern rate. 24 is exactly one step; anything below that is
+// a sub-step (staccato) gate, which the old "1..16 whole steps" mapping could
+// not reach at all. Indexed by the Hold param >> 4.
+const uint16_t midiHoldTwentyFourths[16] = {
+    3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 144, 192, 288, 384, 576
+};
+const char *const midiHoldLabels[16] = {
+    "1/8", "1/6", "1/4", "1/3", "1/2", "3/4", "1", "1.5",
+    "2", "3", "4", "6", "8", "12", "16", "24"
+};
+
 enum ParamType {
     Timbre = 10,
     SampleIn = 10,

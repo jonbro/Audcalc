@@ -202,6 +202,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     bool hadExternalSync = false;
     //printf("input %i\n", workBuffer2[0]);
     bool ExternalSyncModeEnabled = (songData.GetSyncInMode() & (SyncMode4PQ|SyncModePO))>0;
+    uint32_t instrumentClockTimeout = GetInstrumentClockTimeoutSamples();
     for(int i=0;i<SAMPLES_PER_BLOCK;i++)
     {
         samples_since_last_sync++;
@@ -228,7 +229,6 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                     //printf("external sync, bc: %u TPI: %u remain: %u ssls: %u\n", beatCounter[19], tempoPhaseIncrement, tempoPhase, samples_since_last_sync);
                     tempoPhase = 0;
                     
-                    // tempoPhaseIncrement = ((((uint64_t)0x7fffffff<<8)/(samples_since_last_sync))/syncMultiplier)>>8;
                     ssls = samples_since_last_sync;
                     samples_since_last_sync = 0;
                     audio_sync_state = true;
@@ -427,6 +427,22 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
                 }
             }
         }
+
+        // Keep the a clock running when the sequencer isn't
+        // pulsing it, so midi note offs and retriggers still run while the
+        // playing is stopped or an external sync pluse hasn't been recieved recently (acts as watchdog)
+        if(samplesSinceSequencerPulse < 0xffffffff)
+            samplesSinceSequencerPulse++;
+        bool sequencerDrivingInstruments = IsPlaying() && samplesSinceSequencerPulse <= instrumentClockTimeout;
+        if(!sequencerDrivingInstruments && tempoPhaseIncrement > 0)
+        {
+            instrumentClockPhase += tempoPhaseIncrement;
+            if((instrumentClockPhase >> 31) > 0)
+            {
+                instrumentClockPhase &= 0x7fffffff;
+                PulseInstruments();
+            }
+        }
     }
     if((songData.GetSyncOutMode()&(SyncModePO|SyncMode4PQ)) > 0)
     {
@@ -499,7 +515,19 @@ void GrooveBox::OnMidiSync()
     if(songData.GetSyncInMode() != SyncModeMidi)
         return;
     // need to recalculate our samples since last sync, etc
-    tempoPhaseIncrement = ((uint64_t)0x7fffffff*16*96)/samples_since_last_sync;
+    // midi clock is 24ppq and our pulse clock is 96ppq, so there are
+    // getTickCountForRateIndex(7) (returns 4) pulses between incoming clocks
+    if(samples_since_last_sync > 0)
+    {
+        uint64_t increment = ((uint64_t)0x80000000ull*getTickCountForRateIndex(7))/samples_since_last_sync;
+        // don't let a jittery clock push us to an absurd rate
+        if(increment > 0x80000000ull/4)
+            increment = 0x80000000ull/4;
+        tempoPhaseIncrement = (uint32_t)increment;
+    }
+    // this is the only place that consumes it in midi sync mode, so it has to
+    // be reset here for the next interval to be measured correctly
+    samples_since_last_sync = 0;
     if(!IsPlaying())
         return;
     // we got the external sync earlier than we were expecting, and need to do catchup
@@ -544,6 +572,38 @@ void GrooveBox::OnMidiPosition(uint16_t position)
 }
 
 
+void __not_in_flash_func(GrooveBox::PulseInstruments)()
+{
+    for(int v=0;v<VOICE_COUNT;v++)
+    {
+        instruments[v].TempoPulse();
+    }
+}
+
+uint32_t GrooveBox::GetInstrumentClockTimeoutSamples()
+{
+    if(tempoPhaseIncrement == 0)
+        return 0xffffffff;
+    // when we're running from an external clock the pulses arrive in bursts, one
+    // burst per incoming sync, so the gap we have to tolerate is a whole sync
+    // interval rather than a single pulse
+    uint64_t pulsesPerSync = 1;
+    uint8_t syncInMode = songData.GetSyncInMode();
+    if(syncInMode == SyncModeMidi)
+        pulsesPerSync = getTickCountForRateIndex(7);
+    else if((syncInMode & SyncMode4PQ) > 0)
+        pulsesPerSync = getTickCountForRateIndex(2);
+    else if((syncInMode & SyncModePO) > 0)
+        pulsesPerSync = getTickCountForRateIndex(4);
+    // two sync intervals worth of samples at the current rate; the phase
+    // accumulator overflows bit 31 once per pulse, so a pulse is
+    // 0x80000000/increment samples
+    uint64_t timeout = (((uint64_t)0x80000000ull*2)*pulsesPerSync)/tempoPhaseIncrement;
+    if(timeout > 0xfffffffful)
+        timeout = 0xfffffffful;
+    return (uint32_t)timeout;
+}
+
 void GrooveBox::OnTempoPulse(bool advanceOnly)
 {
     bool needsMidiSync = false;
@@ -563,10 +623,11 @@ void GrooveBox::OnTempoPulse(bool advanceOnly)
     // send the sync pulse to all the instruments
     if(!advanceOnly)
     {
-        for(int v=0;v<VOICE_COUNT;v++)
-        {
-            instruments[v].TempoPulse(patterns[v]);
-        }
+        // the sequencer is driving the instrument clock, so restart the free
+        // running one from this pulse
+        samplesSinceSequencerPulse = 0;
+        instrumentClockPhase = 0;
+        PulseInstruments();
     }
     // advance chain if the global pattern just overflowed on the last beat counter
     if(beatCounter[16]==0 && patternStep[16] == 0)
@@ -1459,10 +1520,6 @@ void GrooveBox::ContinuePlaying()
 void GrooveBox::StopPlaying()
 {
     playing = false;
-    for(int i=0;i<VOICE_COUNT;i++)
-    {
-        instruments[i].ClearRetriggers();
-    }
     if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
         midi.StopSequence();
 }
