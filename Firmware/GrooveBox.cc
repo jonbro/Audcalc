@@ -744,10 +744,11 @@ int GrooveBox::GetNote()
 }
 void GrooveBox::OnCCChanged(uint8_t cc, uint8_t newValue)
 {
-    if(paramSelectMode && lastEditedParam > 0)
+    // -1 means no knob has been touched yet (param 0's knob A encodes to 0,
+    // so this must not be a > 0 check)
+    if(paramSelectMode && lastEditedParam >= 0)
     {
         // set the midi mapping
-        //lastEditedParam = param*2+1;
         midiMap.SetCCTarget(cc, currentVoice, lastEditedParam, lastKeyPlayed);
     }
     else

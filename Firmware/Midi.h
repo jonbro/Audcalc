@@ -35,12 +35,14 @@ class Midi
         void(*OnCCChanged)(uint8_t cc, uint8_t newValue) = NULL; // 0xBx, 2 data bytes
         void ProcessMessage(char msg, uint8_t processor);
     private:
-        uint8_t lastCCValue[128]; // used for filtering out values so we don't send them all the time
+        // per input (trs / usb) so the same cc value on both isn't filtered as a repeat
+        uint8_t lastCCValue[2][128];
         bool initialized = false;
         uint8_t pingPong = 0; // what half of the buffer we are sending
         uint8_t TxBuffer[MIDI_BUF_LENGTH*2];
         uint16_t TxIndex;
         uint16_t DmaChannelTX;
+        // processors are trs, usb
         InputProcessor inputProcessors[2];
 };
 
