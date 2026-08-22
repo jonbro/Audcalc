@@ -52,7 +52,7 @@ using namespace braids;
 #define TLV_REG_CLK_MULTIPLEX   	0x04
 
 #define USING_DEMO_BOARD 0
-// TDM board defines
+// AudCalc board defines
 #if USING_DEMO_BOARD
     #define I2S_DATA_PIN 26
     #define I2S_BCLK_PIN 27

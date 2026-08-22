@@ -23,7 +23,22 @@ class Midi
         void StopSequence();
         void TimingClock();
         void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity);
-        void NoteOff(uint8_t channel, uint8_t pitch);
+       
+        // returns false if the send fails
+        bool NoteOff(uint8_t channel, uint8_t pitch);
+
+        // returns false if the send fails
+        // Repeats of a value the channel already holds are skipped, not sent.
+        // returns false if the send fails
+        bool ControlChange(uint8_t channel, uint8_t cc, uint8_t value);
+        
+        // program change, skips repeated changes to the same thing
+        // returns false if the send fails (not currently used)
+        bool ProgramChange(uint8_t channel, uint8_t program);
+        
+        // clear the last sent ccs, so they are all resent on the next change
+        void ResetSentCCState();
+        
         uint16_t Write(const uint8_t* data, uint16_t length);
         void Flush();
         void (*OnSync)() = NULL; // 0xf8
@@ -38,6 +53,11 @@ class Midi
     private:
         // per input (trs / usb) so the same cc value on both isn't filtered as a repeat
         uint8_t lastCCValue[2][128];
+        // last value transmitted per channel + cc number.
+        // cached per (midi) channel so that multiple voices targeting the same midi channel get sent
+        uint8_t lastSentCCValue[16][128];
+        // program change carries no controller number, so it's one slot per channel
+        uint8_t lastSentProgram[16];
         bool initialized = false;
         uint8_t pingPong = 0; // what half of the buffer we are sending
         uint8_t TxBuffer[MIDI_BUF_LENGTH*2];

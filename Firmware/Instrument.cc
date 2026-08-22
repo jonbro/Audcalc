@@ -21,12 +21,6 @@ void Instrument::Init(Midi *_midi, int16_t *temp_buffer)
     midi = _midi;
     phase_ = 0;    
     sampleOffset = 0;
-    for(int i=0;i<16;i++)
-    {
-        midiNoteStates[i].note = -1;
-        midiNoteStates[i].ticksRemaining = -1;
-        midiNoteStates[i].channel = 0;
-    }
     env.Init();
     env.Trigger(ADSR_ENV_SEGMENT_DEAD);
     env2.Init();
@@ -404,31 +398,8 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
 
 void __not_in_flash_func(Instrument::TempoPulse)()
 {
-    for(int i=0;i<16;i++)
-    {
-        if(midiNoteStates[i].note < 0)
-            continue;
-        midiNoteStates[i].ticksRemaining--;
-        if(midiNoteStates[i].ticksRemaining <= 0)
-        {
-            // send the note off to the channel the note on went out on, not
-            // whatever the voice is pointed at right now
-            midi->NoteOff(midiNoteStates[i].channel, midiNoteStates[i].note-12);
-            midiNoteStates[i].note = -1;
-        }
-    }
-    if(retriggersRemaining == 0)
-        return;
-    // a retrigger speed of zero means every pulse; don't underflow to 255
-    if(retriggerNextPulse > 0)
-        retriggerNextPulse -= 1;
-    if(retriggerNextPulse == 0)
-    {
-        retriggersRemaining--;
-        retriggerNextPulse = playingVoice->GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern);
-        retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
+    if(TickRetriggers())
         Retrigger();
-    }
 }
 void Instrument::ClearRetriggers()
 {
@@ -452,9 +423,6 @@ void __not_in_flash_func(Instrument::Retrigger)()
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         retriggerVolume = add_q15(retriggerVolume, retriggerFade);
     }
-    else if(playingVoice->GetInstrumentType() == INSTRUMENT_MIDI)
-    {
-    }
 }
 
 void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
@@ -467,30 +435,10 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
     playingPattern = pattern;
     playingVoice = &voiceData;
     int note = midinote;
-    // arm retriggers for every note, live played or sequenced, so the retrigger
-    // param locks apply regardless of whether the transport is running
-    retriggersRemaining = voiceData.GetParamValue(RetriggerLength, lastPressedKey, playingStep, playingPattern);
-    retriggerNextPulse = voiceData.GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern);
-    retriggersRemaining = ((uint16_t)retriggersRemaining*8)>>8;
-    retriggerNextPulse = (((uint16_t)retriggerNextPulse*8)>>8) * 4;
-
-    int16_t fade = voiceData.GetParamValue(RetriggerFade, lastPressedKey, playingStep, playingPattern) << 7;
-    fade = (fade-0x3fff)*-2; // center at zero
-    
-    // lets just fade out all the retriggers - so the retrigger volume multiplier starts at full, and fades down
-    if(fade > 0)
-    {
-        retriggerVolume = sub_q15(f32_to_q15(1.0f), fade);
-    }
-    else
-    {
-        retriggerVolume = f32_to_q15(1.0f);
-    }
-    // how much we are going to fade per retrigger
-    if(retriggersRemaining > 0)
-        retriggerFade = fade / retriggersRemaining; // how much we change every frame
-    else
-        retriggerFade = 0;
+    // resolves this step's locks in a single walk of the chain
+    uint8_t pv[VoiceData::PARAM_CACHE_SIZE];
+    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv);
+    ArmRetriggers(pv);
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {
         microFade = 0;
@@ -576,76 +524,5 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
         portamentoEnv.Update(0x7f, portamentoParamAmt);
         portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DECAY);
     }
-    else if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
-    {
-        
-        uint8_t midiChannel = voiceData.GetMidiChannel();
-        uint8_t holdIndex = voiceData.GetParamValue(MidiHold, lastPressedKey, playingStep, playingPattern)>>4;
-        uint16_t stepPulses = GrooveBox::getTickCountForRateIndex((voiceData.GetRateForPattern(playingPattern)*7)>>8);
-        // the table is in twenty-fourths of a step. keep the multiply in 32 bits:
-        // the slowest rate at the longest hold is 192*576, which doesn't fit in 16
-        uint32_t holdPulses = ((uint32_t)stepPulses * midiHoldTwentyFourths[holdIndex])/24;
-        // a fast rate with a short hold can round down to nothing, and a zero here
-        // would read as "already expired" on the next pulse
-        if(holdPulses < 1)
-            holdPulses = 1;
-        if(holdPulses > 0x7fff)
-            holdPulses = 0x7fff;
-        int16_t noteHoldTime = (int16_t)holdPulses;
-
-        uint8_t velocity = voiceData.GetParamValue(Timbre, lastPressedKey, playingStep, playingPattern)>>1;
-
-        // determine if this note is already playing
-        bool noteIsPlaying = false;
-        for(int i=0;i<16;i++)
-        {
-            // note is -1 on a free slot, so don't let a negative pitch match one
-            if(midiNoteStates[i].note >= 0 && midiNoteStates[i].note == note)
-            {
-                // still holding from an earlier trigger. re-articulate it rather
-                // than just extending the gate, otherwise the receiving synth
-                // never sees a new note and the trigger is silently swallowed
-                midi->NoteOff(midiNoteStates[i].channel, midiNoteStates[i].note-12);
-                midi->NoteOn(midiChannel, note-12, velocity);
-                midiNoteStates[i].channel = midiChannel;
-                midiNoteStates[i].ticksRemaining = noteHoldTime;
-                noteIsPlaying = true;
-                break;
-            }
-        }
-        if(!noteIsPlaying)
-        {
-            int16_t lowestTime = 0x7fff;
-            uint8_t lowestTimeIdx = 0;
-            bool triggered = false;
-            for(int i=0;i<16;i++)
-            {
-                if(midiNoteStates[i].ticksRemaining < lowestTime)
-                {
-                    lowestTime = midiNoteStates[i].ticksRemaining;
-                    lowestTimeIdx = i;
-                }
-                if(midiNoteStates[i].note < 0)
-                {
-                    // found a channel that is no longer playing, we can use this one to trigger
-                    midi->NoteOn(midiChannel, note-12, velocity);
-                    midiNoteStates[i].note = note;
-                    midiNoteStates[i].channel = midiChannel;
-                    midiNoteStates[i].ticksRemaining = noteHoldTime;
-                    triggered = true;
-                    break;
-                }
-            }
-            if(!triggered)
-            {
-                // need to steal a channel
-                midi->NoteOff(midiNoteStates[lowestTimeIdx].channel, midiNoteStates[lowestTimeIdx].note-12);
-                midi->NoteOn(midiChannel, note-12, velocity);
-                midiNoteStates[lowestTimeIdx].note = note;
-                midiNoteStates[lowestTimeIdx].channel = midiChannel;
-                midiNoteStates[lowestTimeIdx].ticksRemaining = noteHoldTime;
-            }
-        }
-    } 
     lastNoteOnPitch = note;
 }

@@ -9,6 +9,7 @@
 #include "filesystem.h"
 #include "voice_data.h"
 #include "SongData.h"
+#include "SequencedVoice.h"
 using namespace braids;
 
 enum InstrumentParameter {
@@ -34,7 +35,7 @@ enum SamplePlaybackSegment {
   SMP_NUM_SEGMENTS,
 };
 
-class Instrument
+class Instrument : public SequencedVoice
 {
     public:
         void Init(Midi *_midi, int16_t *temp_buffer);
@@ -66,24 +67,15 @@ class Instrument
         q15_t pWithMods;
 
     private:
-        VoiceData *playingVoice;
         void Retrigger();
         q15_t GetLfoState();
         q15_t GetRawLfoValue();
-        // lets hardcode some retriggers here
-        uint8_t retriggerNextPulse = 0;
-        uint8_t retriggersRemaining = 0;
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
         uint32_t phase_;
-        int8_t lastPressedKey = 0;
         uint32_t envPhase;
         int16_t lastSample;
         uint8_t microFade;
-        // stores the step & pattern this voice was triggered on for looking up parameter locks
-        // must be initialized so we don't send junk data to the parameter lookup
-        uint8_t playingStep = 0;
-        uint8_t playingPattern = 0;
         EnvelopeSegment currentSegment;
         uint8_t attackTime, holdTime, decayTime;
         int8_t envTimbre = 0, envColor = 0;
@@ -97,8 +89,6 @@ class Instrument
         int8_t playingSlice = -1;
         int16_t *sample;
         q15_t volume = 0x7fff;
-        q15_t retriggerVolume = 0xffff;
-        q15_t retriggerFade;
         q15_t param1Base;
         q15_t param2Base;
         q15_t timbre;
@@ -127,16 +117,6 @@ class Instrument
         uint32_t sampleStart[16];
         uint32_t sampleLength[16];
 
-        struct MidiNoteState
-        {
-          int16_t ticksRemaining;
-          int8_t note;
-          // the channel the note was triggered on for note off routing to the correct channels
-          // user changes channel prior to note off
-          uint8_t channel;
-        };
-        
-        MidiNoteState midiNoteStates[16];
         EnvTargets env1Target, env2Target;
         LfoTargets lfo1Target;
         int16_t pitch, pitchTarget, pitchStart;

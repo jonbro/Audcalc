@@ -70,10 +70,8 @@ enum LfoTargets {
     Lfo_Target_Env12Decay,
     Lfo_Target_Count
 };
-// Midi gate length, in twenty-fourths of a sequencer step, so the gate still
-// scales with the pattern rate. 24 is exactly one step; anything below that is
-// a sub-step (staccato) gate, which the old "1..16 whole steps" mapping could
-// not reach at all. Indexed by the Hold param >> 4.
+
+// Midi gate length, in twenty-fourths of a sequencer step
 const uint16_t midiHoldTwentyFourths[16] = {
     3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 144, 192, 288, 384, 576
 };
@@ -89,7 +87,9 @@ enum ParamType {
     SampleOut = 11,
     MidiHold = 11,
     Cutoff = 12,
+    ChordVoices = 12,
     Resonance = 13,
+    ChordShape = 13,
     Volume = 14,
     Pan = 15,
     Portamento = 16,
@@ -122,6 +122,37 @@ enum SamplerPlayerType
   SAMPLE_PLAYER_PITCH,
   SAMPLE_PLAYER_SEQL // slice, with even cuts
 };
+
+// midi cc parameter pads
+#define MIDI_CC_PAGE_COUNT 9
+#define MIDI_CC_SLOT_COUNT (MIDI_CC_PAGE_COUNT*2)
+// confirm that cc slots matches the voice data slots
+static_assert(sizeof(VoiceDataInternal::midiCC) == MIDI_CC_SLOT_COUNT,
+              "midiCC proto array must have one entry per cc slot");
+// pressing an already selected cc page a second time jumps editing the cc routing8
+#define PARAM_PAGE_STRIDE 25
+extern const uint8_t MidiCCPadParams[MIDI_CC_PAGE_COUNT];
+
+// midi cc targets can also target program change
+enum MidiCCSlotTarget {
+    MIDI_CC_SLOT_OFF = 0,      // slot transmits nothing at all
+    MIDI_CC_SLOT_PROGRAM = 1,  // slot sends program change instead of a cc
+    MIDI_CC_SLOT_CC_BASE = 2,  // positions 2..129 are cc 0..127
+};
+#define MIDI_CC_SLOT_POSITIONS (MIDI_CC_SLOT_CC_BASE + 128)
+// Compact "CC" glyph, two small Cs stacked in the cell a single character occupies.
+// "CC107" spelled out is 35px against the 33px the label column has; with this it is
+// 28px, the same as every other four character label.
+#define CC_LIGATURE ""
+
+#define MIDI_CHORD_SHAPE_COUNT 15
+// Extra voices are capped at 5 (six notes sounding). A retrigger restrikes the
+// whole chord as note off + note on per voice, so each extra voice costs 6 bytes
+// of a 3125 byte/sec din link every retrigger - six notes is what fits.
+#define MIDI_CHORD_MAX_EXTRA_VOICES 5
+#define MIDI_CHORD_MAX_NOTES (MIDI_CHORD_MAX_EXTRA_VOICES + 1)
+
+class Midi;
 
 class VoiceData
 {
@@ -205,6 +236,7 @@ class VoiceData
         }
         void GetParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern);
         void GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep);
+        bool MidiParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep);
         void DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep);
         bool CheckLockAndSetDisplay(bool showForStep, uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
         uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
@@ -215,6 +247,39 @@ class VoiceData
         uint8_t GetMidiChannel(){
             return internalData.extraTypeUnion.midiChannel >> 4;
         }
+
+        /* MIDI CHORDS */
+        // number of extra notes stacked on top of the root, 0-5
+        static uint8_t ChordVoiceCount(uint8_t rawValue)
+        {
+            return (((uint16_t)rawValue)*(MIDI_CHORD_MAX_EXTRA_VOICES+1))>>8;
+        }
+        static uint8_t ChordShapeIndex(uint8_t rawValue)
+        {
+            return (((uint16_t)rawValue)*MIDI_CHORD_SHAPE_COUNT)>>8;
+        }
+        // fills notes[] with the root followed by the extra chord voices and
+        // returns how many were written (always at least 1)
+        static uint8_t BuildChord(int16_t root, uint8_t rawVoices, uint8_t rawShape, int16_t *notes);
+
+        /* MIDI CC OUTPUT */
+        // which cc page a param pad drives, or -1 if the pad isn't a cc page
+        static int8_t MidiCCPageForPad(uint8_t pad);
+        // slot behind a GetParam index on a cc number editing page, or -1
+        static int8_t MidiCCSlotForParamIndex(uint8_t paramIndex);
+        // what this slot points at: MIDI_CC_SLOT_OFF, MIDI_CC_SLOT_PROGRAM, or
+        // MIDI_CC_SLOT_CC_BASE + the cc number
+        uint8_t GetMidiCCSlotTarget(uint8_t slot)
+        {
+            return (((uint16_t)internalData.midiCC[slot]) * MIDI_CC_SLOT_POSITIONS) >> 8;
+        }
+        // writes "Off", "Prog" or the cc number into out, optionally "CC" prefixed
+        void FormatMidiCCSlot(uint8_t slot, char *out, bool ccPrefix);
+        // sends every mapped slot, reading from a cache already resolved by
+        // FillResolvedParamCache. Midi drops the ones already on the wire.
+        void SendMidiCCs(Midi *midi, const uint8_t *resolvedParams);
+        // pushes a single slot immediately, used while a knob is being turned
+        void SendMidiCC(Midi *midi, uint8_t slot, uint8_t value);
 
         MacroOscillatorShape GetShape(){
             return (MacroOscillatorShape)((((uint16_t)internalData.extraTypeUnion.synthShape)*41) >> 8);

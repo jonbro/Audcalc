@@ -1,7 +1,134 @@
 #include "voice_data.h"
 #include "m6x118pt7b.h"
+#include "Midi.h"
 
 ParamLockPool VoiceData::lockPool;
+
+// param pads repurposed as midi cc sends on midi tracks (see voice_data.h)
+const uint8_t MidiCCPadParams[MIDI_CC_PAGE_COUNT] = {7, 8, 10, 11, 12, 15, 16, 17, 22};
+
+// intervals above the root, in semitones
+struct MidiChordShape
+{
+    const char *name;
+    uint8_t count;
+    int8_t intervals[4];
+};
+
+// Each shape ends on the octave so that stacking it past its own voice count keeps
+// producing a normal voicing. Maj at 5 extra voices is
+// 4,7,12,16,19 (triad then triad an octave up), not 4,7,16,19,28.
+static const MidiChordShape midiChordShapes[MIDI_CHORD_SHAPE_COUNT] = {
+    {"Oct",  1, {12,  0,  0,  0}},
+    {"5th",  2, { 7, 12,  0,  0}},
+    {"Maj",  3, { 4,  7, 12,  0}},
+    {"Min",  3, { 3,  7, 12,  0}},
+    {"Sus2", 3, { 2,  7, 12,  0}},
+    {"Sus4", 3, { 5,  7, 12,  0}},
+    {"Dim",  3, { 3,  6, 12,  0}},
+    {"Aug",  3, { 4,  8, 12,  0}},
+    {"Maj6", 4, { 4,  7,  9, 12}},
+    {"Min6", 4, { 3,  7,  9, 12}},
+    {"Dom7", 4, { 4,  7, 10, 12}},
+    {"Maj7", 4, { 4,  7, 11, 12}},
+    {"Min7", 4, { 3,  7, 10, 12}},
+    {"Maj9", 4, { 4,  7, 11, 14}},
+    {"Min9", 4, { 3,  7, 10, 14}},
+};
+
+uint8_t VoiceData::BuildChord(int16_t root, uint8_t rawVoices, uint8_t rawShape, int16_t *notes)
+{
+    notes[0] = root;
+    uint8_t extras = ChordVoiceCount(rawVoices);
+    if(extras == 0)
+        return 1;
+    const MidiChordShape &shape = midiChordShapes[ChordShapeIndex(rawShape)];
+    uint8_t written = 1;
+    for(uint8_t i=0;i<extras;i++)
+    {
+        int16_t note = root + shape.intervals[i%shape.count] + 12*(i/shape.count);
+        // internal pitch is 12 above the transmitted note, so 139 is midi note 127.
+        if(note > 139)
+            break;
+        notes[written++] = note;
+    }
+    return written;
+}
+
+int8_t VoiceData::MidiCCPageForPad(uint8_t pad)
+{
+    for(int8_t i=0;i<MIDI_CC_PAGE_COUNT;i++)
+    {
+        if(MidiCCPadParams[i] == pad)
+            return i;
+    }
+    return -1;
+}
+
+// GetParam indices on a cc number page are (pad+PARAM_PAGE_STRIDE)*2 (+1 for knob B)
+int8_t VoiceData::MidiCCSlotForParamIndex(uint8_t paramIndex)
+{
+    uint8_t pad = paramIndex>>1;
+    if(pad < PARAM_PAGE_STRIDE)
+        return -1;
+    int8_t page = MidiCCPageForPad(pad-PARAM_PAGE_STRIDE);
+    if(page < 0)
+        return -1;
+    return page*2 + (paramIndex&1);
+}
+
+void VoiceData::FormatMidiCCSlot(uint8_t slot, char *out, bool ccPrefix)
+{
+    uint8_t target = GetMidiCCSlotTarget(slot);
+    if(target == MIDI_CC_SLOT_OFF)
+        sprintf(out, "Off");
+    else if(target == MIDI_CC_SLOT_PROGRAM)
+        sprintf(out, "Prog");
+    else
+        sprintf(out, ccPrefix ? CC_LIGATURE "%i" : "%i", target - MIDI_CC_SLOT_CC_BASE);
+}
+
+void VoiceData::SendMidiCC(Midi *midi, uint8_t slot, uint8_t value)
+{
+    uint8_t target = GetMidiCCSlotTarget(slot);
+    if(target == MIDI_CC_SLOT_OFF)
+        return;
+    // knobs are 8 bit, cc and program values are 7. Midi owns the de-dup because
+    // it has to be keyed on what goes out, not on this voice's slot
+    if(target == MIDI_CC_SLOT_PROGRAM)
+        midi->ProgramChange(GetMidiChannel(), value>>1);
+    else
+        midi->ControlChange(GetMidiChannel(), target - MIDI_CC_SLOT_CC_BASE, value>>1);
+}
+
+void VoiceData::SendMidiCCs(Midi *midi, const uint8_t *resolvedParams)
+{
+    int16_t programSlot = -1;
+    uint8_t programValue = 0;
+    for(uint8_t page=0;page<MIDI_CC_PAGE_COUNT;page++)
+    {
+        uint8_t pad = MidiCCPadParams[page];
+        for(uint8_t ab=0;ab<2;ab++)
+        {
+            uint8_t slot = page*2+ab;
+            uint8_t target = GetMidiCCSlotTarget(slot);
+            if(target == MIDI_CC_SLOT_OFF)
+                continue; // nothing to look up or send
+            if(target == MIDI_CC_SLOT_PROGRAM)
+            {
+                // held back until the end: bank select (cc0 / cc32) has to reach
+                // the synth before the program change that selects within it.
+                // More than one slot on program is degenerate, so last one wins.
+                programSlot = slot;
+                programValue = resolvedParams[pad*2+ab];
+                continue;
+            }
+            SendMidiCC(midi, slot, resolvedParams[pad*2+ab]);
+        }
+    }
+    if(programSlot >= 0)
+        SendMidiCC(midi, (uint8_t)programSlot, programValue);
+}
 
 void VoiceData::InitDefaults()
 {
@@ -43,6 +170,13 @@ void VoiceData::SetDefaultParams()
     internalData.retriggerLength = 0;
     internalData.retriggerFade = 0x7f;
     internalData.octave = 0x7f;
+
+    // midi chords default to off (root note only)
+    internalData.chordVoices = 0x00;
+    internalData.chordShape = 0x00;
+
+    // midiCC needs no init: a zero byte decodes to MIDI_CC_SLOT_OFF, so every slot
+    // starts silent and a fresh midi track never sprays controllers at a synth
 }
 
 bool VoiceDataInternal_encode_locks(pb_ostream_t *ostream, const pb_field_t *field, void * const *arg)
@@ -164,6 +298,8 @@ uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_
         {
             case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
             case MidiHold: return HasLockForStep(step, pattern, MidiHold, value)?value:internalData.color;
+            case ChordVoices: return HasLockForStep(step, pattern, ChordVoices, value)?value:internalData.chordVoices;
+            case ChordShape: return HasLockForStep(step, pattern, ChordShape, value)?value:internalData.chordShape;
         }
     }
     if(GetInstrumentType() == INSTRUMENT_SAMPLE)
@@ -224,8 +360,14 @@ void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t la
         cache[AttackTime] = internalData.env1.attack;
         cache[DecayTime]  = internalData.env1.decay;
     }
-    cache[Cutoff]          = internalData.cutoff;
-    cache[Resonance]       = internalData.resonance;
+    if(itype == INSTRUMENT_MIDI) {
+        // the filter pad drives the chord instead on midi tracks
+        cache[ChordVoices] = internalData.chordVoices;
+        cache[ChordShape]  = internalData.chordShape;
+    } else {
+        cache[Cutoff]      = internalData.cutoff;
+        cache[Resonance]   = internalData.resonance;
+    }
     cache[Volume]          = internalData.volume;
     cache[Pan]             = internalData.pan;
     cache[Portamento]      = internalData.portamento;
@@ -263,6 +405,17 @@ void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t la
 // last n
 uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t currentPattern)
 {
+    if(GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        // second page of a cc param pad: edits which cc number the slot transmits on
+        int8_t ccSlot = MidiCCSlotForParamIndex(param);
+        if(ccSlot >= 0)
+            return internalData.midiCC[ccSlot];
+        // the filter pad drives the chord on midi tracks, so these have to be
+        // claimed before the shared switch below hands them to cutoff / resonance
+        if(param == ChordVoices) return internalData.chordVoices;
+        if(param == ChordShape) return internalData.chordShape;
+    }
     if(param == 44)
     {
         return internalData.delaySend;
@@ -325,6 +478,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
         {
             case 10: return internalData.timbre;
             case 11: return internalData.color;
+            // pad 10 is a cc page on midi tracks; it parks its two values in env1
+            case 20: return internalData.env1.attack;
+            case 21: return internalData.env1.decay;
             case 47: return internalData.extraTypeUnion.midiChannel;
             default:
                 break;
@@ -422,6 +578,79 @@ bool VoiceData::CheckLockAndSetDisplay(bool showForStep, uint8_t step, uint8_t p
     return false;
 }
 
+// Handles the pages that only exist on midi tracks: the chord page and the two
+// faces of each cc page (values, and the cc numbers behind a double press).
+// Returns false for pages midi shares with the other instrument types.
+bool VoiceData::MidiParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep)
+{
+    uint8_t valA = 0, valB = 0;
+
+    // chords, on the pad the other instruments use for the filter
+    if(param == 6)
+    {
+        sprintf(strA, "Chrd");
+        sprintf(strB, "Shp");
+        uint8_t voices = internalData.chordVoices;
+        if(showForStep && HasLockForStep(step, pattern, ChordVoices, valA))
+        {
+            voices = valA;
+            lockA = true;
+        }
+        uint8_t shape = internalData.chordShape;
+        if(showForStep && HasLockForStep(step, pattern, ChordShape, valB))
+        {
+            shape = valB;
+            lockB = true;
+        }
+        uint8_t extras = ChordVoiceCount(voices);
+        if(extras == 0)
+            sprintf(pA, "Off");
+        else
+            sprintf(pA, "%i", extras);
+        sprintf(pB, "%s", midiChordShapes[ChordShapeIndex(shape)].name);
+        return true;
+    }
+
+    // cc values, labelled with the cc number they go out on
+    int8_t page = MidiCCPageForPad(param);
+    if(page >= 0)
+    {
+        FormatMidiCCSlot(page*2,   strA, true);
+        FormatMidiCCSlot(page*2+1, strB, true);
+        uint8_t aVal = GetParam(param*2, 0, pattern);
+        uint8_t bVal = GetParam(param*2+1, 0, pattern);
+        if(showForStep && HasLockForStep(step, pattern, param*2, valA))
+        {
+            aVal = valA;
+            lockA = true;
+        }
+        if(showForStep && HasLockForStep(step, pattern, param*2+1, valB))
+        {
+            bVal = valB;
+            lockB = true;
+        }
+        // cc values go out as 7 bit, show what the receiver will see
+        sprintf(pA, "%i", aVal>>1);
+        sprintf(pB, "%i", bVal>>1);
+        return true;
+    }
+
+    // cc number assignment page (double press of a cc pad)
+    if(param >= PARAM_PAGE_STRIDE)
+    {
+        page = MidiCCPageForPad(param-PARAM_PAGE_STRIDE);
+        if(page >= 0)
+        {
+            sprintf(strA, "CC#A");
+            sprintf(strB, "CC#B");
+            FormatMidiCCSlot(page*2,   pA, false);
+            FormatMidiCCSlot(page*2+1, pB, false);
+            return true;
+        }
+    }
+    return false;
+}
+
 void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, uint8_t lastNotePlayed, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep)
 {
 
@@ -429,6 +658,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
     uint8_t valA = 0, valB = 0;
     InstrumentType instrumentType = GetInstrumentType();
     ConditionModeEnum conditionModeTmp = CONDITION_MODE_NONE;
+    // midi tracks reshuffle several pads (chords on the filter pad, cc sends on the
+    // pads whose audio params do nothing), so they get first refusal on the page
+    if(instrumentType == INSTRUMENT_MIDI
+        && MidiParamsAndLocks(param, step, pattern, strA, strB, pA, pB, lockA, lockB, showForStep))
+    {
+        return;
+    }
     switch(param)
     {
         case 22:

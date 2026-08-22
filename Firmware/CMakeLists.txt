@@ -77,7 +77,7 @@ endif()
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR})
-set(PICO_BOARD "tdm_board")
+set(PICO_BOARD "audcalc_board")
 
 # set(CMAKE_BUILD_TYPE "Debug")
 # set(CMAKE_C_FLAGS_DEBUG "-g -O0")
@@ -90,13 +90,13 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(pico_sdk_import.cmake)
 # include(pico_extras_import.cmake)
 
-project(tdm C CXX ASM)
+project(audcalc C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
-add_executable(tdm
+add_executable(audcalc
         main.cc
         multicore_support.c
         # usb_audio.c
@@ -109,6 +109,8 @@ add_executable(tdm
         ParamLockPool.cpp
         Instrument.cc
         Midi.cc
+        MidiVoice.cc
+        SequencedVoice.cc
         MidiParamMapper.cc
         tlv320driver.c
         ssd1306.c
@@ -127,22 +129,23 @@ add_executable(tdm
         m6x118pt7b.cc
         ${PROTO_SRCS} ${PROTO_HDRS}
 )
-pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
-pico_generate_pio_header(tdm ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
+pico_generate_pio_header(audcalc ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s.pio)
+pico_generate_pio_header(audcalc ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 
-pico_set_program_name(tdm "tdm")
-pico_set_program_version(tdm "0.1")
+pico_set_program_name(audcalc "audcalc")
+pico_set_program_version(audcalc "0.1")
 
-pico_enable_stdio_usb(tdm 0)
-pico_enable_stdio_uart(tdm 1)
+pico_enable_stdio_usb(audcalc 0)
+pico_enable_stdio_uart(audcalc 1)
 
 
-target_include_directories(tdm PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(audcalc PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 # Add any user requested libraries
-target_link_libraries(tdm
+target_link_libraries(audcalc
         pico_stdlib
         pico_multicore
+        pico_unique_id
         # hardware_sleep
         hardware_i2c
         hardware_pio
@@ -154,11 +157,12 @@ target_link_libraries(tdm
         #pico_sleep
         tinyusb_device tinyusb_board
         )
-target_compile_definitions(tdm PRIVATE
+target_compile_definitions(audcalc PRIVATE
 # PICO_AUDIO_I2S_MONO_INPUT=1
 # #define for our example code
 # USE_AUDIO_I2S=1
 PICO_XOSC_STARTUP_DELAY_MULTIPLIER=32
 )
 
-pico_add_extra_outputs(tdm) 
+pico_add_extra_outputs(audcalc)
+ 

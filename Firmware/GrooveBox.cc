@@ -93,6 +93,7 @@ void GrooveBox::init(uint32_t *_color)
     }
     for(int i=0;i<16;i++)
     {
+        midiVoices[i].Init(&midi);
         patterns[i].InitDefaults();
         patterns[i].SetInstrumentType(INSTRUMENT_MACRO);
     }
@@ -578,6 +579,11 @@ void __not_in_flash_func(GrooveBox::PulseInstruments)()
     {
         instruments[v].TempoPulse();
     }
+    // midi voices run their own gates and retriggers, one per sequencer voice
+    for(int v=0;v<16;v++)
+    {
+        midiVoices[v].TempoPulse();
+    }
 }
 
 uint32_t GrooveBox::GetInstrumentClockTimeoutSamples()
@@ -755,6 +761,13 @@ void GrooveBox::TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, 
 {
     // lets just simplify - gang together the instruments that are above each other
     // 1+5, 2+6, 9+13 etc
+    // midi tracks get a dedicated voice each, so they never share retrigger or
+    // chord state with the pooled audio instruments
+    if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        midiVoices[channel&0xf].NoteOn(key, midi_note, step, pattern, livePlay, voiceData);
+        return;
+    }
     voiceCounter = channel%4+(channel/8)*4;
     Instrument *nextPlay = &instruments[voiceCounter];
     voiceChannel[voiceCounter] = channel;
@@ -765,6 +778,12 @@ void GrooveBox::TriggerInstrument(uint8_t key, int16_t midi_note, uint8_t step, 
 }
 void GrooveBox::TriggerInstrumentMidi(int16_t midi_note, uint8_t step, uint8_t pattern, VoiceData &voiceData, int channel)
 {
+    if(voiceData.GetInstrumentType() == INSTRUMENT_MIDI)
+    {
+        uint8_t _midiKey = {0};
+        midiVoices[channel&0xf].NoteOn(_midiKey, midi_note, step, pattern, true, voiceData);
+        return;
+    }
     Instrument *nextPlay = &instruments[channel];
     // determine if any of the voices are done playing
     bool foundVoice = false;
@@ -1371,8 +1390,10 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
     }
     if(selectedGlobalParam)
         return SetGlobalParameter(a, b, paramSetA, paramSetB);
+    // routing only, doesn't do live recording.
+    bool ccNumberPage = VoiceData::MidiCCSlotForParamIndex(param*2) >= 0;
     // live param recording
-    if(holdingWrite && IsPlaying())
+    if(!ccNumberPage && holdingWrite && IsPlaying())
     {
         // only store the param lock if the voice has a trigger for this step
         uint8_t _key = {0};
@@ -1398,7 +1419,7 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
         return;
     }
     // should use the distance from the parameter to trigger this
-    if(storingParamLockForStep >> 7 == 1)
+    if(!ccNumberPage && storingParamLockForStep >> 7 == 1)
     {
         if(paramSetA)
         {
@@ -1443,11 +1464,29 @@ void GrooveBox::OnAdcUpdate(uint16_t a_in, uint16_t b_in)
                 instruments[i].UpdateVoiceData(patterns[currentVoice]);
             }
         }
+        // send cc page knob changes immediately on change
+        if(patterns[currentVoice].GetInstrumentType() == INSTRUMENT_MIDI)
+        {
+            int8_t ccPage = VoiceData::MidiCCPageForPad(param);
+            if(ccPage >= 0)
+            {
+                if(paramSetA)
+                    patterns[currentVoice].SendMidiCC(&midi, ccPage*2, a);
+                if(paramSetB)
+                    patterns[currentVoice].SendMidiCC(&midi, ccPage*2+1, b);
+            }
+            // when cc routing targets change, clear all the sent cc cache so that the ccs get sent again
+            else if(ccNumberPage || param == 23)
+            {
+                midi.ResetSentCCState();
+            }
+        }
     }
 }
+
 // core1: flush queued record blocks to flash, off the audio path. Called from
 // the core1 loop in main.cc. This is where ffs_append (and its flash writes)
-// actually run, so the multicore lockout it triggers parks core0 only for the
+// run, so the multicore lockout it triggers parks core0 only for the
 // brief flash-program window instead of for the whole append.
 void GrooveBox::DrainRecording()
 {
@@ -1511,6 +1550,8 @@ void GrooveBox::StartWaitingForSync()
 void GrooveBox::ContinuePlaying()
 {
     playing = true;
+    // clear the cache of sent ccs on a start play message so they all get sent at the start
+    midi.ResetSentCCState();
     if((songData.GetSyncOutMode()&SyncModeMidi) > 0)
     {
         midi.StopSequence();
@@ -1644,6 +1685,15 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
         {
             uint8_t targetParam = x+y*5;
             selectedGlobalParam = false;
+            // on a midi track the cc pads have a second page holding the cc numbers
+            // themselves - a double press (pressing the already selected pad) toggles
+            // between the two, same +25 offset SongData uses for its second pages
+            if(patterns[currentVoice].GetInstrumentType() == INSTRUMENT_MIDI
+                && targetParam == param
+                && VoiceData::MidiCCPageForPad(targetParam) >= 0)
+            {
+                targetParam += PARAM_PAGE_STRIDE;
+            }
             // hardcode handler for duplicating pattern
             if(targetParam == 20 && param == 20)
             {

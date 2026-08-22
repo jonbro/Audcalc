@@ -194,6 +194,7 @@ void Midi::Init()
             lastCCValue[p][i] = 0xff;
         }
     }
+    ResetSentCCState();
     // Set up our UART with the required speed.
     uart_init(UART_ID, BAUD_RATE);
 
@@ -263,10 +264,46 @@ void Midi::NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity)
     Write(send, 3);
 }
 
-void Midi::NoteOff(uint8_t channel, uint8_t pitch)
+bool Midi::NoteOff(uint8_t channel, uint8_t pitch)
 {
-    uint8_t send[] = {0x90+channel,pitch,0};
-    Write(send, 3);
+    uint8_t send[] = {(uint8_t)(0x90+channel),pitch,0};
+    return Write(send, 3) == 3;
+}
+
+void Midi::ResetSentCCState()
+{
+    memset(lastSentCCValue, 0xff, sizeof(lastSentCCValue));
+    memset(lastSentProgram, 0xff, sizeof(lastSentProgram));
+}
+
+bool Midi::ProgramChange(uint8_t channel, uint8_t program)
+{
+    channel &= 0x0f;
+    program &= 0x7f;
+    if(lastSentProgram[channel] == program)
+        return true;
+    // two byte message: status plus the program, no controller number
+    uint8_t send[] = {(uint8_t)(0xC0+channel), program};
+    if(Write(send, 2) != 2)
+        return false;
+    lastSentProgram[channel] = program;
+    return true;
+}
+
+bool Midi::ControlChange(uint8_t channel, uint8_t cc, uint8_t value)
+{
+    channel &= 0x0f;
+    cc &= 0x7f;
+    value &= 0x7f;
+    // the receiver already holds this value on this channel, whoever put it there
+    if(lastSentCCValue[channel][cc] == value)
+        return true;
+    uint8_t send[] = {(uint8_t)(0xB0+channel), cc, value};
+    // only mark if the send succeeds
+    if(Write(send, 3) != 3)
+        return false;
+    lastSentCCValue[channel][cc] = value;
+    return true;
 }
 
 void Midi::StartSequence()

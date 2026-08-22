@@ -20,6 +20,7 @@ extern "C" {
 #include "Reverb2.h"
 #include "Delay.h"
 #include "MidiParamMapper.h"
+#include "MidiVoice.h"
 #include "GlobalData.pb.h"
 #include "USBSerialDevice.h"
 
@@ -52,6 +53,7 @@ class GrooveBox {
   int GetLostLockCount();
   void PrintLostLockData();
   Instrument instruments[VOICE_COUNT];
+  MidiVoice midiVoices[16];
   int CurrentStep = 0;
   uint8_t currentVoice = 0;
   bool recording = false;

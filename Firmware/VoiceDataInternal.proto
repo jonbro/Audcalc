@@ -73,4 +73,11 @@ message VoiceDataInternal {
 
     uint32 portamento                    = 34 [(nanopb).int_size = IS_8];
     uint32 fineTune                      = 35 [(nanopb).int_size = IS_8];
+
+    // midi instrument: number of extra chord notes & which chord shape to stack
+    uint32 chordVoices                   = 36 [(nanopb).int_size = IS_8];
+    uint32 chordShape                    = 37 [(nanopb).int_size = IS_8];
+
+    // midi instrument: which cc number each of the otherwise unused param slots sends on
+    repeated uint32 midiCC               = 70 [(nanopb).int_size = IS_8, (nanopb).max_count = 18, (nanopb).fixed_count = true];
 }

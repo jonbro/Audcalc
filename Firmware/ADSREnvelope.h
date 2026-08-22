@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef TDM_ENVELOPE_H_
-#define TDM_ENVELOPE_H_
+#ifndef AUDCALC_ENVELOPE_H_
+#define AUDCALC_ENVELOPE_H_
 
 #include "audio/dsp.h"
 #include "audio/resources.h"
@@ -107,4 +107,4 @@ class ADSREnvelope {
 
 }  // namespace braids
 
-#endif  // BRAIDS_ENVELOPE_H_
+#endif  // AUDCALC_ENVELOPE_H_
