@@ -12,6 +12,15 @@ void SequencedVoice::ArmRetriggers(const uint8_t *pv)
 {
     retriggersRemaining = ((uint16_t)pv[RetriggerLength]*8)>>8;
     retriggerNextPulse = RetriggerPulses(pv[RetriggerSpeed]);
+    
+    // don't apply fade if there are no retriggers
+    // this could lead to the note not sounding if its a fade in with zero retriggers
+    if(retriggersRemaining == 0)
+    {
+        retriggerVolume = f32_to_q15(1.0f);
+        retriggerFade = 0;
+        return;
+    }
 
     int16_t fade = (int16_t)pv[RetriggerFade] << 7;
     fade = (fade-0x3fff)*-2; // center at zero
@@ -21,10 +30,7 @@ void SequencedVoice::ArmRetriggers(const uint8_t *pv)
     else
         retriggerVolume = f32_to_q15(1.0f);
     // how much we change on every strike
-    if(retriggersRemaining > 0)
-        retriggerFade = fade / retriggersRemaining;
-    else
-        retriggerFade = 0;
+    retriggerFade = fade / retriggersRemaining;
 }
 
 bool __not_in_flash_func(SequencedVoice::TickRetriggers)()
