@@ -18,9 +18,15 @@ void MidiVoice::AllNotesOff()
     {
         if(noteStates[i].note < 0)
             continue;
-        midi->NoteOff(noteStates[i].channel, noteStates[i].note-12);
-        noteStates[i].note = -1;
-        noteStates[i].ticksRemaining = -1;
+        if(midi->NoteOff(noteStates[i].channel, noteStates[i].note-12))
+        {
+            noteStates[i].note = -1;
+            noteStates[i].ticksRemaining = -1;
+            continue;
+        }
+        // if the note off write failed, then expire all the notes in for the voice
+        // this should be picked up and sent by the tempoSync
+        noteStates[i].ticksRemaining = 0;
     }
     chordCount = 0;
 }
@@ -47,9 +53,11 @@ void MidiVoice::SendNoteOn(uint8_t channel, int16_t note, uint8_t vel, int16_t g
         // note is -1 on a free slot, so don't let a negative pitch match one
         if(noteStates[i].note < 0 || noteStates[i].note != note)
             continue;
-        // still holding from an earlier trigger. Re-play it rather instead of extending the gate.
-        // this is somewhat of a judgment call.
-        midi->NoteOff(noteStates[i].channel, noteStates[i].note-12);
+        // if still holding from an earlier trigger. Attempt to stop the note,
+        // then retrigger. If the note off fails (can happen with fast enough retriggers)
+        // then just don't send the note on - leads to dropped notes, but better than stuck notes.
+        if(!midi->NoteOff(noteStates[i].channel, noteStates[i].note-12))
+            return;
         midi->NoteOn(channel, note-12, vel);
         noteStates[i].channel = channel;
         noteStates[i].ticksRemaining = gateTicks;
@@ -122,12 +130,13 @@ void __not_in_flash_func(MidiVoice::NoteOn)(uint8_t key, int16_t midinote, uint8
     {
         lastPressedKey = key;
     }
+    liveTriggered = livePlay;
     playingStep = step;
     playingPattern = pattern;
     playingVoice = &voiceData;
 
     uint8_t pv[VoiceData::PARAM_CACHE_SIZE];
-    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv);
+    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv, !liveTriggered);
 
     ArmRetriggers(pv);
 

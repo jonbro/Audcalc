@@ -7,6 +7,13 @@
 #define MIDI_BUF_LENGTH_POW 8
 #define MIDI_BUF_LENGTH (1 << MIDI_BUF_LENGTH_POW)
 
+// how long the usb tx fifo has to stay full before usb is treated as absent.
+// A host can hold the port open without ever reading it, and the endpoint then
+// never drains. Measured in time rather than in refused writes because a chord
+// heavy burst can legitimately refuse a lot of writes in a row, while a host
+// that is actually reading clears the 64 byte fifo in about a millisecond
+#define MIDI_USB_STALL_US 100000
+
 void midi_task();
 
 typedef struct {
@@ -58,6 +65,12 @@ class Midi
         uint8_t lastSentCCValue[16][128];
         // program change carries no controller number, so it's one slot per channel
         uint8_t lastSentProgram[16];
+        // one usb-midi packet, all or nothing. See the note in Midi.cc
+        bool WriteUSB(const uint8_t* data, uint16_t length);
+        // set on the first refused write after a success, so a fifo that is
+        // merely busy is not mistaken for one that nothing is draining
+        bool usbRefusing = false;
+        uint32_t usbRefusingSince = 0;
         bool initialized = false;
         uint8_t pingPong = 0; // what half of the buffer we are sending
         uint8_t TxBuffer[MIDI_BUF_LENGTH*2];

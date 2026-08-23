@@ -280,121 +280,40 @@ void VoiceData::DeserializeStatic(pb_istream_t *s, VoiceData *patterns)
     }
 }
 // incorporates the lock if any
-uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t pattern)
+// length and rate belong to the pattern rather than to one step, so a lock can
+// never stand in for them
+static bool ParamTakesLocks(uint8_t param)
 {
-    uint8_t value;
-    // instrument special case
-    if(GetInstrumentType() == INSTRUMENT_MACRO)
-    {
-        switch(param)
-        {
-            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
-            case Color: return HasLockForStep(step, pattern, Color, value)?value:internalData.color;
-        }
-    }
-    if(GetInstrumentType() == INSTRUMENT_MIDI)
-    {
-        switch(param)
-        {
-            case Timbre: return HasLockForStep(step, pattern, Timbre, value)?value:internalData.timbre;
-            case MidiHold: return HasLockForStep(step, pattern, MidiHold, value)?value:internalData.color;
-            case ChordVoices: return HasLockForStep(step, pattern, ChordVoices, value)?value:internalData.chordVoices;
-            case ChordShape: return HasLockForStep(step, pattern, ChordShape, value)?value:internalData.chordShape;
-        }
-    }
-    if(GetInstrumentType() == INSTRUMENT_SAMPLE)
-    {
-        switch(param)
-        {
-            case SampleIn: return HasLockForStep(step, pattern, SampleIn, value)?value:internalData.sampleStart[lastNotePlayed];
-            case SampleOut: return HasLockForStep(step, pattern, SampleOut, value)?value:internalData.sampleLength[lastNotePlayed];
-            case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:internalData.sampleAttack;
-            case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:internalData.sampleDecay;
-        }
-    }
-    switch(param)
-    {
-        case Cutoff: return HasLockForStep(step, pattern, Cutoff, value)?value:internalData.cutoff;
-        case Resonance: return HasLockForStep(step, pattern, Resonance, value)?value:internalData.resonance;
-        case Volume: return HasLockForStep(step, pattern, Volume, value)?value:internalData.volume;
-        case Pan: return HasLockForStep(step, pattern, Pan, value)?value:internalData.pan;
-        case Portamento: return HasLockForStep(step, pattern, Portamento, value)?value:internalData.portamento;
-        case FineTune: return HasLockForStep(step, pattern, FineTune, value)?value:internalData.fineTune;
-        case AttackTime: return HasLockForStep(step, pattern, AttackTime, value)?value:internalData.env1.attack;
-        case DecayTime: return HasLockForStep(step, pattern, DecayTime, value)?value:internalData.env1.decay;
-        case Env1Target: return HasLockForStep(step, pattern, Env1Target, value)?value:internalData.env1.target;
-        case Env1Depth: return HasLockForStep(step, pattern, Env1Depth, value)?value:internalData.env1.depth;
-        case AttackTime2: return HasLockForStep(step, pattern, AttackTime2, value)?value:internalData.env2.attack;
-        case DecayTime2: return HasLockForStep(step, pattern, DecayTime2, value)?value:internalData.env2.decay;
-        case Env2Target: return HasLockForStep(step, pattern, Env2Target, value)?value:internalData.env2.target;
-        case Env2Depth: return HasLockForStep(step, pattern, Env2Depth, value)?value:internalData.env2.depth;
-        case LFORate: return HasLockForStep(step, pattern, LFORate, value)?value:internalData.lfoRate;
-        case LFODepth: return HasLockForStep(step, pattern, LFODepth, value)?value:internalData.lfoDepth;
-        case Lfo1Target: return HasLockForStep(step, pattern, Lfo1Target, value)?value:internalData.lfoTarget;
-        case Lfo1Shape: return HasLockForStep(step, pattern, Lfo1Shape, value)?value:internalData.lfoShape;
-        case RetriggerSpeed: return HasLockForStep(step, pattern, RetriggerSpeed, value)?value:internalData.retriggerSpeed;
-        case RetriggerLength: return HasLockForStep(step, pattern, RetriggerLength, value)?value:internalData.retriggerLength;
-        case RetriggerFade: return HasLockForStep(step, pattern, RetriggerFade, value)?value:internalData.retriggerFade;
-        case Length: return internalData.patterns[pattern].length;
-        case DelaySend: return HasLockForStep(step, pattern, DelaySend, value)?value:internalData.delaySend;
-        case ReverbSend: return HasLockForStep(step, pattern, ReverbSend, value)?value:internalData.reverbSend;
-        case ConditionMode: return HasLockForStep(step, pattern, ConditionMode, value)?value:internalData.conditionMode;
-        case ConditionData: return HasLockForStep(step, pattern, ConditionData, value)?value:internalData.conditionData;
-    }
-    return 0;
+    return param != Length && param != Rate;
 }
 
-void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache)
+uint8_t VoiceData::GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t pattern, bool applyLocks)
 {
-    InstrumentType itype = (InstrumentType)GetInstrumentType();
+    uint8_t value;
+    // a lock for this step stands in for the stored value. A live played note
+    // belongs to no step, and so resolves the stored values only
+    if(applyLocks && ParamTakesLocks(param) && HasLockForStep(step, pattern, param, value))
+        return value;
+    // GetParam already holds the one param index to storage mapping, including
+    // everything that varies by instrument type
+    return GetParam(param, lastNotePlayed, pattern);
+}
 
-    // Fill defaults — mirrors the switch logic in GetParamValue
-    if(itype == INSTRUMENT_SAMPLE) {
-        cache[SampleIn]   = internalData.sampleStart[lastNotePlayed];
-        cache[SampleOut]  = internalData.sampleLength[lastNotePlayed];
-        cache[AttackTime] = internalData.sampleAttack;
-        cache[DecayTime]  = internalData.sampleDecay;
-    } else {
-        cache[Timbre]     = internalData.timbre;
-        cache[Color]      = internalData.color;
-        cache[AttackTime] = internalData.env1.attack;
-        cache[DecayTime]  = internalData.env1.decay;
-    }
-    if(itype == INSTRUMENT_MIDI) {
-        // the filter pad drives the chord instead on midi tracks
-        cache[ChordVoices] = internalData.chordVoices;
-        cache[ChordShape]  = internalData.chordShape;
-    } else {
-        cache[Cutoff]      = internalData.cutoff;
-        cache[Resonance]   = internalData.resonance;
-    }
-    cache[Volume]          = internalData.volume;
-    cache[Pan]             = internalData.pan;
-    cache[Portamento]      = internalData.portamento;
-    cache[FineTune]        = internalData.fineTune;
-    cache[AttackTime2]     = internalData.env2.attack;
-    cache[DecayTime2]      = internalData.env2.decay;
-    cache[LFORate]         = internalData.lfoRate;
-    cache[LFODepth]        = internalData.lfoDepth;
-    cache[RetriggerSpeed]  = internalData.retriggerSpeed;
-    cache[RetriggerLength] = internalData.retriggerLength;
-    cache[Env1Target]      = internalData.env1.target;
-    cache[Env1Depth]       = internalData.env1.depth;
-    cache[Env2Target]      = internalData.env2.target;
-    cache[Env2Depth]       = internalData.env2.depth;
-    cache[Lfo1Target]      = internalData.lfoTarget;
-    cache[Lfo1Shape]       = internalData.lfoShape;
-    cache[RetriggerFade]   = internalData.retriggerFade;
-    cache[DelaySend]       = internalData.delaySend;
-    cache[ReverbSend]      = internalData.reverbSend;
-    cache[ConditionMode]   = internalData.conditionMode;
-    cache[ConditionData]   = internalData.conditionData;
+void VoiceData::FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache, bool applyLocks)
+{
+    // one pass over the same mapping GetParam uses, so the cache can never drift
+    // from what a single GetParamValue would have returned
+    for(uint8_t p=0;p<PARAM_CACHE_SIZE;p++)
+        cache[p] = GetParam(p, lastNotePlayed, pattern);
 
-    // Override with any locks for this step — iterate only this step's chain
+    // a live played note belongs to no step, so it keeps the stored values
+    if(!applyLocks)
+        return;
+    // override with any locks for this step - iterate only this step's chain
     ParamLock* lock = lockPool.GetLock(locksForPatternStep[pattern][step]);
     while(lockPool.IsValidLock(lock))
     {
-        if(lock->param < PARAM_CACHE_SIZE)
+        if(lock->param < PARAM_CACHE_SIZE && ParamTakesLocks(lock->param))
             cache[lock->param] = lock->value;
         lock = lockPool.GetLock(lock->next);
     }
@@ -424,7 +343,7 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
     {
         return internalData.reverbSend;
     }
-    if(GetInstrumentType() != INSTRUMENT_GLOBAL && param == 46)
+    if(param == 46)
     {
         return internalData.instrumentType;
     }
@@ -499,6 +418,9 @@ uint8_t& VoiceData::GetParam(uint8_t param, uint8_t lastNotePlayed, uint8_t curr
                 break;
         }
     }    
+    // nothing maps here for this instrument type. Clear the sink first so a read
+    // is always 0, whatever an earlier caller may have written through it
+    nothing = 0;
     return nothing;
 }
 
@@ -675,7 +597,7 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             return;
     }
     
-    // all non global instruments
+    // shared by every instrument type
     switch (param)
     {
         case 13:

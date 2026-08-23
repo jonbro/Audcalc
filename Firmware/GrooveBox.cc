@@ -380,7 +380,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
         {
             patterns[currentVoice].ClearNextRequestedStep();
             uint8_t _key = lastKeyPlayed;
-            TriggerInstrument(_key, requestedNote, 0, 0, true, patterns[currentVoice], currentVoice);
+            TriggerInstrument(_key, requestedNote, 0, GetCurrentPattern(), true, patterns[currentVoice], currentVoice);
         }
  
         if(IsPlaying())
@@ -507,7 +507,7 @@ void GrooveBox::OnMidiNote(int note)
     if( note >= 0)
     {
         patterns[currentVoice].ClearNextRequestedStep();
-        TriggerInstrumentMidi(note, 0, 0, patterns[currentVoice], currentVoice);
+        TriggerInstrumentMidi(note, 0, GetCurrentPattern(), patterns[currentVoice], currentVoice);
     }
 }
 

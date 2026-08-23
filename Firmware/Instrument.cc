@@ -329,7 +329,7 @@ void Instrument::SetOscillator(uint8_t oscillator)
 void Instrument::UpdateVoiceData(VoiceData &voiceData)
 {
     uint8_t pv[VoiceData::PARAM_CACHE_SIZE];
-    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv);
+    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv, !liveTriggered);
 
     lfo1Target = (LfoTargets)(((uint16_t)pv[Lfo1Target] * Lfo_Target_Count) >> 8);
 
@@ -431,13 +431,14 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
     {
         lastPressedKey = key;
     }
+    liveTriggered = livePlay;
     playingStep = step;
     playingPattern = pattern;
     playingVoice = &voiceData;
     int note = midinote;
     // resolves this step's locks in a single walk of the chain
     uint8_t pv[VoiceData::PARAM_CACHE_SIZE];
-    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv);
+    voiceData.FillResolvedParamCache(playingStep, playingPattern, lastPressedKey, pv, !liveTriggered);
     ArmRetriggers(pv);
     if(voiceData.GetInstrumentType() == INSTRUMENT_SAMPLE)
     {

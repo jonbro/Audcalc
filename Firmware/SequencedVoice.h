@@ -25,6 +25,8 @@ class SequencedVoice
         uint8_t playingStep = 0;
         uint8_t playingPattern = 0;
         uint8_t lastPressedKey = 0;
+        // a live played note has no step of its own, so it resolves no locks
+        bool liveTriggered = false;
 
         uint8_t retriggerNextPulse = 0;
         uint8_t retriggersRemaining = 0;

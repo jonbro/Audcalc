@@ -24,8 +24,7 @@ enum InstrumentType {
   INSTRUMENT_MACRO,
   INSTRUMENT_SAMPLE,
   INSTRUMENT_MIDI,
-  INSTRUMENT_DRUMS,
-  INSTRUMENT_GLOBAL = 7 // this is normally inaccessible, only the main system can set it.
+  INSTRUMENT_DRUMS
 };
 
 enum ConditionModeEnum {
@@ -110,6 +109,7 @@ enum ParamType {
     Lfo1Shape = 35,
     RetriggerFade = 36,
     Length = 40,
+    Rate = 41,
     ConditionMode = 42,
     ConditionData = 43,
     DelaySend = 44, 
@@ -239,10 +239,12 @@ class VoiceData
         bool MidiParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, char *strA, char *strB, char *pA, char *pB, bool &lockA, bool &lockB, bool showForStep);
         void DrawParamString(uint8_t param, char *str, uint8_t lastNotePlayed, uint8_t currentPattern, uint8_t paramLock, bool showForStep);
         bool CheckLockAndSetDisplay(bool showForStep, uint8_t step, uint8_t pattern, uint8_t param, uint8_t value, char *paramString);
-        uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern);
+        // applyLocks false resolves the base values only, for notes that were
+        // played live rather than sequenced and so belong to no step
+        uint8_t GetParamValue(ParamType param, uint8_t lastNotePlayed, uint8_t step, uint8_t currentPattern, bool applyLocks = true);
 
         static constexpr uint8_t PARAM_CACHE_SIZE = 46; // ReverbSend=45 is highest param enum value
-        void FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache);
+        void FillResolvedParamCache(uint8_t step, uint8_t pattern, uint8_t lastNotePlayed, uint8_t* cache, bool applyLocks = true);
 
         uint8_t GetMidiChannel(){
             return internalData.extraTypeUnion.midiChannel >> 4;
@@ -379,8 +381,12 @@ class VoiceData
 
         uint8_t nextRequestedStep;
 
-        // these are per pattern
-        uint8_t nothing; // used for returning a reference when we don't want it to do anything
+        // This is used by GetParam for parameters that should edit _nothing_.
+        // GetParam MUST clear it to zero before handing back the reference:
+        // callers write through that reference, and GetParamValue /
+        // FillResolvedParamCache read unmapped params through GetParam, so a
+        // leftover write would come back as garbage instead of 0.
+        uint8_t nothing = 0;
         
         static ParamLockPool lockPool;
         uint16_t locksForPatternStep[16][64];

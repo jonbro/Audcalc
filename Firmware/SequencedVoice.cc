@@ -40,6 +40,6 @@ bool __not_in_flash_func(SequencedVoice::TickRetriggers)()
         return false;
     retriggersRemaining--;
     retriggerNextPulse = RetriggerPulses(
-        playingVoice->GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern));
+        playingVoice->GetParamValue(RetriggerSpeed, lastPressedKey, playingStep, playingPattern, !liveTriggered));
     return true;
 }

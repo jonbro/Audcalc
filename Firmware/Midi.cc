@@ -223,24 +223,74 @@ void Midi::Init()
     initialized = true;
 }
 
+// Send one channel or realtime message as a single usb-midi event packet.
+// tud_midi_packet_write is used instead of tud_midi_stream_write
+// because it either sends the whole packet or reports a fail
+bool Midi::WriteUSB(const uint8_t* data, uint16_t length)
+{
+    // not enumerated, or the bus has gone idle. An unplugged cable looks like
+    // the second case: the rp2040 port forces vbus detect on, so a disconnect is
+    // never reported and the device goes on thinking it is mounted. Either way
+    // nothing is listening, so nothing can be left hanging on this transport
+    if(!tud_midi_mounted() || !tud_ready())
+        return true;
+    uint8_t status = data[0];
+    if(length == 0 || length > 3 || (status & 0x80) == 0)
+        return false;
+    // cable 0. The code index number matches the status nibble for channel
+    // messages, and single byte realtime uses 0xf
+    uint8_t cin = length == 1 ? 0x0f : (status >> 4);
+    uint8_t packet[4] = {cin, 0, 0, 0};
+    for(uint16_t i=0;i<length;i++)
+        packet[i+1] = data[i];
+    uint32_t now = time_us_32();
+    if(tud_midi_packet_write(packet))
+    {
+        usbRefusing = false;
+        return true;
+    }
+    if(!usbRefusing)
+    {
+        usbRefusing = true;
+        usbRefusingSince = now;
+        // first refusal, so the fifo may just be busy - ask to be retried
+        return false;
+    }
+    // the fifo has been full this whole time, so nobody is draining it and there
+    // is no receiver left to hang a note on. Stop holding the din output up
+    // behind it; one successful write puts us back in step
+    return (now - usbRefusingSince) > MIDI_USB_STALL_US;
+}
+
 uint16_t Midi::Write(const uint8_t* data, uint16_t length)
 {
-    tud_midi_stream_write(0, data, length);
-
-    if (!initialized || length == 0) {
+    if(length == 0)
         return 0;
+    // both transports are attempted even if the first one refuses, so a full
+    // buffer on one doesn't silence the other
+    bool usbOk = WriteUSB(data, length);
+    bool dinOk = true;
+    if(initialized)
+    {
+        // if this message doesn't fit in the remaining buffer, then drop it
+        // avoids sending malformed messages.
+        if (TxIndex + length > MIDI_BUF_LENGTH)
+        {
+            dinOk = false;
+        }
+        else
+        {
+            uint8_t* start = &TxBuffer[TxIndex + MIDI_BUF_LENGTH*pingPong];
+            memcpy(start, data, length);
+            TxIndex += length;
+            // attempt to flush immediately
+            Flush();
+        }
     }
-    // if this message doesn't fit in the remaining buffer, then drop it
-    // avoids sending malformed messages.
-    if (TxIndex + length > MIDI_BUF_LENGTH) {
-        return 0;
-    }
-    uint8_t* start = &TxBuffer[TxIndex + MIDI_BUF_LENGTH*pingPong];
-    memcpy(start, data, length);
-    TxIndex += length;
-    // attempt to flush immediately
-    Flush();
-    return length;
+    // only a message that both transports took is reported as sent, so a caller
+    // that retries can send a duplicate to the transport that did take it.
+    // we only retry noteOffs, no other messages, so this won't currently lead to stuck notes
+    return (usbOk && dinOk) ? length : 0;
 }
 
 void Midi::Flush()
