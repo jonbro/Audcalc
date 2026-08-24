@@ -72,6 +72,9 @@ class Instrument : public SequencedVoice
         q15_t GetRawLfoValue();
         // input value should be left shifted 7 eg: ComputePhaseIncrement(60 << 7);
         uint32_t ComputePhaseIncrement(int16_t midi_pitch);
+        // Portamento glide time as a phase increment for portamentoEnv, from a
+        // glide length in twenty-fourths of a sequencer step at the current tempo.
+        uint32_t ComputePortamentoIncrement(uint16_t twentyFourths, VoiceData &voiceData);
         uint32_t phase_;
         uint32_t envPhase;
         int16_t lastSample;
@@ -119,13 +122,13 @@ class Instrument : public SequencedVoice
 
         EnvTargets env1Target, env2Target;
         LfoTargets lfo1Target;
-        int16_t pitch, pitchTarget, pitchStart;
+        int16_t pitch = 60<<7, pitchTarget = 60<<7, pitchStart = 60<<7;
         q15_t env1Depth, env2Depth;
         q15_t distortionAmount;
         uint32_t fullSampleLength;
         ADSREnvelope env, env2, portamentoEnv;
         uint16_t lastenvval = 0, lastenv2val = 0, portamentoAmt = 0;
-        uint8_t portamentoParamAmt;
+        uint8_t portamentoParamAmt = 0;
         int fineTuneParamAmt;
         MacroOscillatorShape shape = MACRO_OSC_SHAPE_CSAW;
         LoopMode loopMode = INSTRUMENT_LOOPMODE_NONE;

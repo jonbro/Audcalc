@@ -699,7 +699,13 @@ void VoiceData::GetParamsAndLocks(uint8_t param, uint8_t step, uint8_t pattern, 
             case 8:
                 sprintf(strA, "Port");
                 sprintf(strB, "Fine");
-                lockA = CheckLockAndSetDisplay(showForStep, step, pattern, Portamento, internalData.portamento, pA);
+                if(showForStep && HasLockForStep(step, pattern, Portamento, valA))
+                {
+                    sprintf(pA, "%s", portamentoLabels[PORTAMENTO_INDEX(valA)]);
+                    lockA = true;
+                }
+                else
+                    sprintf(pA, "%s", portamentoLabels[PORTAMENTO_INDEX(internalData.portamento)]);
                 if(showForStep && HasLockForStep(step, pattern, (FineTune), valB))
                 {
                     sprintf(pB, "%i", (valB-0x80));

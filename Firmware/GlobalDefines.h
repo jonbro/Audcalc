@@ -1,3 +1,5 @@
+// codec sample rate, matched by the audio lookup tables in audio/resources
+#define AUDIO_SAMPLE_RATE 32000
 #define SAMPLES_PER_BLOCK 64
 #define BLOCKS_PER_SEND 4
 #define SAMPLES_PER_SEND SAMPLES_PER_BLOCK*BLOCKS_PER_SEND

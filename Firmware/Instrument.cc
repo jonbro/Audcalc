@@ -425,6 +425,26 @@ void __not_in_flash_func(Instrument::Retrigger)()
     }
 }
 
+// The glide length arrives in twenty-fourths of a sequencer step Convert it
+// into the increment that walks portamentoEnv in samples.
+uint32_t Instrument::ComputePortamentoIncrement(uint16_t twentyFourths, VoiceData &voiceData)
+{
+    uint32_t stepPulses = GrooveBox::getTickCountForRateIndex((voiceData.GetRateForPattern(playingPattern)*7)>>8);
+    // the stored bpm sits one below the displayed tempo
+    uint32_t bpm = (uint32_t)songData->GetBpm()+1;
+    // The instrument clock is 96ppq, so one pulse is (rate*60)/(bpm*96) samples.
+    uint64_t samples = ((uint64_t)stepPulses * twentyFourths * AUDIO_SAMPLE_RATE * 60) / ((uint64_t)24 * bpm * 96);
+    if(samples < 1)
+        samples = 1;
+    uint64_t increment = ((uint64_t)1 << 39) / samples;
+    if(increment > 0xffffffff)
+        increment = 0xffffffff;
+    // Render() shifts by 7 before stepping, so we clamp this to a minimum of 1 increment so the pitch bend doesnt stall
+    if(increment < 128)
+        increment = 128;
+    return (uint32_t)increment;
+}
+
 void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint8_t step, uint8_t pattern, bool livePlay, VoiceData &voiceData)
 {
     if(livePlay)
@@ -516,14 +536,24 @@ void __not_in_flash_func(Instrument::NoteOn)(uint8_t key, int16_t midinote, uint
         enable_env = true;
         pitchTarget = (note<<7)+((fineTuneParamAmt-0x80)<<1);
         pitchStart = pitch;
+        uint16_t glideTwentyFourths = portamentoTwentyFourths[PORTAMENTO_INDEX(portamentoParamAmt)];
+        if(glideTwentyFourths == 0)
+        {
+            // off: park the envelope so the note starts on pitch
+            portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DEAD);
+            pitch = pitchStart = pitchTarget;
+        }
+        else
+        {
+            // only the decay matters here, the attack segment is never triggered
+            portamentoEnv.SetDecayIncrement(ComputePortamentoIncrement(glideTwentyFourths, voiceData));
+            portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DECAY);
+        }
         osc.set_pitch(pitch);
         instrumentType = voiceData.GetInstrumentType();
         osc.Strike();
         env.Trigger(ADSR_ENV_SEGMENT_ATTACK);
         env2.Trigger(ADSR_ENV_SEGMENT_ATTACK);
-        // the first parameter doesn't matter here, because we only trigger from the decay
-        portamentoEnv.Update(0x7f, portamentoParamAmt);
-        portamentoEnv.Trigger(ADSR_ENV_SEGMENT_DECAY);
     }
     lastNoteOnPitch = note;
 }

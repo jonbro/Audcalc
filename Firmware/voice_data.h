@@ -79,6 +79,25 @@ const char *const midiHoldLabels[16] = {
     "2", "3", "4", "6", "8", "12", "16", "24"
 };
 
+// Portamento glide time, in twenty-fourths of a sequencer step, so a slide is
+// always in time with the pattern. Every midi gate length above is in here, with
+// extra rungs added below 1/8 for short slides and above 24 for long sweeps, out
+// to 64 steps.
+// Index 0 is off: the note jumps straight to pitch.
+#define PORTAMENTO_POSITIONS 32
+const uint16_t portamentoTwentyFourths[PORTAMENTO_POSITIONS] = {
+    0, 1, 2, 3, 4, 6, 8, 12, 16, 18, 24, 30, 36, 42, 48, 60,
+    72, 84, 96, 120, 144, 168, 192, 240, 288, 336, 384, 480, 576, 768, 1152, 1536
+};
+const char *const portamentoLabels[PORTAMENTO_POSITIONS] = {
+    "OFF", "1/24", "1/12", "1/8", "1/6", "1/4", "1/3", "1/2",
+    "2/3", "3/4", "1", "1.25", "1.5", "1.75", "2", "2.5",
+    "3", "3.5", "4", "5", "6", "7", "8", "10",
+    "12", "14", "16", "20", "24", "32", "48", "64"
+};
+// the parameter is a full byte, so it quantizes down to one of the positions above
+#define PORTAMENTO_INDEX(v) ((v) >> 3)
+
 enum ParamType {
     Timbre = 10,
     SampleIn = 10,

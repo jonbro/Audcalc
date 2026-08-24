@@ -52,6 +52,14 @@ class ADSREnvelope {
     increment_[ADSR_ENV_SEGMENT_DECAY] = lut_env_portamento_increments[d];
   }
   
+  // Sets the decay rate directly, for callers that compute a time rather than
+  // picking one off the increment table. The value is the pre-shift increment:
+  // Render() divides it by 128 before stepping the 32 bit phase, so a segment
+  // that should finish in n samples needs (1<<39)/n here.
+  inline void SetDecayIncrement(uint32_t increment) {
+    increment_[ADSR_ENV_SEGMENT_DECAY] = increment;
+  }
+
   inline void Trigger(ADSREnvelopeSegment segment) {
     if (segment == ADSR_ENV_SEGMENT_DEAD) {
       value_ = 0;

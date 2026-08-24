@@ -175,7 +175,7 @@ void configure_audio_driver()
     printf("loaded program at offset: %i\n", offset);
     sm = pio_claim_unused_sm(pio, true);
     printf("claimed sm: %i\n", sm); //I2S_DATA_PIN
-    int sample_freq = 32000;
+    int sample_freq = AUDIO_SAMPLE_RATE;
     printf("setting pio freq %d\n", (int) sample_freq);
     uint32_t system_clock_frequency = clock_get_hz(clk_sys);
     assert(system_clock_frequency < 0x40000000);
