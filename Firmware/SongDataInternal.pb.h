@@ -32,9 +32,11 @@ typedef struct _SongDataInternal {
     uint8_t reverbDamping;
     bool has_reverbModulation;
     uint8_t reverbModulation;
-    /* which of the two feedback caps the top of the feedback knob reaches */
-    bool has_reverbLowCap;
-    uint8_t reverbLowCap;
+    /* 18 was reverbLowCap, which used the opposite polarity - left unused so that
+ songs holding it fall through to the reverbLongTail default rather than
+ having their tail length silently flipped */
+    bool has_reverbLongTail;
+    uint8_t reverbLongTail;
 } SongDataInternal;
 
 
@@ -63,7 +65,7 @@ extern "C" {
 #define SongDataInternal_reverbFeedback_tag      15
 #define SongDataInternal_reverbDamping_tag       16
 #define SongDataInternal_reverbModulation_tag    17
-#define SongDataInternal_reverbLowCap_tag        18
+#define SongDataInternal_reverbLongTail_tag      19
 
 /* Struct field encoding specification for nanopb */
 #define SongDataInternal_FIELDLIST(X, a) \
@@ -83,7 +85,7 @@ X(a, STATIC,   SINGULAR, UINT32,   swing,            14) \
 X(a, STATIC,   OPTIONAL, UINT32,   reverbFeedback,   15) \
 X(a, STATIC,   OPTIONAL, UINT32,   reverbDamping,    16) \
 X(a, STATIC,   OPTIONAL, UINT32,   reverbModulation,  17) \
-X(a, STATIC,   OPTIONAL, UINT32,   reverbLowCap,     18)
+X(a, STATIC,   OPTIONAL, UINT32,   reverbLongTail,   19)
 #define SongDataInternal_CALLBACK NULL
 #define SongDataInternal_DEFAULT NULL
 

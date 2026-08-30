@@ -77,7 +77,7 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
         case 22*2+(25*2*3): // fx page 4 - reverb allpass modulation
             return internalData.reverbModulation;
         case 22*2+(25*2*3)+1:
-            return internalData.reverbLowCap;
+            return internalData.reverbLongTail;
         case 24*2+(25*2): // this offset to the next page must also be doubled
             return internalData.scale;
         case 24*2+1:
@@ -271,7 +271,7 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             sprintf(strA, "VbMd");
             sprintf(pA, "%i", internalData.reverbModulation);
             sprintf(strB, "VbTy");
-            sprintf(pB, GetReverbLowCap()?"Srt":"Lng");
+            sprintf(pB, GetReverbLongTail()?"Lng":"Srt");
             break;
     }
     
@@ -312,9 +312,12 @@ void SongData::Deserialize(pb_istream_t *s)
         internalData.has_reverbModulation = true;
         internalData.reverbModulation = VERB_DEFAULT_MODULATION;
     }
-    if(!internalData.has_reverbLowCap)
+    // songs saved before this field existed - including ones still carrying the
+    // old reverbLowCap on tag 18 - open on the long tail, which is what the reverb
+    // did before the switch existed
+    if(!internalData.has_reverbLongTail)
     {
-        internalData.has_reverbLowCap = true;
-        internalData.reverbLowCap = 0;
+        internalData.has_reverbLongTail = true;
+        internalData.reverbLongTail = 0xff;
     }
 }

@@ -21,6 +21,8 @@ message SongDataInternal
     optional uint32 reverbFeedback   = 15 [(nanopb).int_size = IS_8];
     optional uint32 reverbDamping    = 16 [(nanopb).int_size = IS_8];
     optional uint32 reverbModulation = 17 [(nanopb).int_size = IS_8];
-    // which of the two feedback caps the top of the feedback knob reaches
-    optional uint32 reverbLowCap     = 18 [(nanopb).int_size = IS_8];
+    // 18 was reverbLowCap, which used the opposite polarity - left unused so that
+    // songs holding it fall through to the reverbLongTail default rather than
+    // having their tail length silently flipped
+    optional uint32 reverbLongTail   = 19 [(nanopb).int_size = IS_8];
 }

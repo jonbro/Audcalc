@@ -115,9 +115,9 @@ class Reverb2 {
         modDepth = (int32_t)((((uint32_t)depth)*VERB_MAX_MOD_DEPTH)>>8);
     }
     // picks which of the two feedback caps the top of the knob reaches
-    void SetLowFeedbackCap(bool on)
+    void SetLongTail(bool on)
     {
-        lowCap = on;
+        longTail = on;
         UpdateFeedback();
     }
     int16_t last_l, last_r;
@@ -135,7 +135,7 @@ class Reverb2 {
     // the knob and the cap both feed the same value, so they share this
     void UpdateFeedback()
     {
-        uint32_t cap = lowCap ? VERB_FEEDBACK_CAP_LOW : VERB_FEEDBACK_CAP_HIGH;
+        uint32_t cap = longTail ? VERB_FEEDBACK_CAP_HIGH : VERB_FEEDBACK_CAP_LOW;
         feedbackAmount = (q15_t)((((uint32_t)feedbackKnob)*cap)>>8);
     }
     // pinned to RAM: too big to inline into Render, so without this it lands in
@@ -277,5 +277,5 @@ class Reverb2 {
     // ones wrapped to just past half, which collapsed the whole reverb to mono
     uint16_t position[4] = {0x2000, 0xE000, 0xC000, 0x4000};
     uint8_t feedbackKnob = 0;
-    bool lowCap = false;
+    bool longTail = true;
 };

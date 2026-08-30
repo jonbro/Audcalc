@@ -46,8 +46,8 @@ class SongData
             internalData.reverbDamping  = VERB_DEFAULT_DAMPING;
             internalData.has_reverbModulation = true;
             internalData.reverbModulation = VERB_DEFAULT_MODULATION;
-            internalData.has_reverbLowCap = true;
-            internalData.reverbLowCap = 0;
+            internalData.has_reverbLongTail = true;
+            internalData.reverbLongTail = 0xff;
         }
         uint8_t GetLength(uint8_t pattern)
         {
@@ -68,8 +68,8 @@ class SongData
         uint8_t GetReverbModulation(){
             return internalData.reverbModulation;
         }
-        bool GetReverbLowCap(){
-            return internalData.reverbLowCap >= 128;
+        bool GetReverbLongTail(){
+            return internalData.reverbLongTail >= 128;
         }
         int8_t GetHPVol(){
             return ((internalData.hpVol*35)>>8)-6;

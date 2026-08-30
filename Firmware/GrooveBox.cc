@@ -203,7 +203,7 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     verb.SetFeedback(songData.GetReverbFeedback());
     verb.SetDamping(songData.GetReverbDamping());
     verb.SetModulation(songData.GetReverbModulation());
-    verb.SetLowFeedbackCap(songData.GetReverbLowCap());
+    verb.SetLongTail(songData.GetReverbLongTail());
     bool hadExternalSync = false;
     //printf("input %i\n", workBuffer2[0]);
     bool ExternalSyncModeEnabled = (songData.GetSyncInMode() & (SyncMode4PQ|SyncModePO))>0;
