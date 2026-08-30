@@ -70,6 +70,14 @@ uint8_t& SongData::GetParam(uint8_t param, uint8_t pattern)
             return internalData.delayFeedback;
         case 22*2+(25*2)+1: // this offset to the next page must also be doubled
             return internalData.delayTime;
+        case 22*2+(25*2*2): // fx page 3 - the extra reverb controls
+            return internalData.reverbFeedback;
+        case 22*2+(25*2*2)+1:
+            return internalData.reverbDamping;
+        case 22*2+(25*2*3): // fx page 4 - reverb allpass modulation
+            return internalData.reverbModulation;
+        case 22*2+(25*2*3)+1:
+            return internalData.reverbLowCap;
         case 24*2+(25*2): // this offset to the next page must also be doubled
             return internalData.scale;
         case 24*2+1:
@@ -248,10 +256,22 @@ void SongData::DrawParamString(uint8_t param, uint8_t pattern, char *str, int8_t
             sprintf(pB,"");
             break;
         case 22+25:
-            sprintf(strA, "DlyFb");
+            sprintf(strA, "DlFb");
             sprintf(pA, "%i", internalData.delayFeedback);
-            sprintf(strB, "DlyT");
+            sprintf(strB, "DlTm");
             sprintf(pB, "%i", internalData.delayTime);
+            break;
+        case 22+25+25:
+            sprintf(strA, "VbFb");
+            sprintf(pA, "%i", internalData.reverbFeedback);
+            sprintf(strB, "VbDm");
+            sprintf(pB, "%i", internalData.reverbDamping);
+            break;
+        case 22+25+25+25:
+            sprintf(strA, "VbMd");
+            sprintf(pA, "%i", internalData.reverbModulation);
+            sprintf(strB, "VbTy");
+            sprintf(pB, GetReverbLowCap()?"Srt":"Lng");
             break;
     }
     
@@ -273,5 +293,28 @@ void SongData::Deserialize(pb_istream_t *s)
     {
         const char * error = PB_GET_ERROR(s);
         printf("SongData deserialize error: %s\n", error);
+    }
+    // songs written before the reverb had its own page carry no reverb settings at
+    // all, so they open on the defaults. that is not the tuning they were made
+    // against - the old tank had no working damping and rang for ~18s at 2kHz
+    if(!internalData.has_reverbFeedback)
+    {
+        internalData.has_reverbFeedback = true;
+        internalData.reverbFeedback = VERB_DEFAULT_FEEDBACK;
+    }
+    if(!internalData.has_reverbDamping)
+    {
+        internalData.has_reverbDamping = true;
+        internalData.reverbDamping = VERB_DEFAULT_DAMPING;
+    }
+    if(!internalData.has_reverbModulation)
+    {
+        internalData.has_reverbModulation = true;
+        internalData.reverbModulation = VERB_DEFAULT_MODULATION;
+    }
+    if(!internalData.has_reverbLowCap)
+    {
+        internalData.has_reverbLowCap = true;
+        internalData.reverbLowCap = 0;
     }
 }

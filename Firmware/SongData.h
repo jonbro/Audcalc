@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "SongDataInternal.pb.h"
+#include "GlobalDefines.h"
 #include <pb_encode.h>
 #include <pb_decode.h>
 
@@ -39,6 +40,14 @@ class SongData
             internalData.delayFeedback  = 0x7f;
             internalData.delayTime      = 0x7f;
             internalData.hpVol          = 44;
+            internalData.has_reverbFeedback = true;
+            internalData.reverbFeedback = VERB_DEFAULT_FEEDBACK;
+            internalData.has_reverbDamping  = true;
+            internalData.reverbDamping  = VERB_DEFAULT_DAMPING;
+            internalData.has_reverbModulation = true;
+            internalData.reverbModulation = VERB_DEFAULT_MODULATION;
+            internalData.has_reverbLowCap = true;
+            internalData.reverbLowCap = 0;
         }
         uint8_t GetLength(uint8_t pattern)
         {
@@ -49,6 +58,18 @@ class SongData
         }
         uint8_t GetDelayTime(){
             return internalData.delayTime;
+        }
+        uint8_t GetReverbFeedback(){
+            return internalData.reverbFeedback;
+        }
+        uint8_t GetReverbDamping(){
+            return internalData.reverbDamping;
+        }
+        uint8_t GetReverbModulation(){
+            return internalData.reverbModulation;
+        }
+        bool GetReverbLowCap(){
+            return internalData.reverbLowCap >= 128;
         }
         int8_t GetHPVol(){
             return ((internalData.hpVol*35)>>8)-6;

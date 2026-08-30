@@ -16,4 +16,11 @@ message SongDataInternal
     uint32 patternChainLength       = 12 [(nanopb).int_size = IS_8];
     uint32 hpVol                     = 13 [(nanopb).int_size = IS_8];
     uint32 swing                     = 14 [(nanopb).int_size = IS_8];
+    // optional so that songs written before the reverb had its own controls can be
+    // told apart from songs that genuinely store a zero, and fall back to the defaults
+    optional uint32 reverbFeedback   = 15 [(nanopb).int_size = IS_8];
+    optional uint32 reverbDamping    = 16 [(nanopb).int_size = IS_8];
+    optional uint32 reverbModulation = 17 [(nanopb).int_size = IS_8];
+    // which of the two feedback caps the top of the feedback knob reaches
+    optional uint32 reverbLowCap     = 18 [(nanopb).int_size = IS_8];
 }

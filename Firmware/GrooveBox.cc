@@ -200,6 +200,10 @@ void __not_in_flash_func(GrooveBox::Render)(int16_t* output_buffer, int16_t* inp
     // update some song parameters
     delay.SetFeedback(songData.GetDelayFeedback());
     delay.SetTime(songData.GetDelayTime());
+    verb.SetFeedback(songData.GetReverbFeedback());
+    verb.SetDamping(songData.GetReverbDamping());
+    verb.SetModulation(songData.GetReverbModulation());
+    verb.SetLowFeedbackCap(songData.GetReverbLowCap());
     bool hadExternalSync = false;
     //printf("input %i\n", workBuffer2[0]);
     bool ExternalSyncModeEnabled = (songData.GetSyncInMode() & (SyncMode4PQ|SyncModePO))>0;
@@ -1704,9 +1708,18 @@ void GrooveBox::OnKeyUpdate(uint key, bool pressed)
             {
                 switch(param)
                 {
-                    // hardcode handlers for the delay edit
+                    // hardcode handlers for the delay & reverb edit pages - the fx pad
+                    // cycles sends -> delay params -> reverb params -> sends
                     case 22:
                         targetParam = 22+25;
+                        selectedGlobalParam = true;
+                        break;
+                    case 22+25:
+                        targetParam = 22+25+25;
+                        selectedGlobalParam = true;
+                        break;
+                    case 22+25+25:
+                        targetParam = 22+25+25+25;
                         selectedGlobalParam = true;
                         break;
                 }
