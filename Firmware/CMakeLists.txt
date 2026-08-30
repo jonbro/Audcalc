@@ -92,6 +92,11 @@ include(pico_sdk_import.cmake)
 
 project(audcalc C CXX ASM)
 
+# Firmware version lives in the VERSION file next to this CMakeLists; bump it there.
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" FIRMWARE_VERSION LIMIT_COUNT 1)
+string(STRIP "${FIRMWARE_VERSION}" FIRMWARE_VERSION)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION")
+
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
@@ -133,7 +138,7 @@ pico_generate_pio_header(audcalc ${CMAKE_CURRENT_LIST_DIR}/input_output_copy_i2s
 pico_generate_pio_header(audcalc ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 
 pico_set_program_name(audcalc "audcalc")
-pico_set_program_version(audcalc "0.1")
+pico_set_program_version(audcalc "${FIRMWARE_VERSION}")
 
 pico_enable_stdio_usb(audcalc 0)
 pico_enable_stdio_uart(audcalc 1)
@@ -162,6 +167,7 @@ target_compile_definitions(audcalc PRIVATE
 # #define for our example code
 # USE_AUDIO_I2S=1
 PICO_XOSC_STARTUP_DELAY_MULTIPLIER=32
+FIRMWARE_VERSION="${FIRMWARE_VERSION}"
 )
 
 pico_add_extra_outputs(audcalc)

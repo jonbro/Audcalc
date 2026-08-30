@@ -10,6 +10,11 @@
 #include "GlobalDefines.h"
 #include "hardware/sync.h"
 
+// set from the VERSION file by CMake; fallback for builds outside that flow
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "?.?.?"
+#endif
+
 static uint32_t getFreeRAM() {
     extern char __StackLimit;
     extern char __bss_end__;
@@ -1270,9 +1275,10 @@ void GrooveBox::UpdateDisplay(ssd1306_t *p)
         powerHoldTime++;
         if(powerHoldTime > 30*2)
         {
-            ssd1306_clear_square(p, 0, 0, 45, 16);
-            sprintf(str, "v:%.2f",  hardware_get_battery_level_float());
+            ssd1306_clear_square(p, 0, 0, 47, 32);
+            sprintf(str, "b:%.2f",  hardware_get_battery_level_float());
             ssd1306_draw_string_gfxfont(p, 3, 12, str, true, 1, 1, &m6x118pt7b);
+            ssd1306_draw_string_gfxfont(p, 3, 12+17, "v:" FIRMWARE_VERSION, true, 1, 1, &m6x118pt7b);
         }
     }
     else
