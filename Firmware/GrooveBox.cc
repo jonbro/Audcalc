@@ -84,6 +84,8 @@ void GrooveBox::init(uint32_t *_color)
     midi.OnStop = OnStop;
     midi.OnPosition = OnPosition;
     midi.OnContinue = OnContinue;
+    midi.OnNoteOn = OnNoteOn;
+    midi.OnNoteOff = OnNoteOff;
     
     ResetADCLatch();
     tempoPhase = 0;
