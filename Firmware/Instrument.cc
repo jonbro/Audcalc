@@ -356,7 +356,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
             env1D = add_q15(env1D, lfoState);
             break;
         case Lfo_Target_Env2Decay:
-            env2D = add_q15(env1A, lfoState);
+            env2D = add_q15(env2D, lfoState);
             break;
         case Lfo_Target_Env12Attack:
             env1A = add_q15(env1A, lfoState);
@@ -364,7 +364,7 @@ void Instrument::UpdateVoiceData(VoiceData &voiceData)
             break;
         case Lfo_Target_Env12Decay:
             env1D = add_q15(env1D, lfoState);
-            env2D = add_q15(env1D, lfoState);
+            env2D = add_q15(env2D, lfoState);
             break;
         default:
             break;
